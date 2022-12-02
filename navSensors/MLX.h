@@ -5,12 +5,14 @@
 #include <Adafruit_MLX90614.h>
 #include "MUX2C.h"
 
+// Sensor de temperatura
+
 class MLX
 {
 private:
-  Adafruit_MLX90614 mlx_;
-  uint8_t tcaPos_; // MUXposition
-  MUX2C mux_;
+  Adafruit_MLX90614 mlx;
+  uint8_t tcaPos; // MUXposition
+  MUX2C mux;
 
 public:
   MLX(uint8_t posMux);

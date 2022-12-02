@@ -12,7 +12,6 @@ void setup(){
     sensorTemp = MLX(CANAL_TEMP);
 }
 
-
 void loop (){
     testTemperatura();
 }

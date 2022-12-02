@@ -1,30 +1,28 @@
 #include "MLX.h"
 
 MLX::MLX(uint8_t posMux){
-  tcaPos_ = posMux;
-  init();
+  tcaPos = posMux;
 }
 
 MLX::MLX(){
-  tcaPos_ = 0;
-  init();
+  tcaPos = 0;
 }
 
-// Regresa la temperatura obtenida.
+// Regresa la temperatura obtenida en celsius.
 float MLX::getTemp(){
-  mux_.tcaSelect(tcaPos_);
-  return mlx_.readObjectTempC();
+  mux.tcaSelect(tcaPos);
+  return mlx.readObjectTempC();
 }
 
 void MLX::init(){
-  mux_.tcaSelect(tcaPos_);
-  if(!mlx_.begin()){
-    Serial.println("ERROR");
+  mux.tcaSelect(tcaPos);
+  if(!mlx.begin()){
+    Serial.println("ERROR MLX");
   }
 }
 
 void MLX::setMux(uint8_t posMux){
-  tcaPos_ = posMux;
+  tcaPos = posMux;
 }
 
 void MLX::printTemp(){
