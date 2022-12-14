@@ -18,30 +18,6 @@ TCS::TCS(uint8_t posMux, uint8_t precision)
   this->precision = precision;
 }
 
-TCS::TCS(uint8_t posMux, uint8_t precision)
-{
-  setDefValues();
-  tcaPos = posMux;
-  this->precision = precision;
-}
-
-TCS::TCS(uint8_t posMux, uint8_t precision, uint8_t colors[COLORES][COLUMNAS])
-{
-  setDefValues();
-  tcaPos = posMux;
-  this->precision = precision;
-  this->colors = colors;
-}
-
-TCS::TCS(uint8_t posMux, uint8_t precision, uint8_t colors[COLORES][COLUMNAS], char colorList[COLORES])
-{
-  setDefValues();
-  tcaPos = posMux;
-  this->precision = precision;
-  this->colors = colors;
-  this->colorList = colorList;
-}
-
 void TCS::init()
 {
   mux.tcaSelect(tcaPos);
@@ -51,14 +27,30 @@ void TCS::init()
   }
 }
 
+void TCS::init(uint8_t colors[][3], uint8_t colorAmount)
+{
+  this->colors = colors;
+  this->colorAmount = colorAmount;
+  init();
+}
+
+void TCS::init(uint8_t colors[][3], uint8_t colorAmount, char colorList[])
+{
+  this->colorList = colorList;
+  init(colors, colorAmount);
+}
+
 void TCS::setDefValues()
 {
   red = 0;
   green = 0;
   blue = 0;
   tcaPos = 0;
+
+  char tempC[4] = {"wgb"};
+  colorList = tempC;
   colors = nullptr;
-  colorList = nullptr;
+  precision = 10;
 }
 
 void TCS::updateRGB()
@@ -72,7 +64,6 @@ void TCS::updateRGB()
 
 void TCS::printRGB()
 {
-
   updateRGB();
 
   Serial.print("R: ");
@@ -121,12 +112,13 @@ char TCS::getColorWithPrecision()
 {
   if (colors == nullptr)
   {
-    Serial.println("Los colores no estan declarados. Se usara getColor()") return getColor();
+    Serial.println("Los colores no estan declarados. Se usara getColor()");
+    return getColor();
   }
 
   updateRGB();
 
-  for (uint8_t i = 0; i < COLORES; i++)
+  for (uint8_t i = 0; i < colorAmount; i++)
   {
     if (inRange(red, colors[i][0]) && inRange(green, colors[i][1]) && inRange(blue, colors[i][2]))
     {

@@ -5,54 +5,79 @@
 #include "MUX2C.h"
 
 #define TCSADDR 0x29
-#define COLORES 3
-#define COLUMNAS 3
 
-// Sensor de color
+// Color sensor
 
 class TCS
 {
 private:
-  Adafruit_TCS34725 tcs = Adafruit_TCS34725();
+  Adafruit_TCS34725 tcs;
   float red;
   float green;
   float blue;
   MUX2C mux;
   uint8_t tcaPos;
   uint8_t precision;
-  char colorList[COLORES] = {'w', 'g', 'b'}; // arreglo con iniciales de colores. 
+  char *colorList; // Array with color initials. 
+  uint8_t colorAmount = 3;
 
-  // Matriz con colores detectados con sensor
-  // rows: filas numero de colores
-  // columnas: cantidades r g b detectadas
-  uint8_t colors[COLORES][COLUMNAS];
+  // Matrix with colors detected by sensor
+  // rows: amount of colors
+  // columns:  R G B value registered for each color
+  uint8_t (*colors)[3];
   
   /*
-  para colorList[i], 
-    colors[i][0] = cantidad de rojo;
-    colors[i][1] = cantidad de verde;
-    colors[i][2] = cantidad de azul;
-  detectado al registrar ese color manualmente
+  for color at colorList[i], 
+    colors[i][0] = amount of red.
+    colors[i][1] = amount of green.
+    colors[i][2] = amount of blue.
+  registered during manual color calibration.
   */
 
+  // Checks if detected color is within range.
   bool inRange(uint8_t color, uint8_t colorRegistered);
+
   void setDefValues();
 
 public:
   TCS();
   TCS(uint8_t posMux);
   TCS(uint8_t posMux, uint8_t precision);
-  TCS(uint8_t posMux, uint8_t precision);
-  TCS(uint8_t posMux, uint8_t precision, uint8_t colors[COLORES][COLUMNAS]);
-  TCS(uint8_t posMux, uint8_t precision, uint8_t colors[COLORES][COLUMNAS], char colorList[]);
 
+  // Calls .begin() for the TCS object.
   void init();
+
+  // Methods used to set colors, colorAmount, and colorList after object declaration.
+
+  // Sets colors and colorAmount for TCS object.
+  // @param colors[][3] 2D array with RGB values.
+  // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
+  void init(uint8_t colors[][3], uint8_t colorAmount);
+
+  // Sets colors, colorAmount and colorList for TCS object.
+  // @param colors[][3] 2D array with RGB values.
+  // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
+  // @param colorList[] Array of initials of registered colors.
+  void init(uint8_t colors[][3], uint8_t colorAmount, char colorList[]);
+
+  // Sets MUX position.
+  // @param posMux new mutliplexor position.
   void setMux(uint8_t posMux);
+
+  // Modifies the precision used for color detection.
+  // @param precision Represents how greater or lower a detected color can be to considered as matching.
   void setPrecision(uint8_t precision);
 
+  // Prints the RGB values of the sensor
   void printRGB();
+
+  // Updates the RGB values of the sensor
   void updateRGB();
+
+  // Returns the color letter that the sensor detected
   char getColor();
+
+  // Returns color letter detected with the use of precision ranges.
   char getColorWithPrecision();
 };
 

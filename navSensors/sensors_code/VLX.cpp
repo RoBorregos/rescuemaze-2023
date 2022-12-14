@@ -1,9 +1,9 @@
 #include "VLX.h"
 
-
+/*
 VLX::VLX(){
   tcaPos = 0;
-}
+}*/
 
 VLX::VLX(uint8_t posMux){
   tcaPos = posMux;
@@ -14,7 +14,7 @@ void VLX::setMux(uint8_t posMux){
 }
 
 void VLX::init(){
-  mux_.tcaSelect(tcaPos);
+  mux.tcaSelect(tcaPos);
     
   if (!vlx.begin()){
     Serial.println("ERROR VLX");

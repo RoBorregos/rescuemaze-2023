@@ -4,8 +4,6 @@ MUX2C::MUX2C()
 {
 }
 
-// Selecciona uno de los canales del multiplexor para que pueda usarse.
-// @param i Canal que se quiere usar. Rango: [0,7]
 void MUX2C::tcaSelect(uint8_t i)
 {
   Wire.beginTransmission(TCAADDR);
@@ -13,17 +11,15 @@ void MUX2C::tcaSelect(uint8_t i)
   Wire.endTransmission();
 }
 
-// Encuentra las direcciones i2c de los dispostivos conectados
-// en cualquiera de los canales del MUX.
-void MUX2C::encontrarI2C()
+void MUX2C::findI2C()
 {
   Wire.begin();
-  Serial.println("\nTCA escaner listo");
+  Serial.println("\nScanning I2C positions");
 
   for (uint8_t t = 0; t < 8; t++)
   {
     tcaSelect(t);
-    Serial.print("Escaneando salida ");
+    Serial.print("Scanning ");
     Serial.println(t);
     for (uint8_t addr = 0; addr <= 127; addr++)
     {
@@ -32,10 +28,10 @@ void MUX2C::encontrarI2C()
       Wire.beginTransmission(addr);
       if (!Wire.endTransmission())
       {
-        Serial.print("  - Encontrado I2C 0x");
+        Serial.print("  - I2C found at 0x");
         Serial.println(addr, HEX);
       }
     }
   }
-  Serial.println("Finalizado");
+  Serial.println("End of I2C scan");
 }

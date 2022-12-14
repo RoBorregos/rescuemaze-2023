@@ -8,7 +8,6 @@ MLX::MLX(){
   tcaPos = 0;
 }
 
-// Regresa la temperatura obtenida en celsius.
 float MLX::getTemp(){
   mux.tcaSelect(tcaPos);
   return mlx.readObjectTempC();
@@ -26,6 +25,6 @@ void MLX::setMux(uint8_t posMux){
 }
 
 void MLX::printTemp(){
-  Serial.print("Temperatura (C): ");
+  Serial.print("Temperature (C): ");
   Serial.println(MLX::getTemp());
 }

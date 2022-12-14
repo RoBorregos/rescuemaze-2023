@@ -38,7 +38,7 @@ float BNO::getAngleY(){
 }
 
 float BNO::getAngleZ(){
-  mux.tcaSelect(tcaPos_);
+  mux.tcaSelect(tcaPos);
   sensors_event_t event;
   bno.getEvent(&event);    
 
