@@ -18,39 +18,64 @@ public:
     int val;
     vector<int> pos;
 
-    map<string, pair<Tile *, int>> adjacentTiles;
-    // map<string, int> weights;
+    map<string, Tile *> adjacentTiles;
+    // map<string, pair<Tile *, int>> adjacentTiles;
+    map<string, int> weights;
 
     map<string, bool> walls;
 
     bool visited;
 
     Tile();
-    Tile(int val, int x, int y);
+    Tile(vector<int> p, int v);
 
-    void addNorth(Tile *t);
-    void addEast(Tile *t);
-    void addSouth(Tile *t);
-    void addWest(Tile *t);
+    void addNorth(Tile *t); //, int weight);
+    void addEast(Tile *t); //, int weight);
+    void addSouth(Tile *t); //, int weight);
+    void addWest(Tile *t); //, int weight);
 
-    void appendTile(Tile *, string);
+    void appendTile(Tile *t, string key); //, int weight);
+    // void appendTile(string key, int weight, int val);
 };
 
 Tile::Tile()
 {
+    val = 0;
+    pos = {0, 0, 0};
+
+    visited = false;
+
     adjacentTiles = {
-        {"north", pair(nullptr, INT_MAX)},
-        {"east", pair(nullptr, INT_MAX)},
-        {"south", pair(nullptr, INT_MAX)},
-        {"west", pair(nullptr, INT_MAX)}};
+        {"north", nullptr},
+        {"east", nullptr},
+        {"south", nullptr},
+        {"west", nullptr}};
 
-    // val = 0;
+    weights = {
+        {"north", 0},
+        {"east", 0},
+        {"south", 0},
+        {"west", 0}};
 
-    // weights = {
-    //     {"north", 0},
-    //     {"east", 0},
-    //     {"south", 0},
-    //     {"west", 0}};
+    walls = {
+        {"north", false},
+        {"east", false},
+        {"south", false},
+        {"west", false}};
+}
+
+Tile::Tile(vector<int> p, int v)
+{
+    val = v;
+    pos = p;
+
+    visited = false;
+
+    adjacentTiles = {
+        {"north", nullptr},
+        {"east", nullptr},
+        {"south", nullptr},
+        {"west", nullptr}};
 
     walls = {
         {"north", false},
@@ -58,101 +83,101 @@ Tile::Tile()
         {"south", false},
         {"west", false}};
 
-    visited = false;
-}
-
-Tile::Tile(int x, int y)
-{
-    pos = {x, y};
-
-    adjacentTiles = {
-        {"north", pair(nullptr, INT_MAX)},
-        {"east", pair(nullptr, INT_MAX)},
-        {"south", pair(nullptr, INT_MAX)},
-        {"west", pair(nullptr, INT_MAX)}};
-
-    walls = {
-        {"north", false},
-        {"east", false},
-        {"south", false},
-        {"west", false}};
+    weights = {
+        {"north", 0},
+        {"east", 0},
+        {"south", 0},
+        {"west", 0}};
 
     visited = false;
-
-    // weights = {
-
-    // };
 }
 
-void Tile::addNorth(Tile *t)
+void Tile::addNorth(Tile *t) //, int weight)
 {
-    if (adjacentTiles["north"].first == nullptr)
+    if (adjacentTiles["north"] == nullptr)
     {
-        adjacentTiles["north"].first = t;
+        adjacentTiles["north"] = t;
 
-        t->addSouth(this);
+        t->addSouth(this); //, this->val);
     }
-    if (adjacentTiles["north"].second > t->val)
+    /* if (weights["north"] > weight)
     {
-        adjacentTiles["north"].second = t->val;
-    }
+        weights["north"] = weight;
+    } */
 }
-void Tile::addEast(Tile *t)
+void Tile::addEast(Tile *t) //, int weight)
 {
-    if (adjacentTiles["east"].first == nullptr)
+    if (adjacentTiles["east"] == nullptr)
     {
-        adjacentTiles["east"].first = t;
+        adjacentTiles["east"] = t;
 
-        t->addWest(this);
+        t->addWest(this); //, this->val);
     }
-    if (adjacentTiles["east"].second > t->val)
+    /* if (weights["east"] > weight)
     {
-        adjacentTiles["east"].second = t->val;
-    }
+        weights["east"] = weight;
+    } */
 }
-void Tile::addSouth(Tile *t)
+void Tile::addSouth(Tile *t) //, int weight)
 {
-    if (adjacentTiles["south"].first == nullptr)
+    if (adjacentTiles["south"] == nullptr)
     {
-        adjacentTiles["south"].first = t;
+        adjacentTiles["south"] = t;
 
-        t->addNorth(this);
+        t->addNorth(this); //, this->val);
     }
-    if (adjacentTiles["south"].second > t->val)
+    /* if (weights["south"] > weight)
     {
-        adjacentTiles["south"].second = t->val;
-    }
+        weights["south"] = weight;
+    } */
 }
-void Tile::addWest(Tile *t)
+void Tile::addWest(Tile *t) //, int weight)
 {
-    if (adjacentTiles["west"].first == nullptr)
+    if (adjacentTiles["west"] == nullptr)
     {
-        adjacentTiles["west"].first = t;
+        adjacentTiles["west"] = t;
 
-        t->addEast(this);
+        t->addEast(this); //, this->val);
     }
-    if (adjacentTiles["west"].second > t->val)
+    /* if (weights["west"] > weight)
     {
-        adjacentTiles["west"].second = t->val;
-    }
+        weights["west"] = weight;
+    } */
 }
 
-void Tile::appendTile(Tile *t, string key)
+void Tile::appendTile(Tile *t, string key) //, int weight)
 {
     if (key == "north")
     {
-        addNorth(t);
+        addNorth(t); //, weight);
     }
     else if (key == "east")
     {
-        addEast(t);
+        addEast(t); //, weight);
     }
     else if (key == "south")
     {
-        addSouth(t);
+        addSouth(t); //, weight);
     }
     else if (key == "west")
     {
-        addWest(t);
+        addWest(t); //, weight);
     }
 }
+
+/* void Tile::appendTile(string key, int weight, int val)
+{
+    int x2 = this->pos[0];
+    int y2 = this->pos[1];
+    int z2 = this->pos[2];
+
+    if (val == 'w')
+    {
+        
+    }
+    else
+    {
+        
+    }
+    
+} */
