@@ -1,9 +1,9 @@
 #include "VLX.h"
 
-/*
+
 VLX::VLX(){
   tcaPos = 0;
-}*/
+}
 
 VLX::VLX(uint8_t posMux){
   tcaPos = posMux;

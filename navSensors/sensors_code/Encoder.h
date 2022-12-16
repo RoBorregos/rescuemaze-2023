@@ -3,7 +3,18 @@
 
 #include <Arduino.h>
 #include "Motor.h"
-#include "Movement.h"
+
+// Motor Ids
+#define FRONT_LEFT 0
+#define BACK_LEFT 1
+#define FRONT_RIGHT 2
+#define BACK_RIGHT 3
+
+// Movement comands
+#define ROBOT_FORWARD 1
+#define ROBOT_TURN_RIGHT 2
+#define ROBOT_TURN_LEFT 3
+#define ROBOT_RAMP 4
 
 // Class used to modify motor's tics and regulate speed.
 
