@@ -23,18 +23,38 @@ class PID{
   public:
     // Constructors
 
+    // Set PID with manually determined constants.
+    // @param kp The constant of proportionality.
+    // @param ki The integral constant.
+    // @param kd The derivative constant.
+    // @param out_min The minimum PWM that the motor needs to for moving.
+    // @param out_max The maximum PWM supported by the motor (255).
+    // @param max_error_sum The maximum error that can be accumulated by integral part.
+    // @param sample_time The minimum time needed to compute speed again.
     PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time);
     PID();
 
     // PID Methods
 
-    // Computes speed of the motor using PID tunnigs and Encoder tics for straight movement
+    // Computes speed (in PWM) of the motor using PID tunnigs and Encoder tics for straight movement
+    // @param setpoint The target speed in rev/s.
+    // @param &input The current speed in rev/s. Calculated with tics. Value set as argument unused.
+    // @param &output The PWM to set as the new motor speed.
+    // @param &reset_variable The tics recorded since last speed computation. This variable is set to 0.
+    // @param pulses_per_rev The pulses needed for one revolution. Depends on type of motor.
+    // @param count_time_samples_in_one_second Speed computations per second.
     void computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,const double count_time_samples_in_one_second);
 
     // Computes the speed of the motor using PID tunnigs and encoder tics for left rotation
+    // @param desired Target angle
+    // @param current Current angle
+    // @param &output PWM of motor.
     void computeRotateIzq(const double desired, double current, double &output);
 
     // Computes the speed of the motor using PID tunnigs and encoder tics for right rotation
+    // @param desired Target angle
+    // @param current Current angle
+    // @param &output PWM of motor.
     void computeRotateDer(const double desired, double current, double &output);
 
     // Other Methods

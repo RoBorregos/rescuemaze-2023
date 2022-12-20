@@ -1,43 +1,48 @@
 #include "VLX.h"
 
-
-VLX::VLX(){
-  tcaPos = 0;
+VLX::VLX()
+{
 }
 
-VLX::VLX(uint8_t posMux){
-  tcaPos = posMux;
+VLX::VLX(uint8_t posMux)
+{
+  mux.setTcaPos(posMux);
 }
 
-void VLX::setMux(uint8_t posMux){
-  tcaPos = posMux;
+void VLX::setMux(uint8_t posMux)
+{
+  mux.setTcaPos(posMux);
 }
 
-void VLX::init(){
-  mux.tcaSelect(tcaPos);
-    
-  if (!vlx.begin()){
+void VLX::init()
+{
+  mux.tcaSelect();
+
+  if (!vlx.begin())
+  {
     Serial.println("ERROR VLX");
+    mux.setChannel(VLX_ADDR);
   }
 }
 
-float VLX::getRawDistance(){
-  mux.tcaSelect(tcaPos);
+float VLX::getRawDistance()
+{
+  mux.tcaSelect();
   vlx.rangingTest(&measure, false);
 
-  return measure.RangeMilliMeter; // Devuelve la distancia en milimetros
+  return measure.RangeMilliMeter;
 }
 
-// Regresa distanica en metros
-double VLX::getDistance(){
-  mux.tcaSelect(tcaPos);
+double VLX::getDistance()
+{
+  mux.tcaSelect();
   vlx.rangingTest(&measure, false);
-  
-  
-  return (measure.RangeMilliMeter/1000.000);
+
+  return (measure.RangeMilliMeter / 1000.000);
 }
 
-void VLX::printDistance(){
+void VLX::printDistance()
+{
   Serial.print("Distancia: ");
   Serial.print(VLX::getDistance());
   Serial.println(" M");

@@ -8,22 +8,23 @@ TCS::TCS()
 TCS::TCS(uint8_t posMux)
 {
   setDefValues();
-  tcaPos = posMux;
+  mux.setTcaPos(posMux);
 }
 
 TCS::TCS(uint8_t posMux, uint8_t precision)
 {
   setDefValues();
-  tcaPos = posMux;
+  mux.setTcaPos(posMux);
   this->precision = precision;
 }
 
 void TCS::init()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   if (!tcs.begin())
   {
     Serial.println("ERROR TCS.");
+    mux.setChannel(TCS_ADDR);
   }
 }
 
@@ -45,7 +46,6 @@ void TCS::setDefValues()
   red = 0;
   green = 0;
   blue = 0;
-  tcaPos = 0;
 
   char tempC[4] = {"wgb"};
   colorList = tempC;
@@ -55,7 +55,7 @@ void TCS::setDefValues()
 
 void TCS::updateRGB()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   tcs.setInterrupt(false); // turn on LED
   delay(50);               // 50ms recomendado, testear en 10
   tcs.getRGB(&red, &green, &blue);
@@ -76,7 +76,7 @@ void TCS::printRGB()
 
 void TCS::setMux(uint8_t posMux)
 {
-  tcaPos = posMux;
+  mux.setTcaPos(posMux);
 }
 
 void TCS::setPrecision(uint8_t precision)
@@ -112,7 +112,7 @@ char TCS::getColorWithPrecision()
 {
   if (colors == nullptr)
   {
-    Serial.println("Los colores no estan declarados. Se usara getColor()");
+    Serial.println("The colors aren't declared, getColor() will be used.");
     return getColor();
   }
 
@@ -126,6 +126,6 @@ char TCS::getColorWithPrecision()
     }
   }
 
-  // En caso de que no detecte ningun color.
+  // In case no color is detected.
   return 'u';
 }

@@ -162,10 +162,6 @@ double Motor::Ms2Rps(double MS){
   return (MS / (kDistancePerRev));
 }
 
-double Motor::Pwm2Rpm(double pwm){
-  return ((pwm * kRPM) / kMaxPWM);
-}
-
 void Motor::motorSpeedPID(double target_speed){
   int speed_sign = min(1, max(-1, target_speed * 1000));
   this->targetSpeed = fabs(target_speed);

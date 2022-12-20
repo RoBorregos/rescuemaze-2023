@@ -8,11 +8,12 @@
 
 // Distance sensor
 
+#define VLX_ADDR 0x29
+
 class VLX{
   private:
     Adafruit_VL53L0X vlx = Adafruit_VL53L0X(); 
     MUX2C mux;
-    uint8_t tcaPos; // MUX position 
     VL53L0X_RangingMeasurementData_t measure;
 
     // Unit conversion
@@ -21,12 +22,19 @@ class VLX{
   public:
 
     VLX();
+    
     VLX(uint8_t posMux);
 
     void setMux(uint8_t posMux);
+
+    // Retuns distance in meters.
     double getDistance();
+
+    // Returns distance in millimeters.
     float getRawDistance();
     void init();
+
+    // Prints distance in meters.
     void printDistance();
 };
 

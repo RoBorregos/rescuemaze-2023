@@ -7,11 +7,12 @@
 
 // Temperature sensor
 
+#define MLX_ADDR 30
+
 class MLX
 {
 private:
   Adafruit_MLX90614 mlx;
-  uint8_t tcaPos; // MUX position
   MUX2C mux;
 
 public:

@@ -4,7 +4,7 @@
 #include "Adafruit_TCS34725.h"
 #include "MUX2C.h"
 
-#define TCSADDR 0x29
+#define TCS_ADDR 0x29
 
 // Color sensor
 
@@ -16,7 +16,6 @@ private:
   float green;
   float blue;
   MUX2C mux;
-  uint8_t tcaPos;
   uint8_t precision;
   char *colorList; // Array with color initials. 
   uint8_t colorAmount = 3;

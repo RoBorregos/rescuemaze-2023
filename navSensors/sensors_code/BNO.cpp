@@ -2,25 +2,25 @@
 
 BNO::BNO()
 {
-  tcaPos = 0;
 }
 
 BNO::BNO(uint8_t posMux)
 {
-  tcaPos = posMux;
+  mux.setTcaPos(posMux);
 }
 
 void BNO::setMux(uint8_t posMux)
 {
-  tcaPos = posMux;
+  mux.setTcaPos(posMux);
 }
 
 void BNO::init()
 {
-
+  mux.tcaSelect();
   if (!bno.begin())
   {
     Serial.println("ERROR BNO");
+    mux.setChannel(BNO_ADDR);
   }
 
   bno.setExtCrystalUse(true);
@@ -28,7 +28,7 @@ void BNO::init()
 
 float BNO::getAngleX()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   sensors_event_t event;
   bno.getEvent(&event);
 
@@ -37,7 +37,7 @@ float BNO::getAngleX()
 
 float BNO::getAngleY()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   sensors_event_t event;
   bno.getEvent(&event);
 
@@ -46,7 +46,7 @@ float BNO::getAngleY()
 
 float BNO::getAngleZ()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   sensors_event_t event;
   bno.getEvent(&event);
 
@@ -55,7 +55,7 @@ float BNO::getAngleZ()
 
 void BNO::anglesInfo()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   sensors_event_t event;
   bno.getEvent(&event);
 
@@ -69,7 +69,7 @@ void BNO::anglesInfo()
 
 void BNO::updateEvents()
 {
-  mux.tcaSelect(tcaPos);
+  mux.tcaSelect();
   bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
   bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
   quat = bno.getQuat();
