@@ -74,6 +74,13 @@ void TCS::printRGB()
   Serial.println(blue);
 }
 
+void TCS::printColor()
+{
+  Serial.print("Color: ");
+  char color = (colors) ? getColorWithPrecision() : getColor();
+  Serial.println(color);
+}
+
 void TCS::setMux(uint8_t posMux)
 {
   mux.setTcaPos(posMux);

@@ -8,8 +8,8 @@
 #include "VLX.h"
 #include "TCS.h"
 
-
 // SENSOR DATA
+
 #define vlx_right 0
 #define vlx_left 1
 #define vlx_front 2
@@ -17,87 +17,105 @@
 #define mlx_right 0
 #define mlx_left 1
 
-class Sensors{
- // Sensors Count
-    static constexpr int kBNOCount = 10; // BNO sensor data count
-    static constexpr int kVLXCount = 4; // VLX sensors data count
-    static constexpr int kMLXCount = 2; // MLX sensors data count
-    static constexpr int kTCSCount = 1; // TCS sensors data count
-    static constexpr int kSensorCount = kBNOCount + kVLXCount + kMLXCount + kTCSCount; // Total sensors data count
-    
-    // Sensors.
-    BNO *bno_;
-    MLX mlx_[kMLXCount];
-    VLX vlx_[kVLXCount];
-    TCS tcs_;
+// Class used to initialize, manage, and recieve information from all the needed sensors.
+class Sensors
+{
+  // Sensors Count
+  static constexpr int kBNOCount = 10;                                               // BNO sensor data count
+  static constexpr int kVLXCount = 4;                                                // VLX sensors data count
+  static constexpr int kMLXCount = 2;                                                // MLX sensors data count
+  static constexpr int kTCSCount = 1;                                                // TCS sensors data count
+  static constexpr int kSensorCount = kBNOCount + kVLXCount + kMLXCount + kTCSCount; // Total sensors data count
 
-    // Sensor Pins.
-    int kMuxVLX[kVLXCount] = {7,1,5,3}; // VLX multiplexor pins
-    int kMuxMLX[kMLXCount] = {0,4}; // MLX multiplexor pins
-    int kMuxTCS = 6;  // TCS multiplexor pin
+  // TCS constants
+  static constexpr int kTCSPrecision = 10; // Precision for matching color values.
+  static char colorList[] = {"wgbgbnr"};   // List of color initials
+  static constexpr uint8_t colorAmount = 7; // Number of colors
+  // RGB values for each color. Check TCS class for more details.
+  static uint8_t colors[colorAmount][3] = {
+      {19, 31, 58},
+      {28, 120, 82},
+      {16, 64, 31},
+      {73, 132, 73},
+      {110, 70, 108},
+      {155, 111, 57},
+      {220, 156, 150}};
 
-  public:
-    ////////////////////////////////////////Constructor//////////////////////////////////////////////////////
-    Sensors(BNO *bno);
+  // Sensors.
+  
+  BNO *bno;
+  MLX mlx[kMLXCount];
+  VLX vlx[kVLXCount];
+  TCS tcs;
 
-    /////////////////////////////////////////Initialization/////////////////////////////////////////////////////////
-    void initSensors();
+  // Sensor Pins.
+  int kMuxVLX[kVLXCount] = {7, 1, 5, 3}; // VLX multiplexor pins
+  int kMuxMLX[kMLXCount] = {0, 4};       // MLX multiplexor pins
+  int kMuxTCS = 6;                       // TCS multiplexor pin
 
-    ////////////////////////////////////////Sensor Methods/////////////////////////////////////////////////////////
+public:
+  // Constructor
 
-    ///////////////////////////////////////////BNO data///////////////////////////////////////////////////////////
-    // Returns the BNO x axis data for quatertion.
-    float getQuatX();
+  Sensors(BNO *bno);
 
-    // Returns the BNO y axis data for quatertion.
-    float getQuatY();
+  // Initialization
 
-    // Returns the BNO z axis data for quatertion.
-    float getQuatZ();
+  void initSensors();
 
-    // Returns the BNO w axis data for quatertion.
-    float getQuatW();
+  // Sensor Methods
 
-    // Returns the BNO x axis data for angular velocity.
-    float getAngVelX();
+  // BNO data
 
-    // Returns the BNO y axis data for angular velocity.
-    float getAngVelY();
+  // Returns the BNO x axis data for quatertion.
+  float getQuatX();
 
-    // Returns the BNO z axis data for angular velocity.
-    float getAngVelZ();
+  // Returns the BNO y axis data for quatertion.
+  float getQuatY();
 
-    // Returns the BNO x axis data for Linear acceleration.
-    float getLinAccX();
+  // Returns the BNO z axis data for quatertion.
+  float getQuatZ();
 
-    // Returns the BNO y axis data for Linear acceleration.
-    float getLinAccY();
+  // Returns the BNO w axis data for quatertion.
+  float getQuatW();
 
-    // Returns the BNO z axis data for Linear acceleration.
-    float getLinAccZ();
+  // Returns the BNO x axis data for angular velocity.
+  float getAngVelX();
 
-    // Returns the BNO x axis data for angle.
-    float getAngleX();
+  // Returns the BNO y axis data for angular velocity.
+  float getAngVelY();
 
-    // Returns the BNO y axis data for angle.
-    float getAngleY();
+  // Returns the BNO z axis data for angular velocity.
+  float getAngVelZ();
 
-    // Returns the BNO z axis data for angle.
-    float getAngleZ();
+  // Returns the BNO x axis data for Linear acceleration.
+  float getLinAccX();
 
-    // Returns the VLX distance depending on the position of the VLX sensor
-    float getVLXInfo(int posVLX);
+  // Returns the BNO y axis data for Linear acceleration.
+  float getLinAccY();
 
-    // Returns the MLX temperature depending on the position of the MLX sensor
-    float getMLXInfo(int posMLX);
-    
-    // Returns the TCS color detected
-    char getTCSInfo();
+  // Returns the BNO z axis data for Linear acceleration.
+  float getLinAccZ();
 
-    // Prints all sensors information in the serial monitor.
-    void printInfo();
+  // Returns the BNO x axis data for angle.
+  float getAngleX();
+
+  // Returns the BNO y axis data for angle.
+  float getAngleY();
+
+  // Returns the BNO z axis data for angle.
+  float getAngleZ();
+
+  // Returns the VLX distance depending on the position of the VLX sensor
+  float getVLXInfo(int posVLX);
+
+  // Returns the MLX temperature depending on the position of the MLX sensor
+  float getMLXInfo(int posMLX);
+
+  // Returns the TCS color detected
+  char getTCSInfo();
+
+  // Prints all sensors information in the serial monitor.
+  void printInfo();
 };
-
-
 
 #endif

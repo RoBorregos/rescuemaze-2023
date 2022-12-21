@@ -69,6 +69,9 @@ public:
 
   // Prints the RGB values of the sensor
   void printRGB();
+  
+  // Prints the color detected by the sensor.
+  void printColor();
 
   // Updates the RGB values of the sensor
   void updateRGB();
