@@ -29,10 +29,10 @@ class Sensors
 
   // TCS constants
   static constexpr int kTCSPrecision = 10; // Precision for matching color values.
-  static char colorList[] = {"wgbgbnr"};   // List of color initials
   static constexpr uint8_t colorAmount = 7; // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"wgbgbnr"};   // List of color initials
   // RGB values for each color. Check TCS class for more details.
-  static uint8_t colors[colorAmount][3] = {
+  static constexpr uint8_t colors[colorAmount][3] = {
       {19, 31, 58},
       {28, 120, 82},
       {16, 64, 31},
@@ -49,7 +49,7 @@ class Sensors
   TCS tcs;
 
   // Sensor Pins.
-  int kMuxVLX[kVLXCount] = {7, 1, 5, 3}; // VLX multiplexor pins
+  int kMuxVLX[kVLXCount] = {1, 7, 5, 3}; // VLX multiplexor pins
   int kMuxMLX[kMLXCount] = {0, 4};       // MLX multiplexor pins
   int kMuxTCS = 6;                       // TCS multiplexor pin
 
@@ -114,8 +114,19 @@ public:
   // Returns the TCS color detected
   char getTCSInfo();
 
-  // Prints all sensors information in the serial monitor.
-  void printInfo();
+  // Prints sensor information in the serial monitor.
+  // @param bno True to display bno angles.
+  // @param vlx True to print vlx distances.
+  // @param mlx True to print mlx temperatures.
+  // @param tcs True to print detected color.
+  void printInfo(bool bno = true, bool vlx = true, bool mlx = true, bool tcs = true);
+
+  // Returns BNO angles through reference variables.
+  void bnoAngles(float &x, float &y, float &z);
+
+  void bnoPrint();
+
+  void checkTCS();
 };
 
 #endif

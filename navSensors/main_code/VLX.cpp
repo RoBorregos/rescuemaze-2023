@@ -17,11 +17,10 @@ void VLX::setMux(uint8_t posMux)
 void VLX::init()
 {
   mux.tcaSelect();
-
+  
   if (!vlx.begin())
   {
     Serial.println("ERROR VLX");
-    mux.setChannel(VLX_ADDR);
   }
 }
 

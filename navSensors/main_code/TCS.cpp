@@ -23,19 +23,18 @@ void TCS::init()
   mux.tcaSelect();
   if (!tcs.begin())
   {
-    Serial.println("ERROR TCS.");
-    mux.setChannel(TCS_ADDR);
+    Serial.println("TCS Error.");
   }
 }
 
-void TCS::init(uint8_t colors[][3], uint8_t colorAmount)
+void TCS::init(const uint8_t colors[][3], const uint8_t colorAmount)
 {
   this->colors = colors;
   this->colorAmount = colorAmount;
   init();
 }
 
-void TCS::init(uint8_t colors[][3], uint8_t colorAmount, char colorList[])
+void TCS::init(const uint8_t colors[][3], const uint8_t colorAmount, const char colorList[])
 {
   this->colorList = colorList;
   init(colors, colorAmount);
@@ -135,4 +134,39 @@ char TCS::getColorWithPrecision()
 
   // In case no color is detected.
   return 'u';
+}
+
+void TCS::printColorMatrix()
+{
+  if (colors == nullptr)
+  {
+    Serial.println("Color matrix is null.");
+    return;
+  }
+
+  Serial.println("Printing color matrix:");
+
+  for (uint8_t i = 0; i < colorAmount; i++)
+  {
+    Serial.println(String(colors[i][0]) + " " + String(colors[i][1]) + " " + String(colors[i][2]));
+  }
+  Serial.println(" ");
+}
+
+void TCS::printColorList()
+{
+  if (colorList == nullptr)
+  {
+    Serial.println("Color list is null.");
+    return;
+  }
+
+  Serial.println("Printing color list:");
+  
+  for (uint8_t i = 0; i < colorAmount; i++)
+  {
+    Serial.print(colorList[i]);
+    Serial.print(" ");
+  }
+  Serial.println(" ");
 }

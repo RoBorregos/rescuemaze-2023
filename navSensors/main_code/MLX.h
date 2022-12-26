@@ -7,7 +7,7 @@
 
 // Temperature sensor
 
-#define MLX_ADDR 30
+#define MLX_ADDR 0x5A
 
 class MLX
 {

@@ -10,21 +10,17 @@
 #define BNO_ADDR 0x28
 
 // Sensor with gyroscope, accelerometer, and magnetometer
-
 class BNO
 {
 private:
   Adafruit_BNO055 bno = Adafruit_BNO055(55, BNO_ADDR);
   sensors_event_t angVelocityData, linearAccelData;
   imu::Quaternion quat;
-  MUX2C mux;
 
 public:
   BNO();
-  BNO(uint8_t posMux);
 
   void init();
-  void setMux(uint8_t posMux);
 
   void displaySensorDetails(void);
   void displaySensorStatus(void);
@@ -42,6 +38,7 @@ public:
   float getLinAcc_z();
 
   void anglesInfo();
+  void getAll(float &x, float &y, float &z);
   float getAngleX();
   float getAngleY();
   float getAngleZ();

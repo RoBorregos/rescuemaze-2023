@@ -17,17 +17,17 @@ void Encoder::updateTics(Motor *motor){
 // Methods to select a specific motor to change tics.
 
 void Encoder::backLeftEncoder() {
-  updateTics(&robot->motor_[BACK_LEFT]);
+  updateTics(&robot->motor[BACK_LEFT]);
 }
   
 void Encoder::frontLeftEncoder() {
-  updateTics(&robot->motor_[FRONT_LEFT]);
+  updateTics(&robot->motor[FRONT_LEFT]);
 }
   
 void Encoder::backRightEncoder() {
-  updateTics(&robot->motor_[BACK_RIGHT]);
+  updateTics(&robot->motor[BACK_RIGHT]);
 }
   
 void Encoder::frontRightEncoder() {
-  updateTics(&robot->motor_[FRONT_RIGHT]);
+  updateTics(&robot->motor[FRONT_RIGHT]);
 }

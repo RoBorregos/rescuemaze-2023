@@ -17,13 +17,13 @@ private:
   float blue;
   MUX2C mux;
   uint8_t precision;
-  char *colorList; // Array with color initials. 
+  const char *colorList; // Array with color initials. 
   uint8_t colorAmount = 3;
 
   // Matrix with colors detected by sensor
   // rows: amount of colors
   // columns:  R G B value registered for each color
-  uint8_t (*colors)[3];
+  const uint8_t (*colors)[3];
   
   /*
   for color at colorList[i], 
@@ -51,13 +51,13 @@ public:
   // Sets colors and colorAmount for TCS object.
   // @param colors[][3] 2D array with RGB values.
   // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
-  void init(uint8_t colors[][3], uint8_t colorAmount);
+  void init(const uint8_t colors[][3], const uint8_t colorAmount);
 
   // Sets colors, colorAmount and colorList for TCS object.
   // @param colors[][3] 2D array with RGB values.
   // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
   // @param colorList[] Array of initials of registered colors.
-  void init(uint8_t colors[][3], uint8_t colorAmount, char colorList[]);
+  void init(const uint8_t colors[][3], const uint8_t colorAmount, const char colorList[]);
 
   // Sets MUX position.
   // @param posMux new mutliplexor position.
@@ -81,6 +81,12 @@ public:
 
   // Returns color letter detected with the use of precision ranges.
   char getColorWithPrecision();
+
+  // Prints the colors matrix to check if the colors were saved successfully.
+  void printColorMatrix();
+
+  // Prints the colors list to check if the colors were saved successfully.
+  void printColorList();
 };
 
 #endif

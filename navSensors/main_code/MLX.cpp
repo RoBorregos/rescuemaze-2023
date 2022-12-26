@@ -21,7 +21,6 @@ void MLX::init()
   if (!mlx.begin())
   {
     Serial.println("ERROR MLX");
-    mux.setChannel(MLX_ADDR);
   }
 }
 

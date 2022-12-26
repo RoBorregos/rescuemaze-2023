@@ -54,7 +54,6 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
 
 void PID::computeRotateIzq(const double desired, double current, double &output)
 {
-
   unsigned long timeDiff = millis() - timePassed;
 
   if (timeDiff < sampleTime)
@@ -89,7 +88,9 @@ void PID::computeRotateIzq(const double desired, double current, double &output)
 
 void PID::computeRotateDer(const double desired, double current, double &output)
 {
-  if (millis() - timePassed < sampleTime)
+  unsigned long timeDiff = millis() - timePassed;
+
+  if (timeDiff < sampleTime)
   {
     return;
   }
@@ -109,7 +110,7 @@ void PID::computeRotateDer(const double desired, double current, double &output)
     error = desired - current;
   }
 
-  output = error * kp + errorSum * ki + (error - errorPre) * kd;
+  output = error * kp + errorSum * ki + (error - errorPre) / timeDiff * kd;
 
   errorPre = error;
   errorSum += error;

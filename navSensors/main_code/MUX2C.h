@@ -21,7 +21,8 @@ public:
   MUX2C();
 
   // Finds the I2C addresses of the connected devices
-  // at any of the channels.
+  // at any of the channels. Avoid calling after any i2c device has been
+  // initialized, as it may end communication.
   // @param scan True to print all I2C addresses. False to use as helper method
   // for setMatching().
   // @param address The address when using as helper function for setMatching().
@@ -48,8 +49,9 @@ public:
   // @param address The sensor's address.
   void setMatching(uint8_t address);
   
-  // Searches and sets an available channel. Same functionaly as setMatching()
-  // but prints debug messages.
+  // Searches and sets an available channel. Same functionaly as setMatching() but prints 
+  // debug messages. Avoid calling after any i2c device has been initialized, as it may
+  // end communication.
   // @param address The sensor's address.
   void setChannel(uint8_t address);
 

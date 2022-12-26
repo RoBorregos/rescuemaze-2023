@@ -14,7 +14,6 @@ enum class MotorState
 };
 
 // Class for controlling motor movement.
-
 class Motor
 {
 private:
@@ -104,6 +103,9 @@ public:
   void deltaPidTics(int delta);
 
   // Initialization of motor
+
+  void initMotor();
+
   void motorSetup();
 
   // Encoder Methods
@@ -117,7 +119,7 @@ public:
   // Returns motor encoder tics
   int getEncoderTics();
 
-  // Sets encoder tics to parameter
+  // Sets encoder tics to argument
   void setEncoderTics(int tics);
 
   // Returns distance traveled in meters

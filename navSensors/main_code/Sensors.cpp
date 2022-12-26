@@ -1,5 +1,10 @@
 #include "Sensors.h"
 
+// Definitions of non-int static constexpr variables. (Declarations and initialization in .h)
+
+constexpr char Sensors::colorList[];
+constexpr uint8_t Sensors::colors[Sensors::colorAmount][3];
+
 // Constructor
 
 Sensors::Sensors(BNO *bno) : bno(bno)
@@ -8,9 +13,9 @@ Sensors::Sensors(BNO *bno) : bno(bno)
 }
 
 // Initialization
+
 void Sensors::initSensors()
 {
-
   for (int i = 0; i < kVLXCount; i++)
   {
     vlx[i].setMux(kMuxVLX[i]);
@@ -34,7 +39,8 @@ void Sensors::initSensors()
   // VLX init
   for (int i = 0; i < kVLXCount; i++)
   {
-    vlx[i].init();
+    // If vlx can't initialize, it disrupts bno functionality.
+    vlx[i].init(); 
   }
 
   // MLX init
@@ -46,35 +52,44 @@ void Sensors::initSensors()
 
 // Sensor Methods
 
-void Sensors::printInfo()
+void Sensors::printInfo(bool bno, bool vlx, bool mlx, bool tcs)
 {
+  if (bno)
+    this->bno->anglesInfo();
 
-  bno->anglesInfo();
-
-  for (int i = 0; i < kVLXCount; i++)
+  if (vlx)
   {
-    Serial.print("VLX sensor ");
-    Serial.print(i);
-    Serial.print(" ");
-    Serial.println(float(getVLXInfo(i)), 4);
+    for (int i = 0; i < kVLXCount; i++)
+    {
+      Serial.print("VLX sensor ");
+      Serial.print(i + 1);
+      Serial.print(" ");
+      Serial.print(float(getVLXInfo(i)), 4);
+      Serial.println(" M");
+    }
   }
 
-  for (int i = 0; i < kMLXCount; i++)
+  if (mlx)
   {
-    Serial.print("MLX sensor ");
-    Serial.print(i);
-    Serial.print(" ");
-    Serial.println(getMLXInfo(i));
+    for (int i = 0; i < kMLXCount; i++)
+    {
+      Serial.print("MLX sensor ");
+      Serial.print(i + 1);
+      Serial.print(" ");
+      Serial.println(getMLXInfo(i));
+    }
   }
-
-  Serial.print("TCS sensor  ");
-  tcs.printRGB();
-  tcs.printColor();
+  if (tcs)
+  {
+    Serial.print("TCS sensor  ");
+    this->tcs.printRGB();
+    this->tcs.printColor();
+  }
 }
 
 float Sensors::getVLXInfo(int posVLX)
 {
-  if (posVLX > 0 && posVLX < kVLXCount)
+  if (posVLX >= 0 && posVLX < kVLXCount)
     return vlx[posVLX].getDistance();
 
   Serial.println("Invalid position for VLX sensor at getVLXInfo().");
@@ -83,7 +98,7 @@ float Sensors::getVLXInfo(int posVLX)
 
 float Sensors::getMLXInfo(int posMLX)
 {
-  if (posMLX > 0 && posMLX < kMLXCount)
+  if (posMLX >= 0 && posMLX < kMLXCount)
     return mlx[posMLX].getTemp();
 
   Serial.println("Invalid position for MLX sensor at getMLXInfo().");
@@ -158,4 +173,20 @@ float Sensors::getAngleZ()
 char Sensors::getTCSInfo()
 {
   return tcs.getColorWithPrecision();
+}
+
+void Sensors::bnoAngles(float &x, float &y, float &z)
+{
+  bno->getAll(x, y, z);
+}
+
+void Sensors::bnoPrint()
+{
+  bno->anglesInfo();
+}
+
+void Sensors::checkTCS()
+{
+  tcs.printColorMatrix();
+  tcs.printColorList();
 }

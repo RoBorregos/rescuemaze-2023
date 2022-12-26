@@ -26,6 +26,7 @@ void MUX2C::tcaSelect()
 void MUX2C::findI2C(bool scan, uint8_t address)
 {
   Wire.begin();
+  
   if (scan)
     Serial.println("\nScanning I2C positions");
 
@@ -42,6 +43,7 @@ void MUX2C::findI2C(bool scan, uint8_t address)
     {
       if (addr == TCA_ADDR)
         continue;
+
       Wire.beginTransmission(addr);
       if (!Wire.endTransmission())
       {
