@@ -15,7 +15,7 @@ public:
     // 3: bumper
     // 4: blue tile
     // -1: black tile
-    int val;
+    int weight;
     vector<int> pos;
 
     map<string, Tile *> adjacentTiles;
@@ -40,7 +40,7 @@ public:
 
 Tile::Tile()
 {
-    val = 0;
+    weight = 0;
     pos = {0, 0, 0};
 
     visited = false;
@@ -66,7 +66,7 @@ Tile::Tile()
 
 Tile::Tile(vector<int> p, int v)
 {
-    val = v;
+    weight = v;
     pos = p;
 
     visited = false;
