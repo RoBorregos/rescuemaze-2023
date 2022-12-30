@@ -8,9 +8,12 @@ using namespace std;
 
 #include "Tile.h"
 
-int xMaze = 1;
-int yMaze = 7;
-int zMaze = 1;
+int xMaze = 5;
+int yMaze = 5;
+int zMaze = 0;
+
+// 0: north, 1: east, 2: south, 3: west
+int rDirection = 0;
 
 /*
 #: pared
@@ -158,29 +161,62 @@ char getChar(int xMaze, int yMaze, string key)
     return '-';
 }
 
+void moveForward() // vector<int> &pos, int &rDirection)
+{
+}
+
+void left() // int &rDirection)
+{
+    (rDirection == 0) ? rDirection = 3 : rDirection--;
+
+    // rDirection = (rDirection - 1) % 4;
+}
+void right() // int &rDirection)
+{
+    (rDirection == 3) ? rDirection = 0 : rDirection++;
+
+    // rDirection = (rDirection + 1) % 4;
+}
+
+void rotateTo(int newDirection)
+{
+    while (rDirection != newDirection)
+    {
+        right();
+    }
+}
+
 void moveNorth(vector<int> &pos)
 {
+    rotateTo(0);
+    moveForward();
     yMaze--;
     pos[1]++;
 }
 void moveSouth(vector<int> &pos)
 {
+    rotateTo(2);
+    moveForward();
     yMaze++;
     pos[1]--;
 }
 void moveEast(vector<int> &pos)
 {
+    rotateTo(1);
+    moveForward();
     xMaze++;
     pos[0]++;
 }
 void moveWest(vector<int> &pos)
 {
+    rotateTo(3);
+    moveForward();
     xMaze--;
     pos[0]--;
 }
 
 // void move(int &xMaze, int &yMaze, Tile *tile, string key)
-Tile* move(Tile *tile, string key, vector<int> &pos)
+Tile *move(Tile *tile, string key, vector<int> &pos)
 {
     if (tile->adjacentTiles[key])
     {
@@ -286,7 +322,7 @@ void calcPos(vector<int> &pos, string key, char c)
     }
 } */
 
-Tile* followPath(stack<string> &path, Tile *tile, vector<int> &pos)
+Tile *followPath(stack<string> &path, Tile *tile, vector<int> &pos)
 {
     while (!path.empty())
     {
@@ -346,9 +382,9 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<vector<i
         for (auto &&key : keys)
         {
             targetTile = source->adjacentTiles[key];
-            if (targetTile && !visited[targetTile] && (cost[source] + targetTile->val) < cost[targetTile])
+            if (targetTile && !visited[targetTile] && (cost[source] + targetTile->weight) < cost[targetTile])
             {
-                cost[targetTile] = cost[source] + targetTile->val;
+                cost[targetTile] = cost[source] + targetTile->weight;
                 paths[targetTile] = pair<Tile *, string>{source, key};
 
                 if (cost[targetTile] < lowestCost && find(unvisited.begin(), unvisited.end(), targetTile) != unvisited.end())
@@ -371,10 +407,18 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<vector<i
 
     // unvisited.erase(find(unvisited.begin(), unvisited.end(), lowTile));
     unvisited.erase(remove(unvisited.begin(), unvisited.end(), lowTile), unvisited.end());
-    if (lowTile->val == -10)
+
+    if (lowTile)
     {
-        lowTile->val = 1;
-    }    
+        if (lowTile->weight == -10)
+        {
+            lowTile->weight = 1;
+        }
+    }
+    else
+    {
+        cout << "No hay casillas sin visitar" << endl;
+    }
 
     return bestPath;
 }
@@ -443,31 +487,31 @@ void explore(Tile *tile, vector<Tile *> &unvisited)
                             // tile->adjacentTiles[key] = new Tile(4);
                             // tile->appendTile(key, 100, c);
 
-                            newTile->val = 100;
+                            newTile->weight = 100;
                             // tile->appendTile(newTile, key);
                             // unvisited.push_back(tile->adjacentTiles[key]);
                         }
                         else if (c == 'b') // bumper
                         {
-                            newTile->val = 100;
+                            newTile->weight = 100;
                             // tile->appendTile(newTile, key);
                             // unvisited.push_back(tile->adjacentTiles[key]);
                         }
                         else if (c == '/') // escaleras
                         {
-                            newTile->val = 100;
+                            newTile->weight = 100;
                             // tile->appendTile(newTile, key);
                             // unvisited.push_back(tile->adjacentTiles[key]);
                         }
                         else if (c == 'r') // rampa
                         {
-                            newTile->val = 100;
+                            newTile->weight = 100;
                             // tile->appendTile(newTile, key);
                             // unvisited.push_back(tile->adjacentTiles[key]);
                         }
                         else if (c == 'v')
                         {
-                            newTile->val = -10;
+                            newTile->weight = -10;
                         }
                         // else if (c == ' ') // casilla libre
                         // {
@@ -501,6 +545,12 @@ void explore(Tile *tile, vector<Tile *> &unvisited)
     } while (steps-- > 0);
     // } while (!unvisited.empty());
 
+    unvisited.push_back(startTile);
+    path = bestUnvisited(tile, unvisited, tiles, keys);
+    tile = followPath(path, tile, pos);
+
+    printMaze();
+
     /*     key = "north";
 
         key = "east";
@@ -528,7 +578,8 @@ void explore(Tile *tile, vector<Tile *> &unvisited)
 
 int main()
 {
-    string rDir = "north";
+    // 0: north, 1: east, 2: south, 3: west
+    // int rDirection = 0;
 
     vector<Tile *> unvisited;
 
