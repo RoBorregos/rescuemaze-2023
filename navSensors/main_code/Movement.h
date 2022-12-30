@@ -112,13 +112,20 @@ public:
   // Using ROS
   // TEMP: comment out ros.
   // Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors);
+
   // Using arduino movement
   Movement(BNO *bno, Sensors *sensors);
+
+  // Call using a boolean value to use individual PID constants for each motor.
+  Movement(BNO *bno, Sensors *sensors, bool individualConstants);
 
   // Initialization
 
   // Initializes motors, leds, servo, limit switches, and kinematics.
   void initRobot();
+
+  // Sets the values of the PID for each motor.
+  void setIndividualPID();
 
   // Sets pins for all motors.
   void setMotors();
@@ -178,6 +185,9 @@ public:
 
   // Cheks limit switches state to then decide how to move
   void checkLimitSwitches();
+
+  // For specific tests on specific motors.
+  void testMotor();
 };
 
 #endif

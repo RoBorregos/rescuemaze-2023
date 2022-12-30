@@ -18,12 +18,25 @@ PID::PID(const double kp, const double ki, const double kd, const double out_min
   maxOutput = out_max;
 }
 
+PID::PID(const double kp, const double ki, const double kd)
+{
+  timePassed = millis();
+  setTunnings(kp, ki, kd);
+}
+
 // PID Methods
 
-void PID::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev, const double count_time_samples_in_one_second)
+void PID::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
+                       const double count_time_samples_in_one_second, const bool debug)
 {
 
   unsigned long timeDiff = millis() - timePassed;
+
+  if (debug)
+  {
+    Serial.print("timeDiff: ");
+    Serial.println(timeDiff);
+  }
 
   if (timeDiff < sampleTime)
   {
@@ -50,6 +63,15 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
   output = max(minOutput, min(maxOutput, output));
 
   timePassed = millis();
+
+  if (debug)
+  {
+    Serial.println("Input: " + String(input));
+    Serial.println("Error: " + String(error));
+    Serial.println("ErrorPre: " + String(errorPre));
+    Serial.println("ErrorSum: " + String(errorSum));
+    Serial.println("Output: " + String(output));
+  }
 }
 
 void PID::computeRotateIzq(const double desired, double current, double &output)

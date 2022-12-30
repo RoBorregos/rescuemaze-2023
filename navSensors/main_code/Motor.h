@@ -64,9 +64,9 @@ private:
   // PID controllers for straight movement. Manual calibration
 
   PID pidStraight;
-  static constexpr double kPStraight = 13; // 60
-  static constexpr double kIStraight = 6;  // 55
-  static constexpr double kDStraight = 2;  // 40
+  static constexpr double kPStraight = 13; // 13; // 60
+  static constexpr double kIStraight = 6;  // 6;  // 55
+  static constexpr double kDStraight = 2;  // 2;  // 40
 
   // PID controllers for rotations (used only in Movement::cmdMovement).
 
@@ -157,8 +157,9 @@ public:
   // Returns current PWM
   double getPWM();
 
-  // Computes target speed using straight PID controller
-  void motorSpeedPID(double target_speed);
+  // Computes target speed using straight PID controller. Enter true as
+  // second argument to print debug messages.
+  void motorSpeedPID(double target_speed, bool debug = false);
 
   // Computes target speed without using PID controller, using PWM Kinematics
   void motorSpeedPWM(double target_speed);

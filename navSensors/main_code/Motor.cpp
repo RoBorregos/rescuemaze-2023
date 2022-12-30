@@ -193,7 +193,7 @@ double Motor::Ms2Rps(double MS)
   return (MS / (kDistancePerRev));
 }
 
-void Motor::motorSpeedPID(double target_speed)
+void Motor::motorSpeedPID(double target_speed, bool debug)
 {
   int speed_sign = min(1, max(-1, target_speed * 1000));
   this->targetSpeed = fabs(target_speed);
@@ -211,8 +211,7 @@ void Motor::motorSpeedPID(double target_speed)
     break;
   }
 
-  pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond);
-
+  pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
   setPWM(tmp_pwm);
 }
 
