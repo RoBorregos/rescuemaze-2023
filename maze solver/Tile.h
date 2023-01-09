@@ -9,39 +9,47 @@ class Tile
 {
 private:
 public:
-    // 0: normal tile
-    // 1: ramp
-    // 2: stairs
-    // 3: bumper
-    // 4: blue tile
-    // -1: black tile
     int weight;
     vector<int> pos;
 
+    int victim;
+    
+    // Direccion de la rampa
+    // -1: no hay rampa
+    // 0: rampa hacia el norte
+    // 1: rampa hacia el este
+    // 2: rampa hacia el sur
+    // 3: rampa hacia el oeste
+    int rampa;
+    int height1;
+    int height2;
+
     map<string, Tile *> adjacentTiles;
-    // map<string, pair<Tile *, int>> adjacentTiles;
-    map<string, int> weights;
 
     map<string, bool> walls;
 
     bool visited;
 
     Tile();
-    Tile(vector<int> p, int v);
+    Tile(vector<int> p, int v, int vict);
 
-    void addNorth(Tile *t); //, int weight);
-    void addEast(Tile *t); //, int weight);
-    void addSouth(Tile *t); //, int weight);
-    void addWest(Tile *t); //, int weight);
+    void addNorth(Tile *t);
+    void addEast(Tile *t); 
+    void addSouth(Tile *t);
+    void addWest(Tile *t); 
 
-    void appendTile(Tile *t, string key); //, int weight);
-    // void appendTile(string key, int weight, int val);
+    void appendTile(Tile *t, string key);
 };
 
 Tile::Tile()
 {
     weight = 0;
     pos = {0, 0, 0};
+    victim = 0;
+
+    rampa = -1;
+    height1 = 0;
+    height2 = 0;
 
     visited = false;
 
@@ -51,11 +59,7 @@ Tile::Tile()
         {"south", nullptr},
         {"west", nullptr}};
 
-    weights = {
-        {"north", 0},
-        {"east", 0},
-        {"south", 0},
-        {"west", 0}};
+
 
     walls = {
         {"north", false},
@@ -64,12 +68,16 @@ Tile::Tile()
         {"west", false}};
 }
 
-Tile::Tile(vector<int> p, int v)
+Tile::Tile(vector<int> p, int v, int vict)
 {
     weight = v;
     pos = p;
+    victim = vict;
 
-    visited = false;
+    rampa = -1;
+    height1 = 0;
+    height2 = 0;
+
 
     adjacentTiles = {
         {"north", nullptr},
@@ -82,12 +90,6 @@ Tile::Tile(vector<int> p, int v)
         {"east", false},
         {"south", false},
         {"west", false}};
-
-    weights = {
-        {"north", 0},
-        {"east", 0},
-        {"south", 0},
-        {"west", 0}};
 
     visited = false;
 }
