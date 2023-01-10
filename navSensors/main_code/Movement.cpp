@@ -1,6 +1,6 @@
 #include "Movement.h"
 
-////////////////////////////////////////////Constructors//////////////////////////////////////////////////
+// Constructors
 
 /* TEMP: comment out ros.
 Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors): nh_(nh), bno(bno),  sensors(sensors) {
@@ -17,6 +17,23 @@ Movement::Movement(BNO *bno, Sensors *sensors) : bno(bno), sensors(sensors)
   setMotors();
   this->dispenser = Dispenser(kServoPin);
   initRobot();
+}
+
+Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants) : bno(bno), sensors(sensors)
+{
+  kinematics_ = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
+  setMotors();
+  this->dispenser = Dispenser(kServoPin);
+  setIndividualPID();
+  initRobot();
+}
+
+void Movement::setIndividualPID()
+{
+  motor[BACK_LEFT].PIDStraightTunnigs(12, 6, 2);
+  motor[FRONT_RIGHT].PIDStraightTunnigs(18, 6, 2);
+  motor[FRONT_LEFT].PIDStraightTunnigs(18, 6, 2);
+  motor[BACK_RIGHT].PIDStraightTunnigs(16, 6, 2);
 }
 
 void Movement::setMotors()
@@ -110,6 +127,7 @@ void Movement::initRobot()
   for (int i = 0; i < kMotorCount; i++)
   {
     motor[i].initMotor();
+    motor[i].setPWM(150);
     last_encoder_counts_[i] = 0;
   }
 
@@ -523,5 +541,17 @@ void Movement::checkLimitSwitches()
         resetEncoders();
       }
     }
+  }
+}
+
+void Movement::testMotor()
+{
+
+  Motor *m = &motor[FRONT_RIGHT];
+  m->motorForward();
+  while (true)
+  {
+    Serial.println(m->getPWM());
+    m->motorSpeedPID(90, true);
   }
 }
