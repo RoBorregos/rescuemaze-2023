@@ -2,4 +2,4 @@
 test.cpp
 test.exe
 serialTest.py
-maze-solver/main.exe
+maze-solver/*.exe
