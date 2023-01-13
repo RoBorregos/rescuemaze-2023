@@ -2,7 +2,7 @@
 #include <vector>
 #include <utility>
 #include <stack>
-#include <cstdlib>
+// #include <cstdlib>
 #include <algorithm>
 #include <ctype.h>
 #include <map>
@@ -199,7 +199,8 @@ void explore(Tile *tile, vector<Tile *> &unvisited)
         tile = followPath(path, tile, pos);
 
         printMaze(rDirection);
-        system("pause");
+        // system("pause");
+        cin.get();
 
         if (unvisited.empty())
         {

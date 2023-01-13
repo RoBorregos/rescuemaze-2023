@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <climits>
 using namespace std;
 
 #include "Tile.h"
