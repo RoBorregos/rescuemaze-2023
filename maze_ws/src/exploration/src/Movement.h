@@ -1,19 +1,19 @@
-#pragma once
+/* #pragma once
 
 #include <iostream>
 #include <vector>
 using namespace std;
 
 #include "Maze.h"
-#include "InstructionServer.h"
+// #include "InstructionServer.h"
 
 #define DEBUG true
 
-void moveForward(int &rDirection, InstructionServer &server)
+void moveForward(int &rDirection)
 {
     cout << "forward" << endl;
 
-    server.setInstruction("forward");
+    setInstruction("forward");
 
     if (DEBUG)
     {
@@ -22,12 +22,12 @@ void moveForward(int &rDirection, InstructionServer &server)
 }
 
 // Gira a la izquierda y modifica la direccion
-void left(int &rDirection, InstructionServer &server)
+void left(int &rDirection)
 {
     (rDirection == 0) ? rDirection = 3 : rDirection--;
     cout << "left" << endl;
 
-    server.setInstruction("left");
+    setInstruction("left");
 
     if (DEBUG)
     {
@@ -36,12 +36,12 @@ void left(int &rDirection, InstructionServer &server)
 }
 
 // Gira a la derecha y modifica la direccion
-void right(int &rDirection, InstructionServer &server)
+void right(int &rDirection)
 {
     (rDirection == 3) ? rDirection = 0 : rDirection++;
     cout << "right" << endl;
 
-    server.setInstruction("right");
+    setInstruction("right");
 
     if (DEBUG)
     {
@@ -50,63 +50,63 @@ void right(int &rDirection, InstructionServer &server)
 }
 
 // Gira a la direccion indicada
-void rotateTo(int &rDirection, int newDirection, InstructionServer &server)
+void rotateTo(int &rDirection, int newDirection)
 {
     if (rDirection + 2 == newDirection or rDirection - 2 == newDirection)
     {
-        left(rDirection, server);
-        left(rDirection, server);
+        left(rDirection);
+        left(rDirection);
     }
     else if (rDirection + 1 == newDirection or rDirection - 3 == newDirection)
     {
-        right(rDirection, server);
+        right(rDirection);
     }
     else if (rDirection - 1 == newDirection or rDirection + 3 == newDirection)
     {
-        left(rDirection, server);
+        left(rDirection);
     }
 }
 
 // Mueve el robot hacia el norte
-void moveNorth(vector<int> &pos, int &yMaze, int &rDirection, InstructionServer &server)
+void moveNorth(vector<int> &pos, int &yMaze, int &rDirection)
 {
     cout << "moveNorth" << endl;
 
-    rotateTo(rDirection, 0, server);
-    moveForward(rDirection, server);
+    rotateTo(rDirection, 0);
+    moveForward(rDirection);
 
     // yMaze--;
 }
 
 // Mueve el robot hacia el sur
-void moveSouth(vector<int> &pos, int &yMaze, int &rDirection, InstructionServer &server)
+void moveSouth(vector<int> &pos, int &yMaze, int &rDirection)
 {
     cout << "moveSouth" << endl;
 
-    rotateTo(rDirection, 2, server);
-    moveForward(rDirection, server);
+    rotateTo(rDirection, 2);
+    moveForward(rDirection);
 
     // yMaze++;
 }
 
 // Mueve el robot hacia el este
-void moveEast(vector<int> &pos, int &xMaze, int &rDirection, InstructionServer &server)
+void moveEast(vector<int> &pos, int &xMaze, int &rDirection)
 {
     cout << "moveEast" << endl;
 
-    rotateTo(rDirection, 1, server);
-    moveForward(rDirection, server);
+    rotateTo(rDirection, 1);
+    moveForward(rDirection);
 
     // xMaze++;
 }
 
 // Mueve el robot hacia el oeste
-void moveWest(vector<int> &pos, int &xMaze, int &rDirection, InstructionServer &server)
+void moveWest(vector<int> &pos, int &xMaze, int &rDirection)
 {
     cout << "moveWest" << endl;
 
-    rotateTo(rDirection, 3, server);
-    moveForward(rDirection, server);
+    rotateTo(rDirection, 3);
+    moveForward(rDirection);
 
     // xMaze--;
 }
@@ -168,7 +168,7 @@ void calcPos(vector<int> &pos, string key)
 }
 
 // Mueve el robot hacia la direccion indicada por key y regresa el tile al que se movio
-Tile *move(Tile *tile, string key, vector<int> &pos, int &xMaze, int &yMaze, int &rDirection, InstructionServer &server)
+Tile *move(Tile *tile, string key, vector<int> &pos, int &xMaze, int &yMaze, int &rDirection)
 {
     if (tile->adjacentTiles[key])
     {
@@ -177,19 +177,19 @@ Tile *move(Tile *tile, string key, vector<int> &pos, int &xMaze, int &yMaze, int
 
         if (key == "north")
         {
-            moveNorth(pos, yMaze, rDirection, server);
+            moveNorth(pos, yMaze, rDirection);
         }
         else if (key == "east")
         {
-            moveEast(pos, xMaze, rDirection, server);
+            moveEast(pos, xMaze, rDirection);
         }
         else if (key == "south")
         {
-            moveSouth(pos, yMaze, rDirection, server);
+            moveSouth(pos, yMaze, rDirection);
         }
         else if (key == "west")
         {
-            moveWest(pos, xMaze, rDirection, server);
+            moveWest(pos, xMaze, rDirection);
         }
 
         return tile->adjacentTiles[key];
@@ -198,3 +198,4 @@ Tile *move(Tile *tile, string key, vector<int> &pos, int &xMaze, int &yMaze, int
     return nullptr;
 }
 
+ */

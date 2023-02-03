@@ -15,7 +15,9 @@ int main(int argc, char **argv)
     if (client.call(srv))
     {
       // ROS_INFO("Direction: %ld", (long int)srv.response.sum);
-      ROS_INFO("Direction: %s", srv.response.message.c_str());
+      ROS_INFO_STREAM("Direction: " << srv.response.message);
+
+      // ROS_INFO("Direction: %s", srv.response.message.c_str());
     }
     else
     {

@@ -62,31 +62,11 @@ climits
 Tile.h
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Tile.h
 
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/InstructionServer.h
-string
--
-ros/ros.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/ros/ros.h
-ros/callback_queue.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/ros/callback_queue.h
-exploration/Trigger.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/exploration/Trigger.h
-
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Maze.h
 vector
 -
 iostream
 -
-
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Movement.h
-iostream
--
-vector
--
-Maze.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Maze.h
-InstructionServer.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/InstructionServer.h
 
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Tile.h
 map
@@ -119,14 +99,10 @@ exploration/Trigger.h
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/exploration/Trigger.h
 Tile.h
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Tile.h
-Movement.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Movement.h
 Maze.h
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Maze.h
 Dijkstra.h
 /home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/Dijkstra.h
-InstructionServer.h
-/home/diego/coding/rescuemaze-2023/maze_ws/src/exploration/src/InstructionServer.h
 
 /opt/ros/noetic/include/ros/advertise_options.h
 ros/forwards.h
