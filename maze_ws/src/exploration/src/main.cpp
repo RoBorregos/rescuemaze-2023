@@ -40,6 +40,11 @@ void setInstruction(string instruction)
     // ROS_INFO_STREAM("setInstruction: " << instruction);
     curInstruction = instruction;
 
+    if (DEBUG)
+    {
+        printMaze(rDirection);
+    }
+
     // while (ros::ok() && callQueue.isEmpty())
     // {
     //     ros::Duration(0.2).sleep();
@@ -61,14 +66,14 @@ void setInstruction(string instruction)
 void moveForward(int &rDirection)
 {
     // cout << "forward" << endl;
-    ROS_INFO("moveForward");
+    ROS_INFO("forward");
 
     setInstruction("forward");
 
-    if (DEBUG)
-    {
-        printMaze(rDirection);
-    }
+    // if (DEBUG)
+    // {
+    //     printMaze(rDirection);
+    // }
 }
 
 // Gira a la izquierda y modifica la direccion
@@ -80,10 +85,10 @@ void left(int &rDirection)
 
     setInstruction("left");
 
-    if (DEBUG)
-    {
-        printMaze(rDirection);
-    }
+    // if (DEBUG)
+    // {
+    //     printMaze(rDirection);
+    // }
 }
 
 // Gira a la derecha y modifica la direccion
@@ -95,10 +100,10 @@ void right(int &rDirection)
 
     setInstruction("right");
 
-    if (DEBUG)
-    {
-        printMaze(rDirection);
-    }
+    // if (DEBUG)
+    // {
+    //     printMaze(rDirection);
+    // }
 }
 
 // Gira a la direccion indicada
@@ -260,14 +265,14 @@ string posvectorToString(vector<int> pos)
 int getDistance(string key)
 {
     // ROS_INFO_STREAM("getDistance: " << key);
-    if (key == "north")
-        rotateTo(rDirection, 0);
-    else if (key == "east")
-        rotateTo(rDirection, 1);
-    else if (key == "south")
-        rotateTo(rDirection, 2);
-    else if (key == "west")
-        rotateTo(rDirection, 3);
+    // if (key == "north")
+    //     rotateTo(rDirection, 0);
+    // else if (key == "east")
+    //     rotateTo(rDirection, 1);
+    // else if (key == "south")
+    //     rotateTo(rDirection, 2);
+    // else if (key == "west")
+    //     rotateTo(rDirection, 3);
 
     if (getChar(key) == '#')
         return 5;
