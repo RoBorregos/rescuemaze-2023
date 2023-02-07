@@ -22,7 +22,7 @@ int rDirection = 0;
 string curInstruction = "";
 ros::CallbackQueue callQueue;
 
-#define DEBUG false
+#define DEBUG true
 
 bool sendInstruction(exploration::Trigger::Request &req, exploration::Trigger::Response &res)
 {
