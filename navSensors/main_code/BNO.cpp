@@ -8,6 +8,7 @@ void BNO::init()
 {
   if (!bno.begin())
   {
+    
     Serial.println("ERROR BNO");
   }
 

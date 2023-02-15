@@ -5,6 +5,7 @@
 #include "Motor.h"
 #include "MotorID.h"
 #include "Plot.h"
+#include "MUX2C.h"
 
 #define DELAY_MS 500
 #define ITERATIONS 1000
@@ -20,10 +21,10 @@ int reps;
 void setup()
 {
   Serial.begin(57600);
-  // mux.findI2C();
+  mux.findI2C();
   initAll();
-  delay(5000);
-  moveRoutine();
+  //delay(5000);
+  //moveRoutine();
   reps = 0;
 }
 
@@ -39,15 +40,11 @@ void initAll()
 
 void loop()
 {
-  return;
   if (reps == ITERATIONS)
     return;
   //           bno,   vlx,  mlx,   tcs
-  s->printInfo(true, false, false, false);
-  s->printInfo(false, true, false, false);
-  // s->printInfo(false, true, false, false);
-  // bno.anglesInfo();
-  // Serial.println(s->getVLXInfo(0));
+  Serial.println(s->getMLXInfo(0));
+  
   delay(DELAY_MS);
   reps++;
 }
