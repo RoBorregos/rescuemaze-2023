@@ -1,2 +1,0 @@
-exploration
--DCATKIN_DEVEL_PREFIX=/home/diego/coding/rescuemaze-2023/maze_ws/devel -DCMAKE_INSTALL_PREFIX=/home/diego/coding/rescuemaze-2023/maze_ws/install -G Unix Makefiles
