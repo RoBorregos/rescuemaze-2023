@@ -5,3 +5,4 @@ serialTest.py
 maze-solver/*.exe
 maze_ws/build/
 maze_ws/devel/
+maze_ws/*.catkin_workspace
