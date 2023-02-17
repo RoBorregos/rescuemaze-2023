@@ -3,3 +3,5 @@ test.cpp
 test.exe
 serialTest.py
 maze-solver/*.exe
+maze_ws/build/
+maze_ws/devel/
