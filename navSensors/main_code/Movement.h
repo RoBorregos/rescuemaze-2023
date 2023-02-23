@@ -39,7 +39,7 @@ private:
   Sensors *sensors;
 
   // Servo
-  static constexpr uint8_t kServoPin = 51;
+  static constexpr uint8_t kServoPin = 7;
 
   // Leds
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
