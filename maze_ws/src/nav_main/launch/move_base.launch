@@ -1,0 +1,47 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="move_forward_only" default="false"/>
+  <arg name="dwa_local_planner" default="true"/>
+  <arg name="base_local_planner" default="false"/>
+  <arg name="teb_local_planner" default="false"/>
+
+  <group if="$(arg dwa_local_planner)"> 
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find nav_main)/param/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/dwa_local_planner_params.yaml" command="load" />
+      <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+  </group>
+
+  <group if="$(arg base_local_planner)"> 
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+      <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find nav_main)/param/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/base_local_planner_params.yaml" command="load" />
+      <param name="TrajectoryPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+  </group>
+
+  <group if="$(arg teb_local_planner)"> 
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+      <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find nav_main)/param/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/move_base_params.yaml" command="load" />
+      <rosparam file="$(find nav_main)/param/teb_local_planner_params.yaml" command="load" />
+      <param name="TebLocalPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+  </group>
+
+</launch>

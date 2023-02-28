@@ -3,9 +3,8 @@
 
 #include <Arduino.h>
 
-// TEMP: comment out ros.
-// #include <ros.h>
-// #include <std_msgs/String.h>
+#include <ros.h>
+#include <std_msgs/String.h>
 #include <math.h>
 #include "Motor.h"
 #include "Kinematics.h"
@@ -29,8 +28,7 @@ class Movement
 {
 private:
   // ROS node.
-  // TEMP: comment out ros.
-  // ros::NodeHandle * nh_;
+  ros::NodeHandle * nh_;
   // Servo dispenser
   Dispenser dispenser;
   // BNO sensors
@@ -110,8 +108,7 @@ public:
   // Constructors
 
   // Using ROS
-  // TEMP: comment out ros.
-  // Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors);
+  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors);
 
   // Using arduino movement
   Movement(BNO *bno, Sensors *sensors);
@@ -151,8 +148,7 @@ public:
 
   // Movement Methods
   // Comand Velocity, using kinematics.
-  // TEMP: comment out ros.
-  // void cmdVelocity(const double linear_x, const double linear_y, const double angular_z);
+  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z);
 
   // Comand Movement, using PID and static velocity
   void cmdMovement(int movement_type);

@@ -1,0 +1,67 @@
+controller_frequency: 10.0
+
+DWAPlannerROS:
+
+  robot_base_frame: base_footprint
+  global_frame: map
+  robot_radius: 0.1  # 10 cm
+
+# Robot Configuration Parameters
+  max_vel_x: 0.3
+  min_vel_x: -0.3
+  max_vel_trans:  0.45
+  min_vel_trans:  0.045
+
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+
+  max_vel_theta: 5.0
+  min_vel_theta: 2.0
+
+  acc_lim_trans: 2.0
+  acc_lim_x: 2.0
+  acc_lim_y: 0.0
+  acc_lim_th: 8.0
+
+  min_in_place_vel_theta: 0.7
+
+  scaling_speed: 0.30
+  max_scaling_factor: 0.2
+
+
+# Goal Tolerance Parametes
+  xy_goal_tolerance: 0.065 # 6.5cm
+  yaw_goal_tolerance: 0.15 # 0.15 radians (7.5 degrees)
+  latch_xy_goal_tolerance: false
+
+# Forward Simulation Parameters
+  # Too low value is in sufficient time to pass narrow area and too high value is not allowed rapidly rotates  1.5 vs 5
+  sim_time: 0.5
+  sim_granularity: 0.025
+  angular_sim_granularity: 0.1
+  vx_samples: 10
+  vy_samples: 0
+  vth_samples: 20
+
+# Trajectory Scoring Parameters
+  # 100 / 50 | Current relation 2:1. Prioritize Global Path
+  # The weighting for how much the controller should stay close to the path it was given
+  path_distance_bias: 100 # Follow Global Path
+  # The weighting for how much the controller should attempt to reach its local goal, also controls speed
+  goal_distance_bias: 50 # Reach Goal
+  # The weighting for how much the controller should attempt to avoid obstacles
+  occdist_scale: 0.0
+  # Maximum distance that the robot can travel in one simulation step.
+  forward_point_distance: 0.1
+  # Mmount of time for the robot to come to a stop after reaching its goal. 
+  stop_time_buffer: 0.1
+
+# Oscillation Prevention Parameters
+  oscillation_reset_dist: 0.05
+
+# Debugging
+  publish_traj_pc : true
+  publish_cost_grid_pc: true
+
+# Differential-drive robot configuration
+  holonomic_robot: false

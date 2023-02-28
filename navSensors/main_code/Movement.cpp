@@ -2,14 +2,12 @@
 
 // Constructors
 
-/* TEMP: comment out ros.
 Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors): nh_(nh), bno(bno),  sensors(sensors) {
   kinematics_ = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
   setMotors();
   dispenser = Dispenser(kServoPin);
   initRobot();
 }
-*/
 
 Movement::Movement(BNO *bno, Sensors *sensors) : bno(bno), sensors(sensors)
 {
@@ -198,7 +196,6 @@ void Movement::stop()
   }
 }
 
-/* TEMP: comment out ros.
 void Movement::cmdVelocity(const double linear_x, const double linear_y, const double angular_z){
   double x = constrainDa(linear_x, -1.0 * kLinearXMaxVelocity, kLinearXMaxVelocity);
   double y = constrainDa(linear_y, -1.0 * kLinearYMaxVelocity, kLinearYMaxVelocity);
@@ -273,7 +270,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
     //Serial.println(log_msg);
   }
 }
-*/
+
 void Movement::girarIzquierda()
 {
   motor[FRONT_LEFT].motorForward();
@@ -547,11 +544,17 @@ void Movement::checkLimitSwitches()
 void Movement::testMotor()
 {
 
-  Motor *m = &motor[FRONT_RIGHT];
-  m->motorForward();
+  Motor *m = &motor[BACK_LEFT];
+  //Motor *m = &motor[BACK_LEFT];
+  //Motor *m = &motor[BACK_RIGHT];
+  //Motor *m = &motor[FRONT_LEFT];
+  
+  m->motorBackward();
   while (true)
-  {
+  { 
     Serial.println(m->getPWM());
-    m->motorSpeedPID(90, true);
+    m->motorSpeedPID(90);
+    Serial.print("Tics: ");
+    Serial.println(m->getEncoderTics());
   }
 }

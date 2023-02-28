@@ -1,0 +1,75 @@
+# Documentation: http://wiki.ros.org/teb_local_planner
+TebLocalPlannerROS:
+  robot_base_frame: base_footprint
+  global_frame: map
+
+# Robot Configuration Parameters
+  max_vel_x: 0.3
+  max_vel_x_backwards: 0.3
+  
+  max_trans_vel: 0.3
+  min_trans_vel: 0.15
+
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+
+  max_rot_vel: 2.0
+  min_rot_vel: 0.3
+  max_vel_theta: 2.0
+  min_vel_theta: 0.3
+
+  acc_lim_x: 2.5
+  acc_lim_y: 0.0
+  acc_lim_theta: 3.5
+  
+  min_turning_radius: 0.0
+
+# Goal Tolerance Parameters
+  xy_goal_tolerance: 0.05 # 5cm
+  yaw_goal_tolerance: 0.15 # 0.15 radians (7.5 degrees)
+  latch_xy_goal_tolerance: false
+
+# Obstacle Parameters
+  min_obstacle_dist: 0.01
+  include_costmap_obstacles: true
+  costmap_obstacles_behind_robot_dist: 0.05
+  inflation_dist: 0.0125
+
+# Forward Simulation Parameters
+  dt_ref: 0.3
+  dt_hysteresis: 0.1
+  min_samples: 4
+  max_global_plan_lookahead_dist: 0
+  global_plan_map_frame: map
+  global_plan_viapoint_sep: 0.1
+
+# Optimization Parameters
+  no_inner_iterations: 5
+  no_outer_iterations: 4
+  optimization_activate: true
+  optimization_verbose: false
+  penalty_epsilon: 0.1
+  weight_max_vel_x: 1.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 0.5
+  weight_acc_lim_theta: 0.5
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 100.0
+  weight_kinematics_turning_radius: 1.0
+  weight_optimaltime: 1
+  weight_obstacle: 10.0
+  weight_viapoint: 2
+  weight_inflation: 0.1
+
+# Recovery Behavior
+  recovery_behavior_enabled: false
+  clearing_rotation_allowed: false
+
+# Costmap to use
+  costmap_topic: costmap
+  use_dwa: false
+
+# Robot Footprint
+  footprint_model:
+    type: polygon
+    vertices: [[0.1, 0.075], [-0.1, 0.075], [-0.1, -0.075], [0.1, -0.075]]

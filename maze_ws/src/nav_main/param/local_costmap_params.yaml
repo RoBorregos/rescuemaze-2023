@@ -1,0 +1,9 @@
+local_costmap:
+  global_frame: map
+  robot_base_frame: base_footprint
+
+  width: 2.25
+  height: 2.25
+  
+  static_map: false  
+  rolling_window: true
