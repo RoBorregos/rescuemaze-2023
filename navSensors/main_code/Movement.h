@@ -63,7 +63,6 @@ private:
   static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
   static constexpr uint8_t kAnalogPinBackRightMotor = 13;
   static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
-  int last_encoder_counts_[kMotorCount];
 
   // Velocity maximum.
   static constexpr double kWheelDiameter = 0.05;
@@ -79,10 +78,6 @@ private:
   static constexpr double kPStraightFR = 7; // 60
   static constexpr double kIStraightFR = 3; // 55
   static constexpr double kDStraightFR = 2; // 40
-
-  static constexpr double kPRotateFR = 5;
-  static constexpr double kIRotateFR = 3;
-  static constexpr double kDRotateFR = 1;
 
   // Kinematics.
   Kinematics kinematics;
@@ -107,14 +102,17 @@ public:
 
   // Constructors
 
-  // Using ROS
-  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors);
+  // Using ROS and BNO with arduino
+  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants=false);
 
-  // Using arduino movement
-  Movement(BNO *bno, Sensors *sensors);
+  // Using ROS, with external use of BNO.
+  Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants=false);
 
-  // Call using a boolean value to use individual PID constants for each motor.
-  Movement(BNO *bno, Sensors *sensors, bool individualConstants);
+  // Using only Arduino.
+  Movement(BNO *bno, Sensors *sensors, bool individualConstants=false);
+
+  // Initialize objects in common of constructors.
+  initMovement(bool individualConstants=false);
 
   // Initialization
 

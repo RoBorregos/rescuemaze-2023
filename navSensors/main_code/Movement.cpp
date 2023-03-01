@@ -2,28 +2,30 @@
 
 // Constructors
 
-Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors) : nh(nh), bno(bno), sensors(sensors)
+Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants) : nh(nh), bno(bno), sensors(sensors)
 {
-  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
-  setMotors();
-  dispenser = Dispenser(kServoPin);
-  initRobot();
-}
-
-Movement::Movement(BNO *bno, Sensors *sensors) : bno(bno), sensors(sensors)
-{
-  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
-  setMotors();
-  this->dispenser = Dispenser(kServoPin);
-  initRobot();
+  initMovement(individualConstants);
 }
 
 Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants) : bno(bno), sensors(sensors)
 {
+  nh = nullptr;
+  initMovement(individualConstants);
+}
+
+Movement::Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants) : nh(nh), sensors(sensors)
+{
+  bno = nullptr;
+  initMovement(individualConstants);
+}
+
+Movement::initMovement(bool individualConstants)
+{
   kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
   setMotors();
   this->dispenser = Dispenser(kServoPin);
-  setIndividualPID();
+  if (individualConstants)
+    setIndividualPID();
   initRobot();
 }
 
@@ -126,8 +128,7 @@ void Movement::initRobot()
   for (int i = 0; i < kMotorCount; i++)
   {
     motor[i].initMotor();
-    motor[i].setPWM(150);
-    last_encoder_counts_[i] = 0;
+    motor[i].setPWM(0);
   }
 
   dispenser.initServo();
@@ -199,6 +200,12 @@ void Movement::stop()
 
 void Movement::cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug)
 {
+  if (nh == nullptr)
+  {
+    Serial.println("ERROR, trying to use NodeHandle without initializing it. Change constructor or method call.");
+    return;
+  }
+
   double x = constrainDa(linear_x, -1.0 * kLinearXMaxVelocity, kLinearXMaxVelocity);
   double y = constrainDa(linear_y, -1.0 * kLinearYMaxVelocity, kLinearYMaxVelocity);
   double z = constrainDa(angular_z, -1.0 * kAngularZMaxVelocity, kAngularZMaxVelocity);
@@ -351,6 +358,12 @@ void Movement::turnDecider(double current_angle, double desired_angle)
 
 void Movement::girarDeltaAngulo(double delta_theta)
 {
+  if (bno == nullptr)
+  {
+    Serial.println("ERROR, trying to use BNO without initializing it. Change constructor or method call.");
+    return;
+  }
+
   double current_angle = 0;
   double desired_angle = 0;
 
@@ -393,6 +406,12 @@ void Movement::girarDeltaAngulo(double delta_theta)
 
 void Movement::cmdMovement(int movement_type)
 {
+  if (bno == nullptr)
+  {
+    Serial.println("ERROR, trying to use BNO without initializing it. Change constructor or method call.");
+    return;
+  }
+
   double current_angle = 0;
   double desired_angle = 0;
   double current_distance = 0;
@@ -554,9 +573,9 @@ void Movement::checkLimitSwitches()
 void Movement::testMotor()
 {
 
-   //Motor *m = &motor[FRONT_RIGHT];
-  //Motor *m = &motor[BACK_LEFT];
-   Motor *m = &motor[BACK_RIGHT];
+  // Motor *m = &motor[FRONT_RIGHT];
+  // Motor *m = &motor[BACK_LEFT];
+  Motor *m = &motor[BACK_RIGHT];
   // Motor *m = &motor[FRONT_LEFT];
 
   while (true)
