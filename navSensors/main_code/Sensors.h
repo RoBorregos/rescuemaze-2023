@@ -37,8 +37,10 @@ class Sensors
       {155, 111, 57},
       {220, 156, 150}};
 
+  bool usingVLX; // Used to decide if VLX will be initialized.
+  bool usingBNO; // Used to decide if BNO will be initialized.
+
   // Sensors.
-  
   BNO *bno;
   VLX vlx[kVLXCount];
   TCS tcs;
@@ -50,7 +52,14 @@ class Sensors
 public:
   // Constructor
 
-  Sensors(BNO *bno);
+  // Constuctor for using sensors with BNO connected to arduino.
+  // @param *bno pointer to BNO object.
+  // @param usingVLX if true, vlx will be initialized.
+  Sensors(BNO *bno, bool usignVLX = true);
+  
+  // Constuctor for using sensors with external BNO.
+  // @param usingVLX if true, vlx will be initialized.
+  Sensors(bool usignVLX = true);
 
   // Initialization
 
@@ -115,7 +124,8 @@ public:
   void bnoAngles(float &x, float &y, float &z);
 
   void bnoPrint();
-
+  
+  // Make general checks to ensure TCS is working correctly. 
   void checkTCS();
 };
 

@@ -5,10 +5,19 @@
 constexpr char Sensors::colorList[];
 constexpr uint8_t Sensors::colors[Sensors::colorAmount][3];
 
-// Constructor
+// Constructors
 
-Sensors::Sensors(BNO *bno) : bno(bno)
+Sensors::Sensors(bool usingVLX) : bno(bno)
 {
+  this->usingVLX = usingVLX;
+  this->usingBNO = false;
+  initSensors();
+}
+
+Sensors::Sensors(BNO *bno, bool usingVLX) : bno(bno)
+{
+  this->usingVLX = usingVLX;
+  this->usingBNO = true;
   initSensors();
 }
 
@@ -16,37 +25,37 @@ Sensors::Sensors(BNO *bno) : bno(bno)
 
 void Sensors::initSensors()
 {
-  for (int i = 0; i < kVLXCount; i++)
+  if (usingVLX)
   {
-    vlx[i].setMux(kMuxVLX[i]);
+    for (int i = 0; i < kVLXCount; i++)
+    {
+      vlx[i].setMux(kMuxVLX[i]);
+    }
+
+    // VLX init
+    for (int i = 0; i < kVLXCount; i++)
+    {
+      vlx[i].init();
+    }
   }
-
-  tcs.setMux(kMuxTCS);
-  tcs.setPrecision(kTCSPrecision);
-
-  Wire.begin();
-
-  // BNO init (Not needed, because initialized before sending pointer)
 
   // TCS init
+  tcs.setMux(kMuxTCS);
+  tcs.setPrecision(kTCSPrecision);
+  Wire.begin();
   tcs.init(colors, colorAmount, colorList);
 
-  // VLX init
-  for (int i = 0; i < kVLXCount; i++)
-  {
-    vlx[i].init(); 
-  }
-
+  // BNO init (Not needed, because initialized before sending pointer)
 }
 
 // Sensor Methods
 
 void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 {
-  if (bno)
+  if (bno && usingBNO)
     this->bno->anglesInfo();
 
-  if (vlx)
+  if (vlx && usingVLX)
   {
     for (int i = 0; i < kVLXCount; i++)
     {
@@ -68,13 +77,17 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 
 float Sensors::getVLXInfo(int posVLX)
 {
+  if (!usingVLX){
+    Serial.println("WARNING: invalid method call, VLX marked as not used.");
+    return -1;
+  }
+
   if (posVLX >= 0 && posVLX < kVLXCount)
     return vlx[posVLX].getDistance();
 
   Serial.println("Invalid position for VLX sensor at getVLXInfo().");
   return -1;
 }
-
 
 float Sensors::getQuatX()
 {
@@ -148,11 +161,19 @@ char Sensors::getTCSInfo()
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
 {
+  if (!usingBNO){
+    Serial.println("WARNING: invalid method call, BNO marked as not used.");
+    return;
+  } 
   bno->getAll(x, y, z);
 }
 
 void Sensors::bnoPrint()
 {
+  if (!usingBNO){
+    Serial.println("WARNING: invalid method call, BNO marked as not used.");
+    return;
+  } 
   bno->anglesInfo();
 }
 
