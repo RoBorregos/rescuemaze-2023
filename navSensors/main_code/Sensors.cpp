@@ -21,11 +21,6 @@ void Sensors::initSensors()
     vlx[i].setMux(kMuxVLX[i]);
   }
 
-  for (int i = 0; i < kMLXCount; i++)
-  {
-    mlx[i].setMux(kMuxMLX[i]);
-  }
-
   tcs.setMux(kMuxTCS);
   tcs.setPrecision(kTCSPrecision);
 
@@ -39,20 +34,14 @@ void Sensors::initSensors()
   // VLX init
   for (int i = 0; i < kVLXCount; i++)
   {
-    // If vlx can't initialize, it disrupts bno functionality.
     vlx[i].init(); 
   }
 
-  // MLX init
-  for (int i = 0; i < kMLXCount; i++)
-  {
-    mlx[i].init();
-  }
 }
 
 // Sensor Methods
 
-void Sensors::printInfo(bool bno, bool vlx, bool mlx, bool tcs)
+void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 {
   if (bno)
     this->bno->anglesInfo();
@@ -69,16 +58,6 @@ void Sensors::printInfo(bool bno, bool vlx, bool mlx, bool tcs)
     }
   }
 
-  if (mlx)
-  {
-    for (int i = 0; i < kMLXCount; i++)
-    {
-      Serial.print("MLX sensor ");
-      Serial.print(i + 1);
-      Serial.print(" ");
-      Serial.println(getMLXInfo(i));
-    }
-  }
   if (tcs)
   {
     Serial.print("TCS sensor  ");
@@ -96,14 +75,6 @@ float Sensors::getVLXInfo(int posVLX)
   return -1;
 }
 
-float Sensors::getMLXInfo(int posMLX)
-{
-  if (posMLX >= 0 && posMLX < kMLXCount)
-    return mlx[posMLX].getTemp();
-
-  Serial.println("Invalid position for MLX sensor at getMLXInfo().");
-  return -1;
-}
 
 float Sensors::getQuatX()
 {

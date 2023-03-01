@@ -17,6 +17,7 @@
 #define ROBOT_RAMP 4
 
 // Class used to modify motor's tics and regulate speed.
+// Attach callbacks to interrupts to estimate rev/s and control speed using PID.
 
 namespace Encoder{
   // Verifes the motor state and adds or substract tics to the motor depending on it

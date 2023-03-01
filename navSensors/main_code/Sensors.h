@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include "MUX2C.h"
 #include "BNO.h"
-#include "MLX.h"
 #include "VLX.h"
 #include "TCS.h"
 
@@ -14,8 +13,6 @@
 #define vlx_left 1
 #define vlx_front 2
 #define vlx_back 3
-#define mlx_right 0
-#define mlx_left 1
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
@@ -23,9 +20,8 @@ class Sensors
   // Sensors Count
   static constexpr int kBNOCount = 10;                                               // BNO sensor data count
   static constexpr int kVLXCount = 4;                                                // VLX sensors data count
-  static constexpr int kMLXCount = 2;                                                // MLX sensors data count
   static constexpr int kTCSCount = 1;                                                // TCS sensors data count
-  static constexpr int kSensorCount = kBNOCount + kVLXCount + kMLXCount + kTCSCount; // Total sensors data count
+  static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount;             // Total sensors data count
 
   // TCS constants
   static constexpr int kTCSPrecision = 10; // Precision for matching color values.
@@ -44,13 +40,11 @@ class Sensors
   // Sensors.
   
   BNO *bno;
-  MLX mlx[kMLXCount];
   VLX vlx[kVLXCount];
   TCS tcs;
 
   // Sensor Pins.
   int kMuxVLX[kVLXCount] = {1, 7, 5, 3}; // VLX multiplexor pins
-  int kMuxMLX[kMLXCount] = {0, 4};       // MLX multiplexor pins
   int kMuxTCS = 6;                       // TCS multiplexor pin
 
 public:
@@ -108,18 +102,14 @@ public:
   // Returns the VLX distance depending on the position of the VLX sensor
   float getVLXInfo(int posVLX);
 
-  // Returns the MLX temperature depending on the position of the MLX sensor
-  float getMLXInfo(int posMLX);
-
   // Returns the TCS color detected
   char getTCSInfo();
 
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.
   // @param vlx True to print vlx distances.
-  // @param mlx True to print mlx temperatures.
   // @param tcs True to print detected color.
-  void printInfo(bool bno = true, bool vlx = true, bool mlx = true, bool tcs = true);
+  void printInfo(bool bno = true, bool vlx = true, bool tcs = true);
 
   // Returns BNO angles through reference variables.
   void bnoAngles(float &x, float &y, float &z);
