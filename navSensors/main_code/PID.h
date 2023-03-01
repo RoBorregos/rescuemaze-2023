@@ -41,7 +41,7 @@ public:
 
   // PID Methods
 
-  // Computes speed (in PWM) of the motor using PID tunnigs and Encoder tics for straight movement
+  // Computes speed (in PWM) of the motor using PID tunings and Encoder tics for straight movement
   // @param setpoint The target speed in rev/s.
   // @param &input The current speed in rev/s. Calculated with tics. Value set as argument unused.
   // @param &output The PWM to set as the new motor speed.
@@ -52,13 +52,13 @@ public:
   void computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
                     const double count_time_samples_in_one_second, const bool debug = false);
 
-  // Computes the speed of the motor using PID tunnigs and encoder tics for left rotation
+  // Computes the speed of the motor using PID tunings and encoder tics for left rotation
   // @param desired Target angle
   // @param current Current angle
   // @param &output PWM of motor.
   void computeRotateIzq(const double desired, double current, double &output);
 
-  // Computes the speed of the motor using PID tunnigs and encoder tics for right rotation
+  // Computes the speed of the motor using PID tunings and encoder tics for right rotation
   // @param desired Target angle
   // @param current Current angle
   // @param &output PWM of motor.
@@ -66,8 +66,8 @@ public:
 
   // Other Methods
 
-  // Sets the tunnings of the PID controller
-  void setTunnings(double kp, double ki, double kd);
+  // Sets the tunings of the PID controller
+  void setTunings(double kp, double ki, double kd);
 
   // Resets pid tics
   void reset();

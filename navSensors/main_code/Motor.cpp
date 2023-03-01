@@ -210,7 +210,7 @@ void Motor::motorSpeedPID(double target_speed, bool debug)
     motorBackward();
     break;
   }
-
+    
   pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
   setPWM(tmp_pwm);
 }
@@ -282,12 +282,12 @@ void Motor::setEncoderTics(int tics)
   ticsCounter = tics;
 }
 
-void Motor::PIDStraightTunnigs(double kp, double ki, double kd)
+void Motor::PIDStraightTunings(double kp, double ki, double kd)
 {
-  pidStraight.setTunnings(kp, ki, kd);
+  pidStraight.setTunings(kp, ki, kd);
 }
 
-void Motor::PIDRotateTunnigs(double kp, double ki, double kd)
+void Motor::PIDRotateTunings(double kp, double ki, double kd)
 {
-  pidRotate.setTunnings(kp, ki, kd);
+  pidRotate.setTunings(kp, ki, kd);
 }

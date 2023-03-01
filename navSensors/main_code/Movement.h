@@ -28,7 +28,7 @@ class Movement
 {
 private:
   // ROS node.
-  ros::NodeHandle * nh_;
+  ros::NodeHandle * nh;
   // Servo dispenser
   Dispenser dispenser;
   // BNO sensors
@@ -48,21 +48,21 @@ private:
   // Motor.
   static constexpr int kMotorCount = 4;
 
-  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {35, 34};
+  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {34, 35};
   static constexpr uint8_t kAnalogPinFrontLeftMotor = 10;
-  static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {2, 49}; // A,B
+  static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {3, 49}; // A,B
 
-  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {33, 32};
+  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {32, 33};
   static constexpr uint8_t kAnalogPinBackLeftMotor = 12;
-  static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {19, 47};
+  static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {18, 47};
 
-  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {36, 37};
+  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {37, 36};
   static constexpr uint8_t kAnalogPinFrontRightMotor = 11;
-  static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {3, 48};
+  static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {2, 48};
 
-  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {30, 31};
+  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
   static constexpr uint8_t kAnalogPinBackRightMotor = 13;
-  static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {18, 46};
+  static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
   int last_encoder_counts_[kMotorCount];
 
   // Velocity maximum.
@@ -75,7 +75,7 @@ private:
   static constexpr double kAngularZMaxVelocity = kMaxVelocity;
 
   // PID
-  static constexpr bool kUsingPID = false;
+  static constexpr bool kUsingPID = true;
   static constexpr double kPStraightFR = 7; // 60
   static constexpr double kIStraightFR = 3; // 55
   static constexpr double kDStraightFR = 2; // 40
@@ -85,7 +85,7 @@ private:
   static constexpr double kDRotateFR = 1;
 
   // Kinematics.
-  Kinematics kinematics_;
+  Kinematics kinematics;
   int motor_max_rpm_ = 150;
   float wheel_diameter_ = 0.05; // En metros
 
@@ -134,7 +134,7 @@ public:
   void initSwitches();
 
   // Encoder Methods
-  // Returns the motors mean distance traveled.
+  // @return The motor's mean distance traveled.
   double meanDistanceTraveled();
 
   // Resets all encoders counts
@@ -148,7 +148,7 @@ public:
 
   // Movement Methods
   // Comand Velocity, using kinematics.
-  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z);
+  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug=false);
 
   // Comand Movement, using PID and static velocity
   void cmdMovement(int movement_type);
@@ -162,6 +162,10 @@ public:
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
   void updateStraightPID(int RPMs);
+
+  // Calls straight PID method for all motors, each with its specific target RMPs.
+  // @param rpm Kinematic object with target rpms per wheel.
+  void Movement::updatePIDKinematics(Kinematics::output rpm);
 
   // Moves the robot forward the specified distance.
   // @param x Distance in meters.

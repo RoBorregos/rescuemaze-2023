@@ -2,8 +2,9 @@
 
 // Constructors
 
-Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors): nh_(nh), bno(bno),  sensors(sensors) {
-  kinematics_ = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
+Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors) : nh(nh), bno(bno), sensors(sensors)
+{
+  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
   setMotors();
   dispenser = Dispenser(kServoPin);
   initRobot();
@@ -11,7 +12,7 @@ Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors): nh_(nh), bn
 
 Movement::Movement(BNO *bno, Sensors *sensors) : bno(bno), sensors(sensors)
 {
-  kinematics_ = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
+  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
   setMotors();
   this->dispenser = Dispenser(kServoPin);
   initRobot();
@@ -19,7 +20,7 @@ Movement::Movement(BNO *bno, Sensors *sensors) : bno(bno), sensors(sensors)
 
 Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants) : bno(bno), sensors(sensors)
 {
-  kinematics_ = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
+  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
   setMotors();
   this->dispenser = Dispenser(kServoPin);
   setIndividualPID();
@@ -28,10 +29,10 @@ Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants) : bno(b
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunnigs(12, 6, 2);
-  motor[FRONT_RIGHT].PIDStraightTunnigs(18, 6, 2);
-  motor[FRONT_LEFT].PIDStraightTunnigs(18, 6, 2);
-  motor[BACK_RIGHT].PIDStraightTunnigs(16, 6, 2);
+  motor[BACK_LEFT].PIDStraightTunings(12, 6, 2);
+  motor[FRONT_RIGHT].PIDStraightTunings(12, 10, 2);
+  motor[FRONT_LEFT].PIDStraightTunings(12, 6, 2);
+  motor[BACK_RIGHT].PIDStraightTunings(16, 6, 2);
 }
 
 void Movement::setMotors()
@@ -196,78 +197,78 @@ void Movement::stop()
   }
 }
 
-void Movement::cmdVelocity(const double linear_x, const double linear_y, const double angular_z){
+void Movement::cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug)
+{
   double x = constrainDa(linear_x, -1.0 * kLinearXMaxVelocity, kLinearXMaxVelocity);
   double y = constrainDa(linear_y, -1.0 * kLinearYMaxVelocity, kLinearYMaxVelocity);
   double z = constrainDa(angular_z, -1.0 * kAngularZMaxVelocity, kAngularZMaxVelocity);
 
-  char log_msg[20];
-  char result[8];
-  double rpms[kMotorCount];
-  double pwms[kMotorCount];
+  if (kUsingPID)
+  {
+    Kinematics::output rpm = kinematics.getRPM(x, y, z);
 
+    updatePIDKinematics(rpm);
 
-  if (kUsingPID){
-    //Serial.println("Using PID");
-    Kinematics::output rpm = kinematics_.getRPM(x, y ,z);
+    if (debug)
+    {
+      char log_msg[20];
+      double rpms[kMotorCount];
+      char result[8];
+      rpms[FRONT_LEFT] = rpm.motor1;
+      rpms[FRONT_RIGHT] = rpm.motor2;
+      rpms[BACK_LEFT] = rpm.motor3;
+      rpms[BACK_RIGHT] = rpm.motor4;
 
-    motor[FRONT_LEFT].motorSpeedPID(rpm.motor1);
-    motor[FRONT_RIGHT].motorSpeedPID(rpm.motor2);
-    motor[BACK_LEFT].motorSpeedPID(rpm.motor3);
-    motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
-
-    rpms[FRONT_LEFT] = rpm.motor1;
-    rpms[FRONT_RIGHT] = rpm.motor2;
-    rpms[BACK_LEFT] = rpm.motor3;
-    rpms[BACK_RIGHT] = rpm.motor4;
-
-    dtostrf(rpms[FRONT_LEFT], 6, 2, result);
-    sprintf(log_msg,"M1 RPM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(rpms[BACK_LEFT], 6, 2, result);
-    sprintf(log_msg,"M2 RPM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(rpms[FRONT_RIGHT] , 6, 2, result);
-    sprintf(log_msg,"M3 RPM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(rpms[BACK_RIGHT], 6, 2, result);
-    sprintf(log_msg,"M4 RPM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-  } else {
-    //Serial.println("NOT using PID");
-    Kinematics::output pwm = kinematics_.getPWM(x, y ,z);
+      dtostrf(rpms[FRONT_LEFT], 6, 2, result);
+      sprintf(log_msg, "M1 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms[BACK_LEFT], 6, 2, result);
+      sprintf(log_msg, "M2 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms[FRONT_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M3 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms[BACK_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M4 RPM :%s", result);
+      nh->loginfo(log_msg);
+    }
+  }
+  else
+  {
+    Kinematics::output pwm = kinematics.getPWM(x, y, z);
 
     motor[FRONT_LEFT].motorSpeedPWM(pwm.motor1);
     motor[FRONT_RIGHT].motorSpeedPWM(pwm.motor2);
     motor[BACK_LEFT].motorSpeedPWM(pwm.motor3);
     motor[BACK_RIGHT].motorSpeedPWM(pwm.motor4);
 
-    pwms[FRONT_LEFT] = pwm.motor1;
-    pwms[FRONT_RIGHT] = pwm.motor2;
-    pwms[BACK_LEFT] = pwm.motor3;
-    pwms[BACK_RIGHT] = pwm.motor4;
+    if (debug)
+    {
+      char log_msg[20];
+      char result[8];
 
+      double pwms[kMotorCount];
+      pwms[FRONT_LEFT] = pwm.motor1;
+      pwms[FRONT_RIGHT] = pwm.motor2;
+      pwms[BACK_LEFT] = pwm.motor3;
+      pwms[BACK_RIGHT] = pwm.motor4;
 
-    dtostrf(pwms[FRONT_LEFT], 6, 2, result);
-    sprintf(log_msg,"M1 PWM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(pwms[BACK_LEFT], 6, 2, result);
-    sprintf(log_msg,"M2 PWM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(pwms[FRONT_RIGHT] , 6, 2, result);
-    sprintf(log_msg,"M3 PWM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
-    dtostrf(pwms[BACK_RIGHT], 6, 2, result);
-    sprintf(log_msg,"M4 PWM :%s", result);
-    nh_->loginfo(log_msg);
-    //Serial.println(log_msg);
+      dtostrf(pwms[FRONT_LEFT], 6, 2, result);
+      sprintf(log_msg, "M1 PWM :%s", result);
+      nh->loginfo(log_msg);
+
+      dtostrf(pwms[BACK_LEFT], 6, 2, result);
+      sprintf(log_msg, "M2 PWM :%s", result);
+      nh->loginfo(log_msg);
+
+      dtostrf(pwms[FRONT_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M3 PWM :%s", result);
+      nh->loginfo(log_msg);
+
+      dtostrf(pwms[BACK_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M4 PWM :%s", result);
+      nh->loginfo(log_msg);
+    }
   }
 }
 
@@ -285,6 +286,15 @@ void Movement::girarDerecha()
   motor[BACK_LEFT].motorBackward();
   motor[FRONT_RIGHT].motorForward();
   motor[BACK_RIGHT].motorForward();
+}
+
+void Movement::updatePIDKinematics(Kinematics::output rpm)
+{
+  // Matching of motor # with rpm.motor# is important. Check kinematics getRPM()
+  motor[FRONT_LEFT].motorSpeedPID(rpm.motor1);
+  motor[FRONT_RIGHT].motorSpeedPID(rpm.motor2);
+  motor[BACK_LEFT].motorSpeedPID(rpm.motor3);
+  motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
 }
 
 void Movement::updateStraightPID(int RPMs)
@@ -544,17 +554,18 @@ void Movement::checkLimitSwitches()
 void Movement::testMotor()
 {
 
-  Motor *m = &motor[BACK_LEFT];
+   //Motor *m = &motor[FRONT_RIGHT];
   //Motor *m = &motor[BACK_LEFT];
-  //Motor *m = &motor[BACK_RIGHT];
-  //Motor *m = &motor[FRONT_LEFT];
-  
-  m->motorBackward();
+   Motor *m = &motor[BACK_RIGHT];
+  // Motor *m = &motor[FRONT_LEFT];
+
   while (true)
-  { 
-    Serial.println(m->getPWM());
-    m->motorSpeedPID(90);
-    Serial.print("Tics: ");
-    Serial.println(m->getEncoderTics());
+  {
+    m->motorSpeedPID(200, true);
+    Serial.print("Curr speed: ");
+    Serial.print(m->getCurrentSpeed());
+    Serial.print(", ");
+    Serial.print("Curr target: ");
+    Serial.println(m->getTargetSpeed());
   }
 }

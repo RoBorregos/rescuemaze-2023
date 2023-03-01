@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 It doesn't always work on the first run, if you notice 
 inconsistency, stop the program and run it again until 
@@ -104,8 +104,8 @@ class serialPlot:
 
 
 def main():
-    portName = 'COM11'
-    # portName = '/dev/ttyUSB0'
+    # portName = 'COM11'
+    portName = '/dev/ttyUSB0'
     baudRate = 57600
     maxPlotLength = 100     # number of points in x-axis of real time plot
     dataNumBytes = 4        # number of bytes of 1 data point

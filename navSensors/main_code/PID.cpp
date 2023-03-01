@@ -10,7 +10,7 @@ PID::PID()
 PID::PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time)
 {
   timePassed = millis();
-  setTunnings(kp, ki, kd);
+  setTunings(kp, ki, kd);
   sampleTime = sample_time;
 
   maxError = max_error_sum;
@@ -21,7 +21,7 @@ PID::PID(const double kp, const double ki, const double kd, const double out_min
 PID::PID(const double kp, const double ki, const double kd)
 {
   timePassed = millis();
-  setTunnings(kp, ki, kd);
+  setTunings(kp, ki, kd);
 }
 
 // PID Methods
@@ -144,7 +144,7 @@ void PID::computeRotateDer(const double desired, double current, double &output)
 
 // Other Methods
 
-void PID::setTunnings(double kp, double ki, double kd)
+void PID::setTunings(double kp, double ki, double kd)
 {
   this->kp = kp;
   this->ki = ki;

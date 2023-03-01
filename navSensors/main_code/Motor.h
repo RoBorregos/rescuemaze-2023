@@ -173,9 +173,9 @@ public:
   // PID METHODS
 
   // Sets PID controllers for straight movement
-  void PIDStraightTunnigs(double kp, double ki, double kd);
+  void PIDStraightTunings(double kp, double ki, double kd);
 
   // Sets PID controllers for rotation movement
-  void PIDRotateTunnigs(double kp, double ki, double kd);
+  void PIDRotateTunings(double kp, double ki, double kd);
 };
 #endif

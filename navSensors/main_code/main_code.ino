@@ -1,6 +1,5 @@
 #include <ros.h>
 
-
 #include "BNO.h"
 #include "Movement.h"
 #include "Sensors.h"
@@ -26,22 +25,20 @@ int reps;
 void setup()
 {
   Serial.begin(57600);
-  //mux.findI2C();
-  
-  initAll();
-  setupTest();
-  //delay(5000);
-  //moveRoutine();
 
-  
+  initAll();
+  setupData(false, false);
+  specificTest(true);
+
   ros::NodeHandle nh;
   nh.initNode();
-  while (!nh.connected()){
+  while (!nh.connected())
+  {
     nh.spinOnce();
   }
 
   nh.loginfo("Arduino node initialized");
-  
+
   reps = 0;
   RosBridge rosbridge(robot, s, &nh);
   rosbridge.run();
@@ -53,40 +50,69 @@ void initAll()
   static Sensors sensors(&bno);
   s = &sensors;
 
-  static Movement movement(&bno, s);
+  static Movement movement(&bno, s, true);
   robot = &movement;
-}
 
-void setupTest(){
   uint8_t colors[3][3] = {
-    {19, 50, 70},
-    {28, 40, 40},    
-    {155, 200, 150},
+      {137, 78, 58},
+      {64, 85, 128},
+      {85, 85, 85},
   };
 
   uint8_t colorAmount = 3;
-  char colorList[4] = {"wgb"};
-  
+  char colorList[4] = {"obB"};
+
   tcs.init(colors, colorAmount, colorList);
+}
+
+void setupData(bool tcsSet, bool i2c)
+{
+  if (i2c)
+    mux.findI2C();
+
+  if (tcsSet)
+  {
+    while (true)
+    {
+      tcs.printRGB();
+    }
+  }
+  
+  if (i2c)
+    while (true)
+      delay(100);
+}
+
+void specificTest(bool test)
+{
+  if (!test)
+    return;
+  
+  while (false)
+    tcs.printColor();
+
+  moveRoutine();
+  
+  while (true)
+    testMotor();
+  
+  robot->advanceXMeters(1);
+
+  while (true) 
+    delay(5000);
 }
 
 void loop()
 {
-  Serial.println("Logg");
   if (reps == ITERATIONS)
     return;
-  
+
   reps++;
   delay(DELAY_MS);
-
-  testMotor();
-  // moveRoutine();
-
-  tcs.printRGB();
-  
 }
 
-void testMotor(){
+void testMotor()
+{
   robot->testMotor();
 }
 
@@ -94,10 +120,10 @@ void moveRoutine()
 {
   Plot graph(robot);
   graph.startSequence();
-  
+
   while (true)
   {
-    robot->updateStraightPID(60);
+    robot->updateStraightPID(200);
     graph.plotTargetandCurrent();
   }
 }

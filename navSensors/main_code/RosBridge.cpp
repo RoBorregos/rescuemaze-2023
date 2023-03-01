@@ -6,7 +6,7 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
   velocity_subscriber("/cmd_vel",&RosBridge::cmdVelocityCallback, this),
   dispenser_subscriber("/dispenser", &RosBridge::dispenserCallback, this),
   test_subscriber("/testarduino", &RosBridge::testCallback, this),
-  test_publisher("/testpub", &testM),
+  test_publisher("/testpub", &testT),
   vlx_sensor_publisher_left("/sensor/vlx/left", &vlx_sensor_msgs_left),
   vlx_sensor_publisher_right("/sensor/vlx/right", &vlx_sensor_msgs_right),
   vlx_sensor_publisher_front("/sensor/vlx/front", &vlx_sensor_msgs_front),
@@ -82,12 +82,9 @@ void RosBridge::cmdVelocityCallback(const geometry_msgs::Twist &cmd_velocity)
   watchdog_timer = millis();
 }
 
-void RosBridge::testCallback(const std_msgs::String &test_msg){
-  nh->loginfo("Data detected: ");
-  nh->loginfo(test_msg.data);
-
-  testM.data = "Recieved data in /arduinotest";
-  test_publisher.publish(&testM);
+void RosBridge::testCallback(const geometry_msgs::Twist &test_msg){
+  nh->loginfo("Data detected test");
+  test_publisher.publish(&test_msg);
 }
 
 
