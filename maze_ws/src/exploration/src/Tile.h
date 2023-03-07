@@ -3,11 +3,32 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
+
 using namespace std;
 
 class Tile
 {
 private:
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar &weight;
+        ar &pos;
+        ar &victim;
+        ar &rampa;
+        ar &height1;
+        ar &height2;
+        ar &adjacentTiles;
+        ar &walls;
+        ar &visited;
+    }
 public:
     int weight;
     vector<int> pos;
