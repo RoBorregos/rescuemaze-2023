@@ -739,7 +739,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            explore(true, argc, argv);
+            explore(false, argc, argv);
         }
     }
     catch (const std::exception &e)
