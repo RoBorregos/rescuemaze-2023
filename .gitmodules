@@ -1,0 +1,3 @@
+[submodule "maze_ws/src/devices/ldlidar_stl_ros"]
+	path = maze_ws/src/devices/ldlidar_stl_ros
+	url = https://github.com/ldrobotSensorTeam/ldlidar_stl_ros.git
