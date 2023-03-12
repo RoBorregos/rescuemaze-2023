@@ -1,0 +1,11 @@
+<launch>
+    <arg name="debug_localization_grid" default="False"/>
+    <arg name="dist_to_walls" default="False"/>
+
+    <!-- Launch localization of centers node -->
+    <node name="localization_grid" pkg="nav_main" type="tests.py" respawn="true" output="screen">
+        <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
+        <param name="debug" value="$(arg debug_localization_grid)"/>
+    </node>
+</launch>
+

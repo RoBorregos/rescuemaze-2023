@@ -4,9 +4,10 @@
   <arg name="dwa_local_planner" default="true"/>
   <arg name="base_local_planner" default="false"/>
   <arg name="teb_local_planner" default="false"/>
+  <arg name="node_start_delay" default="10.0"/>
 
   <group if="$(arg dwa_local_planner)"> 
-    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
       <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
@@ -19,7 +20,7 @@
   </group>
 
   <group if="$(arg base_local_planner)"> 
-    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
       <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
@@ -32,7 +33,7 @@
   </group>
 
   <group if="$(arg teb_local_planner)"> 
-    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
+    <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
       <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
       <rosparam file="$(find nav_main)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
