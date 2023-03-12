@@ -12,8 +12,17 @@ roscpp
 rospy
 std_msgs
 message_generation
+move_base_msgs
+actionlib
   # message_runtime
 )
+
+find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
+
+find_package(Boost COMPONENTS serialization REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
+# add_action_files(DIRECTORY action FILES )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -72,6 +81,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  actionlib_msgs
 )
 
 ################################################
@@ -208,9 +218,20 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main ${catkin_LIBRARIES})
+target_link_libraries(main ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(main exploration_gencpp)
 
-add_executable(dummyClient src/dummyClient.cpp)
-target_link_libraries(dummyClient ${catkin_LIBRARIES})
-add_dependencies(dummyClient exploration_gencpp)
+add_executable(actionClient src/actionClient.cpp)
+target_link_libraries(actionClient ${catkin_LIBRARIES})
+add_dependencies(actionClient exploration_gencpp)
+
+# catkin_install_python(PROGRAMS src/testServerMoveBase
+#                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# add_executable(testServerMoveBase src/testServerMoveBase.py)
+# target_link_libraries(testServerMoveBase ${catkin_LIBRARIES})
+# add_dependencies(testServerMoveBase exploration_genpy)
+
+# add_executable(dummyClient src/dummyClient.cpp)
+# target_link_libraries(dummyClient ${catkin_LIBRARIES})
+# add_dependencies(dummyClient exploration_gencpp)
