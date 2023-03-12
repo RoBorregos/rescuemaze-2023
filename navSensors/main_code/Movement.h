@@ -28,7 +28,7 @@ class Movement
 {
 private:
   // ROS node.
-  ros::NodeHandle * nh;
+  ros::NodeHandle *nh;
   // Servo dispenser
   Dispenser dispenser;
   // BNO sensors
@@ -65,13 +65,17 @@ private:
   static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
 
   // Velocity maximum.
-  static constexpr double kWheelDiameter = 0.05;
-  static constexpr double kRPM = 150;
+  static constexpr double kFrWheelsDist = 0.145;
+  static constexpr double kLrWheelsDist = 0.18;
+  static constexpr double kWheelDiameter = 0.07;
+  static constexpr double kRPM = 240;
   static constexpr double kRPS = kRPM / 60;
-  static constexpr double kMaxVelocity = kRPS * M_PI * kWheelDiameter;
+  static constexpr double kMaxVelocity = kRPS * (M_PI * kWheelDiameter);
+
   static constexpr double kLinearXMaxVelocity = kMaxVelocity;
   static constexpr double kLinearYMaxVelocity = kMaxVelocity;
-  static constexpr double kAngularZMaxVelocity = kMaxVelocity;
+  static constexpr double kAngularZMaxVelocity = min(kMaxVelocity/kFrWheelsDist, kMaxVelocity/kLrWheelsDist);
+  static constexpr uint8_t kPwmBits = 8;
 
   // PID
   static constexpr bool kUsingPID = true;
@@ -81,15 +85,6 @@ private:
 
   // Kinematics.
   Kinematics kinematics;
-  int motor_max_rpm_ = 150;
-  float wheel_diameter_ = 0.05; // En metros
-
-  // Distancia llanta trasera y delantera
-  float fr_wheels_dist_ = 0.13;
-
-  // Distancia llanta izquierda y derehca
-  float lr_wheels_dist_ = 0.13;
-  int pwm_bits_ = 8;
 
   // Cmd movement constants
   static constexpr int kMovementRPMs = 60;
@@ -103,16 +98,16 @@ public:
   // Constructors
 
   // Using ROS and BNO with arduino
-  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants=false);
+  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants = false);
 
   // Using ROS, with external use of BNO.
-  Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants=false);
+  Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants = false);
 
   // Using only Arduino.
-  Movement(BNO *bno, Sensors *sensors, bool individualConstants=false);
+  Movement(BNO *bno, Sensors *sensors, bool individualConstants = false);
 
   // Initialize objects in common of constructors.
-  initMovement(bool individualConstants=false);
+  initMovement(bool individualConstants = false);
 
   // Initialization
 
@@ -146,7 +141,7 @@ public:
 
   // Movement Methods
   // Comand Velocity, using kinematics.
-  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug=false);
+  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
 
   // Comand Movement, using PID and static velocity
   void cmdMovement(int movement_type);

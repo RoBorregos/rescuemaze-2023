@@ -46,18 +46,18 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
   // Commented out because the time difference may be greater than sample time.
   // input = (reset_variable / pulses_per_rev) * count_time_samples_in_one_second;
 
-  // reset_variable / pulses per rev -> revs/timeDiff
+  // reset_variable / pulses per rev -> revs / timeDiff
   // revs/timeDiff * 1000/timeDiff -> revs / s
   input = (reset_variable / pulses_per_rev) * (1000.0 / timeDiff);
 
   reset_variable = 0;
 
-  const double error = setpoint - input;
+  const double error = setpoint - input; // rev / s
 
-  output = error * kp + errorSum * ki + (error - errorPre) / timeDiff * kd;
+  output = error * kp + errorSum * ki + ((error - errorPre) / timeDiff) * kd;
 
   errorPre = error;
-  errorSum += error;
+  errorSum += error * timeDiff;
 
   errorSum = max(maxError * -1, min(maxError, errorSum));
   output = max(minOutput, min(maxOutput, output));
