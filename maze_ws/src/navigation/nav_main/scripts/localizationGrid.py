@@ -470,6 +470,7 @@ class LocalizationGrid:
 
 if __name__ == '__main__':
 	try:
+		# Initialize the node
 		rospy.init_node('localization_grid')
 		rospy.loginfo('Localization grid initialized.')
 

@@ -8,3 +8,5 @@ maze_ws/devel/
 maze_ws/*.catkin_workspace
 simulation/
 robot_description
+notesIgnore.md
+build/

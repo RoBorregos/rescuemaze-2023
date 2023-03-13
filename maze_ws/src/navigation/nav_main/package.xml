@@ -52,6 +52,8 @@
   <build_depend>move_base</build_depend>
   <build_export_depend>move_base</build_export_depend>
   <exec_depend>move_base</exec_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

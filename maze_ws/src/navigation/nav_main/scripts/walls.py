@@ -1,86 +1,76 @@
 #!/usr/bin/env python3
 
+""" Return if there is a wall in all directions.
+"""
+
+# TODO: Check if it would be relevant to confirm the robot's orientation before sending
+#       response (i.e. check if robot is parallel to walls).
+
 import rospy
 from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Float32
-from std_msgs.msg import Empty
+from nav_main.srv import GetWalls, GetWallsResponse
 
-# Define the minimum distance to consider an object a wall
-WALL_THRESHOLD = 1
+debug = True
 
-# Initialize the global variables
-scan_msg = None
-north_pub = None
-east_pub = None
-south_pub = None
-west_pub = None
+def detect_walls(req):
 
-def detect_walls():
+    if debug:
+        rospy.loginfo("Request recieved")
+
     global scan_msg
 
     # Get the range values from the laser scan message
     ranges = scan_msg.ranges
 
     # Define the indices corresponding to north, east, south, and west directions
-    north_idx = 0
-    east_idx = len(ranges) // 4
-    south_idx = len(ranges) // 2
-    west_idx = 3 * len(ranges) // 4
+    # This assumes len(ranges) >= 360. The indices of directions change according to lidar orientation
 
-    # Calculate the distance to the nearest wall in each direction
-    north_dist = get_nearest_wall_distance(ranges, north_idx)
-    east_dist = get_nearest_wall_distance(ranges, east_idx)
-    south_dist = get_nearest_wall_distance(ranges, south_idx)
-    west_dist = get_nearest_wall_distance(ranges, west_idx)
+    north_idx = 0 # Left
+    east_idx = len(ranges) // 4 # Back
+    south_idx = len(ranges) // 2 # Right
+    west_idx = 3 * len(ranges) // 4 # Front
 
-    # Publish the distance to the nearest wall in each direction
-    north_pub.publish(north_dist)
-    east_pub.publish(east_dist)
-    south_pub.publish(south_dist)
-    west_pub.publish(west_dist)
+    # Get distance to nearest wall in each direction
+    left_dist = ranges[north_idx] # Left of the robot
+    back_dist = ranges[east_idx] # Back of the robot
+    right_dist = ranges[south_idx] # Right of the robot
+    front_dist = ranges[west_idx] # Front of the robot
 
-def get_nearest_wall_distance(ranges, index):
-    """
-    Calculate the distance to the nearest wall in the specified direction.
-    If no wall is detected within the WALL_THRESHOLD, return -1.
-    """
-    range_min = scan_msg.range_min
-    range_max = scan_msg.range_max
+    # Substract distance from lidar to robot's wall (get distance from robot's footprint to walls)
+    left_dist -= 0.1
+    back_dist -= 0.1
+    right_dist -= 0.1
+    front_dist -= 0.1
+    
+    if debug:
+        rospy.loginfo("Front: " + str (front_dist))
+        rospy.loginfo("Back: " + str (back_dist))
+        rospy.loginfo("Left: " + str (left_dist))
+        rospy.loginfo("Right: " + str (right_dist))
 
-    return ranges[index]
+    return GetWallsResponse(front_dist > 0.2, back_dist > 0.2, left_dist > 0.2, right_dist > 0.2)
 
-    # Check if there is a wall within the specified direction
-    if ranges[index] >= range_min and ranges[index] <= range_max:
-        if ranges[index] < WALL_THRESHOLD:
-            return ranges[index]
-        else:
-            # Find the nearest wall by iterating over the range values
-            for i in range(index, len(ranges) + index):
-                idx = i % len(ranges)
-                if ranges[idx] < WALL_THRESHOLD:
-                    return ranges[idx]
-
-    # If no wall is detected within the specified direction, return -1
-    return -1
 
 def scan_callback(scan_msg_in):
     # Store the scan_msg in a global variable
     global scan_msg
     scan_msg = scan_msg_in
-    detect_walls()
 
 if __name__ == '__main__':
-    # Initialize the ROS node
-    rospy.init_node('laser_scan')
+    # Initialize the node
+    rospy.init_node('get_walls')
+    rospy.loginfo("Wall service initialized")
 
-    # Subscribe to the laser scan topic
+    name = rospy.get_name() + "/"
+	
+    if rospy.has_param(name + "debug"):
+        debug = rospy.get_param(name + "debug")
+
+    # Subscribe to laser scan topic
     rospy.Subscriber('/scan', LaserScan, scan_callback)
 
-    # Advertise the topics for the distance to the nearest wall in each direction
-    north_pub = rospy.Publisher('/north_wall_distance', Float32, queue_size=10)
-    east_pub = rospy.Publisher('/east_wall_distance', Float32, queue_size=10)
-    south_pub = rospy.Publisher('/south_wall_distance', Float32, queue_size=10)
-    west_pub = rospy.Publisher('/west_wall_distance', Float32, queue_size=10)
+    # Start the service
+    s = rospy.Service('get_walls', GetWalls, detect_walls)
 
     # Spin the node to keep it alive
     rospy.spin()

@@ -9,8 +9,8 @@
     <arg name="false" default="False"/>
     <arg name="has_imu" default="false"/>
 
-    <arg name="dist_to_walls" default="true"/>
-    <arg name="debug_localization_grid" default="true"/>
+    <arg name="dist_to_walls" default="false"/>
+    <arg name="debug_localization_grid" default="false"/>
     
     <!-- Launch sensors-->
     <include unless="$(arg delay)" file="$(find nav_main)/launch/sensors_bringup.launch"/>
