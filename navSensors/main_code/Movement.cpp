@@ -21,7 +21,7 @@ Movement::Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstan
 
 Movement::initMovement(bool individualConstants)
 {
-  kinematics = Kinematics(motor_max_rpm_, wheel_diameter_, fr_wheels_dist_, lr_wheels_dist_, pwm_bits_);
+  kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
   setMotors();
   this->dispenser = Dispenser(kServoPin);
   if (individualConstants)
@@ -31,7 +31,7 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(12, 6, 2);
+  motor[BACK_LEFT].PIDStraightTunings(16, 6, 2);
   motor[FRONT_RIGHT].PIDStraightTunings(12, 10, 2);
   motor[FRONT_LEFT].PIDStraightTunings(12, 6, 2);
   motor[BACK_RIGHT].PIDStraightTunings(16, 6, 2);
@@ -210,32 +210,64 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
   double y = constrainDa(linear_y, -1.0 * kLinearYMaxVelocity, kLinearYMaxVelocity);
   double z = constrainDa(angular_z, -1.0 * kAngularZMaxVelocity, kAngularZMaxVelocity);
 
+  if (debug)
+  {
+    if (linear_x != x){
+      nh->loginfo("Linear velocity in X constrained!");
+    }
+    if (linear_y != y){
+      nh->loginfo("Linear velocity in Y constrained!");
+    }
+    if (angular_z != z){
+      nh->loginfo("Angular velocity in Z constrained!");
+    }
+  }
+
   if (kUsingPID)
   {
     Kinematics::output rpm = kinematics.getRPM(x, y, z);
+    Kinematics::output rpm1 = kinematics.getRPM(linear_x, linear_y, angular_z);
 
     updatePIDKinematics(rpm);
 
     if (debug)
     {
       char log_msg[20];
-      double rpms[kMotorCount];
       char result[8];
-      rpms[FRONT_LEFT] = rpm.motor1;
-      rpms[FRONT_RIGHT] = rpm.motor2;
-      rpms[BACK_LEFT] = rpm.motor3;
-      rpms[BACK_RIGHT] = rpm.motor4;
-
-      dtostrf(rpms[FRONT_LEFT], 6, 2, result);
-      sprintf(log_msg, "M1 RPM :%s", result);
+      double rpms[kMotorCount];
+      rpms[FRONT_LEFT] = (float)rpm.motor1;
+      rpms[FRONT_RIGHT] = (float) rpm.motor2;
+      rpms[BACK_LEFT] = (float) rpm.motor3;
+      rpms[BACK_RIGHT] = (float) rpm.motor4;
+      double rpms1[kMotorCount];
+      rpms1[FRONT_LEFT] = (float)rpm1.motor1;
+      rpms1[FRONT_RIGHT] = (float) rpm1.motor2;
+      rpms1[BACK_LEFT] = (float) rpm1.motor3;
+      rpms1[BACK_RIGHT] = (float) rpm1.motor4;
+      
+      dtostrf(angular_z, 6, 2, result);
+      sprintf(log_msg, "Angular Z :%s", result);
       nh->loginfo(log_msg);
-      dtostrf(rpms[BACK_LEFT], 6, 2, result);
-      sprintf(log_msg, "M2 RPM :%s", result);
+      dtostrf(z, 6, 2, result);
+      sprintf(log_msg, "Z :%s", result);
       nh->loginfo(log_msg);
       dtostrf(rpms[FRONT_RIGHT], 6, 2, result);
       sprintf(log_msg, "M3 RPM :%s", result);
       nh->loginfo(log_msg);
       dtostrf(rpms[BACK_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M4 RPM :%s", result);
+      nh->loginfo(log_msg);
+
+      dtostrf(rpms1[FRONT_LEFT], 6, 2, result);
+      sprintf(log_msg, "M1 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms1[BACK_LEFT], 6, 2, result);
+      sprintf(log_msg, "M2 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms1[FRONT_RIGHT], 6, 2, result);
+      sprintf(log_msg, "M3 RPM :%s", result);
+      nh->loginfo(log_msg);
+      dtostrf(rpms1[BACK_RIGHT], 6, 2, result);
       sprintf(log_msg, "M4 RPM :%s", result);
       nh->loginfo(log_msg);
     }
@@ -573,14 +605,14 @@ void Movement::checkLimitSwitches()
 void Movement::testMotor()
 {
 
-  // Motor *m = &motor[FRONT_RIGHT];
-  // Motor *m = &motor[BACK_LEFT];
-  Motor *m = &motor[BACK_RIGHT];
+  //Motor *m = &motor[FRONT_RIGHT];
+   Motor *m = &motor[BACK_LEFT];
+  //Motor *m = &motor[BACK_RIGHT];
   // Motor *m = &motor[FRONT_LEFT];
 
   while (true)
   {
-    m->motorSpeedPID(200, true);
+    m->testMotorSpeedPID(250, true, 255);
     Serial.print("Curr speed: ");
     Serial.print(m->getCurrentSpeed());
     Serial.print(", ");

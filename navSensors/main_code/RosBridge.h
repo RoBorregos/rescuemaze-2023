@@ -41,7 +41,7 @@ class RosBridge{
     void cmdVelocityCallback(const geometry_msgs::Twist &cmdvel);
 
     // Subscriber to make tests
-    void testCallback(const geometry_msgs::Twist &test_msg);
+    void testCallback(const std_msgs::String &test_msg);
 
     // Verify it is still receiving velocity commands.
     void watchdog();
@@ -63,7 +63,7 @@ class RosBridge{
     ros::Subscriber<geometry_msgs::Twist, RosBridge> velocity_subscriber;
     ros::Subscriber<std_msgs::Int16, RosBridge> dispenser_subscriber;
 
-    ros::Subscriber<geometry_msgs::Twist, RosBridge> test_subscriber;
+    ros::Subscriber<std_msgs::String, RosBridge> test_subscriber;
 
     static constexpr uint16_t kWatchdogPeriod = 500;
     
@@ -84,7 +84,7 @@ class RosBridge{
     sensor_msgs::Range vlx_sensor_msgs_back;  // TOF sensors
 
     std_msgs::Char tcs_sensor_msgs;          // Color sensor
-    geometry_msgs::Twist testT;
+    std_msgs::String testT;
 
     static constexpr uint8_t kOdomPeriod = 40;
 

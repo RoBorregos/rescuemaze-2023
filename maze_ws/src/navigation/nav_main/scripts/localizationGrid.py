@@ -9,18 +9,26 @@ from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import PolygonStamped
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Point
+from std_msgs.msg import Float32
 
 class LocalizationGrid:
-	def __init__(self):
+	def __init__(self, dist_to_walls):
 		self.occupancy_grid = None
 		self.footprint = None
 		self.robot_pos = None
 		self.first = False
+		self.dist_to_walls = dist_to_walls
 		
 		self.grid_sub = rospy.Subscriber("/move_base/local_costmap/costmap", OccupancyGrid, self.occupancy_grid_callback)
 		self.footprint_sub = rospy.Subscriber("/move_base/local_costmap/footprint", PolygonStamped, self.footprint_callback)
 		self.robot_pos = rospy.Subscriber("/slam_out_pose", PoseStamped, self.robot_pos_callback)
 		self.pub = rospy.Publisher('/center_location', Point, queue_size=20)
+		
+		if dist_to_walls:
+			self.pub_north = rospy.Publisher('/walls/north', Float32, queue_size=10)
+			self.pub_south = rospy.Publisher('/walls/south', Float32, queue_size=10)
+			self.pub_east = rospy.Publisher('/walls/east', Float32, queue_size=10)
+			self.pub_west = rospy.Publisher('/walls/west', Float32, queue_size=10)
 
 	def occupancy_grid_callback(self, msg):
 		self.occupancy_grid = msg
@@ -74,14 +82,18 @@ class LocalizationGrid:
 		new_width = 500
 		new_height = int(500 * self.occupancy_grid.info.height / self.occupancy_grid.info.width)
 		image = cv2.resize(image, (new_width, new_height))
+		image = cv2.flip(image, 0) # Flip image to match rviz/gazebo output
 
 		if debug:
 			self.original = image.copy()
-
+		if dist_to_walls:
+			self.dist_img = image.copy()
+			self.dist_img = cv2.cvtColor(self.dist_img, cv2.COLOR_BGR2GRAY)
+		
 		# Transform input into grid
 		def getCells(image):
-			cv2.imwrite('PreTest-' + str(0) + '.jpg', image)
-			image = cv2.imread('PreTest-' + str(0) + '.jpg')
+			image = np.uint8(image)
+
 			gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 			blur = cv2.GaussianBlur(gray, (3,3), 0)
 			thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
@@ -109,10 +121,6 @@ class LocalizationGrid:
 			return result
 
 		image = getCells(image)
-		image = cv2.flip(image, 0) # Flip image to match rviz/gazebo output
-		
-		if debug:
-			self.original = cv2.flip(self.original, 0)
 
 		self.image = image.copy()
 		
@@ -128,6 +136,18 @@ class LocalizationGrid:
 		# Flip individual points (because image is flipped to match rviz / simulator output)
 		footprint_points = [((500-point[0]-1),(point[1])) for point in footprint_points]
 
+		# Get robot's center
+		x_loc = int((footprint_points[0][0] + footprint_points[1][0] + footprint_points[2][0] + footprint_points[3][0]) / 4)
+		y_loc = int((footprint_points[0][1] + footprint_points[1][1] + footprint_points[2][1] + footprint_points[3][1]) / 4)
+
+		self.centerX = x_loc
+		self.centerY = y_loc
+		self.footprint_data = footprint_points
+
+		# Get distance from robot to walls in the north, south, east, and west.
+		if self.dist_to_walls:
+			self.dist_center_point(x_loc, y_loc, dist_to_walls=True)
+
 		# Draw Rectangle
 		if debug:
 			for i in range(len(footprint_points)):
@@ -137,14 +157,6 @@ class LocalizationGrid:
 				else:
 					cv2.line(image, footprint_points[i], footprint_points[0], color = (0,255,0), thickness = 2)
 					cv2.line(self.original, footprint_points[i], footprint_points[0], color = (0,255,0), thickness = 2)
-
-		# Get robot's center
-		x_loc = int((footprint_points[0][0] + footprint_points[1][0] + footprint_points[2][0] + footprint_points[3][0]) / 4)
-		y_loc = int((footprint_points[0][1] + footprint_points[1][1] + footprint_points[2][1] + footprint_points[3][1]) / 4)
-
-		self.centerX = x_loc
-		self.centerY = y_loc
-		self.footprint_data = footprint_points
 
 		return image
 	
@@ -190,18 +202,23 @@ class LocalizationGrid:
 						break
 		return int(line_width / 2)
 
-	def dist_center_point(self, c_x, c_y):
+	def dist_center_point(self, c_x, c_y, dist_to_walls=False):
 		"""Find distance from point (c_x, c_y) to the center of the nearest cell.
 		
 		Args:
 			c_x: the x position of the point to check
 			c_y: the y position of the point to check
+			dist_to_walls: publish distance to walls in north, south, east, and west
 
 		Returns:
 			Distance to center in cm.
 		"""
 
-		image = self.image.copy()
+		image = []
+		if not dist_to_walls:
+			image = self.image.copy() # Contains map with grid.
+		else:
+			image = self.dist_img
 
 		width = 500
 		height = int(500 * (self.occupancy_grid.info.height/self.occupancy_grid.info.width))
@@ -214,7 +231,7 @@ class LocalizationGrid:
 		if image[c_y][c_x] == 0:
 			return [-10, -10]
 
-		self.selected_p = (c_x, c_y)
+		self.selected_p = (c_x, c_y) # Point used to check line width
 
 		# get distance to nearest line in north/south, east/west
 		# check north
@@ -246,6 +263,29 @@ class LocalizationGrid:
 				west += self.line_width(i, False, False, image, width, height)
 				break
 		
+		if dist_to_walls:
+			north *= cell_distance
+			south *= cell_distance
+			east *= cell_distance
+			west *= cell_distance
+
+			# Generate and publish messages.
+			d_n = Float32()
+			d_s = Float32()
+			d_e = Float32()
+			d_w = Float32()
+
+			d_n.data = north
+			d_s.data = south
+			d_e.data = east
+			d_w.data = west
+
+			self.pub_north.publish(d_n)
+			self.pub_south.publish(d_s)
+			self.pub_east.publish(d_e)
+			self.pub_west.publish(d_w)
+			return
+
 		def distance_to_center(units_to_line):
 			"""Transforms cell count into centimeters. Finds distance
 			to nearest center.
@@ -430,9 +470,28 @@ class LocalizationGrid:
 
 if __name__ == '__main__':
 	try:
-		rospy.init_node('costmap_with_rectangle')
-		costmap_with_rectangle = LocalizationGrid()
-		costmap_with_rectangle.loopData()
-		#costmap_with_rectangle.debugData(0.2)
+		# Initialize the node
+		rospy.init_node('localization_grid')
+		rospy.loginfo('Localization grid initialized.')
+
+		# Specify node behaviour using parameters
+		dist_to_walls = False
+		debug = False
+
+		name = rospy.get_name() + "/"
+
+		if rospy.has_param(name + "send_dist_to_walls"):
+			dist_to_walls = rospy.get_param(name + "send_dist_to_walls")
+		
+		if rospy.has_param(name + "debug"):
+			debug = rospy.get_param(name + "debug")
+
+		costmap_with_rectangle = LocalizationGrid(dist_to_walls)
+
+		if debug:
+			costmap_with_rectangle.debugData(0.2)
+		else:
+			costmap_with_rectangle.loopData()
+		
 	except rospy.ROSInterruptException:
 		pass

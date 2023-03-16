@@ -118,14 +118,14 @@ def main():
     xmin = 0
     xmax = maxPlotLength
     ymin = 0
-    ymax = 2
+    ymax = 5
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(xlim=(xmin, xmax), ylim=(float(ymin - (ymax - ymin) / 10), float(ymax + (ymax - ymin) / 10)))
     ax.set_title("Motor PID graph")
     ax.set_xlabel("Time")
     ax.set_ylabel("Velocity")
 
-    lineLabel = ['CurrentBL', 'CurrentFL', 'CurrentFR', 'CurrentBR', 'Target']
+    lineLabel = ['CurrentBL', 'CurrentFL', 'CurrentBR', 'CurrentFR', 'Target']
     style = ['r-', 'm-', 'b-', 'g-', 'k-']  # linestyles for the different plots
     timeText = ax.text(0.70, 0.95, '', transform=ax.transAxes)
     lines = []

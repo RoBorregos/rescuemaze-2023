@@ -26,9 +26,9 @@ void setup()
 {
   Serial.begin(57600);
 
-  initAll();
+
   setupData(false, false);
-  specificTest(true);
+  specificTest(false);
 
   ros::NodeHandle nh;
   nh.initNode();
@@ -37,11 +37,37 @@ void setup()
     nh.spinOnce();
   }
 
+  // Without ROS
+  // initAll();
+
+  initAllRos(&nh);
+
   nh.loginfo("Arduino node initialized");
 
   reps = 0;
   RosBridge rosbridge(robot, s, &nh);
   rosbridge.run();
+}
+
+void initAllRos(ros::NodeHandle* nh)
+{
+  bno.init();
+  static Sensors sensors(&bno);
+  s = &sensors;
+
+  static Movement movement(nh, s, true);
+  robot = &movement;
+
+  uint8_t colors[3][3] = {
+      {137, 78, 58},
+      {64, 85, 128},
+      {85, 85, 85},
+  };
+
+  uint8_t colorAmount = 3;
+  char colorList[4] = {"obB"};
+
+  tcs.init(colors, colorAmount, colorList);
 }
 
 void initAll()
@@ -123,7 +149,7 @@ void moveRoutine()
 
   while (true)
   {
-    robot->updateStraightPID(200);
+    robot->updateStraightPID(90);
     graph.plotTargetandCurrent();
   }
 }

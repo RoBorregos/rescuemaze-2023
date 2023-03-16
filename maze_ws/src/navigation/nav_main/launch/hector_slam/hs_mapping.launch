@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-
-  <include file="$(find robot_description)/launch/display.launch" />
-
+  <arg name="open_rviz" default="true"/>
   <arg name="tf_map_scanmatch_transform_frame_name" default="scanmatcher_frame"/>
   <arg name="base_frame" default="base_footprint"/>
   <arg name="base_link" default="base_link"/>
@@ -12,17 +10,28 @@
   <arg name="scan_subscriber_queue_size" default="15"/>
   <arg name="scan_topic" default="scan"/>
   <arg name="map_size" default="2048"/>
+  <arg name="has_imu" default="false"/>
+  <arg name="imu_topic" default="imu/data"/>
+  <arg name="node_start_delay" default="10.0"/>
+
+  <include file="$(find robot_description)/launch/display.launch">
+    <arg name="open_rviz" value="$(arg open_rviz)"/>
+    <arg name="node_start_delay" value="$(arg node_start_delay)"/>
+  </include>
   
-  <node pkg="hector_imu_attitude_to_tf" type="imu_attitude_to_tf_node" name="imu_attitude_to_tf_node" output="screen">
+  <node if="$(arg has_imu)" pkg="hector_imu_attitude_to_tf" type="imu_attitude_to_tf_node" name="imu_attitude_to_tf_node" output="screen">
     <remap from="imu_topic" to="imu" />
+    <!--<remap from="imu_topic" to="$(arg imu_topic)" />-->
     <param name="base_stabilized_frame" type="string" value="$(arg base_frame)" />
     <param name="base_frame" type="string" value="$(arg base_link)" />
   </node>
 
-  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen">
+  <node unless="$(arg has_imu)" pkg="tf" type="static_transform_publisher" name="base_footprint_broadcaster" args="0 0 0 0 0 0 $(arg base_frame) $(arg base_link) 100"/> 
+
+  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
     
     <!-- Frame names -->
-    <param name="map_frame" value="map" />
+    <param name="map_frame" value="map"/>
     <param name="base_frame" value="$(arg base_frame)" />
     <param name="odom_frame" value="$(arg base_frame)" />
     

@@ -82,7 +82,7 @@ void RosBridge::cmdVelocityCallback(const geometry_msgs::Twist &cmd_velocity)
   watchdog_timer = millis();
 }
 
-void RosBridge::testCallback(const geometry_msgs::Twist &test_msg){
+void RosBridge::testCallback(const std_msgs::String &test_msg){
   nh->loginfo("Data detected test");
   test_publisher.publish(&test_msg);
 }

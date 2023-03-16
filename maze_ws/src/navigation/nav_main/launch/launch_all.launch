@@ -1,0 +1,40 @@
+
+<launch>
+    <!-- Start options -->
+    <arg name="delay" default="True"/>
+    <arg name="use_gui" default="false"/>
+    <arg name="open_rviz" default="true"/>
+    <arg name="port" default="/dev/ttyUSB0"/>
+    <arg name="node_start_delay" default="0.0"/>
+    <arg name="false" default="False"/>
+    <arg name="has_imu" default="false"/>
+
+    <arg name="dist_to_walls" default="false"/>
+    <arg name="debug_localization_grid" default="false"/>
+    
+    <!-- Launch sensors-->
+    <include unless="$(arg delay)" file="$(find nav_main)/launch/sensors_bringup.launch"/>
+
+    <!-- Launch HS mapping -->
+    <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
+        <arg name="open_rviz" value="$(arg open_rviz)"/>
+        <arg name="has_imu" value="$(arg has_imu)"/>
+        <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('delay'))"/>
+    </include>
+
+    <!-- Launch move base -->
+    <include file="$(find nav_main)/launch/move_base.launch">
+        <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('delay'))"/>
+    </include>
+
+    <!-- Launch localization of centers node -->
+    <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">
+        <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
+        <param name="debug" value="$(arg debug_localization_grid)"/>
+    </node>
+
+    <!-- Launch arduino node -->
+    <node unless="$(arg delay)" name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
+        <param name="port" value="$(arg port)"/>
+    </node>
+</launch>
