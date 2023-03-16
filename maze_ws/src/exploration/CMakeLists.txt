@@ -14,6 +14,7 @@ std_msgs
 message_generation
 move_base_msgs
 actionlib
+# map_server
   # message_runtime
 )
 
@@ -221,9 +222,9 @@ add_executable(main src/main.cpp)
 target_link_libraries(main ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 add_dependencies(main exploration_gencpp)
 
-add_executable(actionClient src/actionClient.cpp)
-target_link_libraries(actionClient ${catkin_LIBRARIES})
-add_dependencies(actionClient exploration_gencpp)
+# add_executable(actionClient src/actionClient.cpp)
+# target_link_libraries(actionClient ${catkin_LIBRARIES})
+# add_dependencies(actionClient exploration_gencpp)
 
 # catkin_install_python(PROGRAMS src/testServerMoveBase
 #                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -232,6 +233,6 @@ add_dependencies(actionClient exploration_gencpp)
 # target_link_libraries(testServerMoveBase ${catkin_LIBRARIES})
 # add_dependencies(testServerMoveBase exploration_genpy)
 
-# add_executable(dummyClient src/dummyClient.cpp)
-# target_link_libraries(dummyClient ${catkin_LIBRARIES})
-# add_dependencies(dummyClient exploration_gencpp)
+add_executable(rosbridgetest src/bridgetest.cpp)
+target_link_libraries(rosbridgetest ${catkin_LIBRARIES})
+add_dependencies(rosbridgetest exploration_gencpp)
