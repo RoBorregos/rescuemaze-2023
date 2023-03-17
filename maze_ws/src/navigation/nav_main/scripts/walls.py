@@ -10,7 +10,7 @@ import rospy
 from sensor_msgs.msg import LaserScan
 from nav_main.srv import GetWalls, GetWallsResponse
 
-debug = True
+debug = False
 
 def detect_walls(req):
 

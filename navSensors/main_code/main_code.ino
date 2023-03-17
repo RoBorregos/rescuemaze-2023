@@ -25,10 +25,13 @@ int reps;
 void setup()
 {
   Serial.begin(57600);
-
+  Serial.println("12345");
+  Serial.println("Start");
 
   setupData(false, false);
-  specificTest(false);
+
+  initAll();
+  specificTest(true);
 
   ros::NodeHandle nh;
   nh.initNode();
@@ -38,7 +41,6 @@ void setup()
   }
 
   // Without ROS
-  // initAll();
 
   initAllRos(&nh);
 
@@ -87,7 +89,6 @@ void initAll()
 
   uint8_t colorAmount = 3;
   char colorList[4] = {"obB"};
-
   tcs.init(colors, colorAmount, colorList);
 }
 
@@ -110,10 +111,12 @@ void setupData(bool tcsSet, bool i2c)
 }
 
 void specificTest(bool test)
-{
+{  
   if (!test)
     return;
   
+  Serial.println("Specific test");
+
   while (false)
     tcs.printColor();
 

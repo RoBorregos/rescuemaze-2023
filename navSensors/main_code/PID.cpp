@@ -54,10 +54,10 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
 
   const double error = setpoint - input; // rev / s
 
-  output = error * kp + errorSum * ki + ((error - errorPre) / timeDiff) * kd;
+  output = error * kp + errorSum * ki + (error - errorPre) * kd;
 
   errorPre = error;
-  errorSum += error * timeDiff;
+  errorSum += error;
 
   errorSum = max(maxError * -1, min(maxError, errorSum));
   output = max(minOutput, min(maxOutput, output));

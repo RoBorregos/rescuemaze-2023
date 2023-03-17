@@ -31,10 +31,10 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(16, 6, 2);
-  motor[FRONT_RIGHT].PIDStraightTunings(12, 10, 2);
-  motor[FRONT_LEFT].PIDStraightTunings(12, 6, 2);
-  motor[BACK_RIGHT].PIDStraightTunings(16, 6, 2);
+  motor[BACK_LEFT].PIDStraightTunings(12, 3, 2);
+  motor[FRONT_RIGHT].PIDStraightTunings(12, 3, 2);
+  motor[FRONT_LEFT].PIDStraightTunings(12, 3, 2);
+  motor[BACK_RIGHT].PIDStraightTunings(12, 3, 2);
 }
 
 void Movement::setMotors()
@@ -612,7 +612,6 @@ void Movement::testMotor()
 
   while (true)
   {
-    m->testMotorSpeedPID(250, true, 255);
     Serial.print("Curr speed: ");
     Serial.print(m->getCurrentSpeed());
     Serial.print(", ");
