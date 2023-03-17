@@ -9,6 +9,7 @@
 #include <map>
 #include <fstream>
 #include <string>
+// #include <boost/serialization>
 
 using namespace std;
 
@@ -17,7 +18,6 @@ using namespace std;
 
 // Move Base
 #include "move_base_msgs/MoveBaseAction.h"
-// #include "move_base_msgs/MoveBaseGoal.h"
 #include "actionlib/client/simple_action_client.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
@@ -28,209 +28,15 @@ using namespace std;
 // #include "Movement.h"
 #include "Map.h"
 #include "Dijkstra.h"
+#include "ROSbridge.h"
 
 // 0: north, 1: east, 2: south, 3: west
 int rDirection = 0;
 
-string curInstruction = "";
-ros::CallbackQueue callQueue;
-
 #define DEBUG true
 #define useros false
 
-struct ClientScope
-{
-    // move_base_msgs::MoveBaseFeedbackConstPtr &feedback;
-    string feedback;
-    uint8_t result;
-    string textRes;
-    // int status;
-    uint8_t status;
-    bool resultReceived;
-    bool startedGoal;
-
-    // Constructor
-    ClientScope() : feedback(""), result(10), resultReceived(false) {}
-};
-
-ClientScope scope;
-
-void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
-{
-    ROS_INFO_STREAM("Finished in state " << state.toString());
-    // ROS_INFO_STREAM("Answer: " << result->sequence.back());
-
-    scope.result = state.state_;
-    scope.textRes = state.getText();
-
-    // scope.result = result->status.goal_id.id;
-    scope.resultReceived = true;
-    scope.startedGoal = false;
-}
-
-// void feedbackCB(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback)
-void feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback)
-{
-    // ROS_INFO_STREAM("Feedback x: " << feedback->base_position.pose.position.x);
-    // ROS_INFO_STREAM("Feedback y: " << feedback->base_position.pose.position.y);
-    // ROS_INFO_STREAM("Feedback z: " << feedback->base_position.pose.position.z);
-    // ROS_INFO_STREAM("GoalID: " << feedback->status.goal_id.id);
-    // ROS_INFO_STREAM("x: " << feedback->feedback.base_position.pose.position.x);
-    // ROS_INFO_STREAM("y: " << feedback->feedback.base_position.pose.position.y);
-    // ROS_INFO_STREAM("z: " << feedback->feedback.base_position.pose.position.z);
-    // ROS_INFO_STREAM("Got Feedback of length " << feedback->sequence.size());
-
-    scope.feedback = feedback->base_position.pose.position.x;
-
-    // scope.feedback = feedback->.goal_id.id;
-}
-
-void activeCb()
-{
-    ROS_INFO("Goal just went active");
-    scope.resultReceived = false;
-    scope.startedGoal = true;
-}
-
-void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &msg)
-{
-    // ROS_INFO_STREAM("Status: " << msg->goal_id.id);
-    ROS_INFO("Status: %d", msg->status_list[0].status);
-    if (scope.startedGoal)
-        scope.status = msg->status_list[0].status;
-    // ROS_INFO_STREAM("Status: " << msg->status_list[0].text);
-    // ROS_INFO_STREAM("Status: " << msg->status_list[0].goal_id.id);
-}
-
-int getColor()
-{
-    return 0;
-}
-
-void recovery()
-{
-    ROS_INFO("Recovery");
-}
-
-void movementClientAsync(move_base_msgs::MoveBaseGoal goal)
-{
-    ROS_INFO("movementClientAsync");
-
-    // tell the action client that we want to spin a thread by default
-    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
-
-    // wait for the action server to come up
-    while (!ac.waitForServer(ros::Duration(1.0)))
-    {
-        ROS_INFO("Waiting for the move_base action server to come up");
-        ros::spinOnce();
-    }
-
-    ac.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
-
-    scope.resultReceived = false;
-    scope.status = actionlib_msgs::GoalStatus::PENDING;
-
-    // ros::spinOnce();
-
-    while (ros::ok() && !scope.resultReceived &&
-           scope.status != actionlib_msgs::GoalStatus::PREEMPTED &&
-           scope.status != actionlib_msgs::GoalStatus::SUCCEEDED &&
-           scope.status != actionlib_msgs::GoalStatus::ABORTED &&
-           scope.status != actionlib_msgs::GoalStatus::REJECTED &&
-           scope.status != actionlib_msgs::GoalStatus::RECALLED)
-
-    //(scope.status == actionlib_msgs::GoalStatus::ACTIVE || scope.status == actionlib_msgs::GoalStatus::PENDING || scope.status == actionlib_msgs::GoalStatus::RECALLED || scope.status == actionlib_msgs::GoalStatus::RECALLING))
-    {
-        ROS_INFO("in movement client async loop, Status: %d", scope.status);
-        ROS_INFO("resultReceived: %d", scope.resultReceived);
-
-        if (false)
-        {
-            ac.cancelAllGoals();
-            recovery();
-
-            break;
-        }
-
-        ros::spinOnce();
-    }
-
-    ROS_INFO("movementClientAsync result: %d", scope.status);
-    return;
-}
-
-void sendGoal(geometry_msgs::Pose pose)
-{
-    ROS_INFO("sendGoal");
-
-    move_base_msgs::MoveBaseGoal goal;
-
-    geometry_msgs::PoseStamped poseStamped;
-    poseStamped.header.stamp = ros::Time::now();
-    poseStamped.header.frame_id = "base_link";
-
-    poseStamped.pose = pose;
-
-    goal.target_pose = poseStamped;
-    movementClientAsync(goal);
-}
-
-// void handleUnitMovements(exploration::Trigger::Request &req, exploration::Trigger::Response &res)
-void handleUnitMovements(int movement)
-{
-    if (useros)
-    {
-        ROS_INFO_STREAM("handleUnitMovements: " << movement);
-
-        geometry_msgs::Pose pose;
-
-        if (movement == 0) // North
-        {
-            ROS_INFO("North");
-
-            pose.position.x = 0.3;
-            pose.position.y = 0;
-            pose.position.z = 0;
-            pose.orientation.x = 0;
-            pose.orientation.y = 0;
-            pose.orientation.z = 0;
-            pose.orientation.w = 1;
-        }
-        else if (movement == 1) // Turn right
-        {
-            ROS_INFO("Turn right");
-
-            pose.position.x = 0;
-            pose.position.y = 0;
-            pose.position.z = 0;
-            pose.orientation = tf::createQuaternionMsgFromYaw(-M_PI / 2);
-        }
-        else if (movement == 2) // South
-        {
-            ROS_INFO("Backwards");
-
-            pose.position.x = -0.3;
-            pose.position.y = 0;
-            pose.position.z = 0;
-            pose.orientation.x = 0;
-            pose.orientation.y = 0;
-            pose.orientation.z = 0;
-            pose.orientation.w = 1;
-        }
-        else if (movement == 3) // Turn left
-        {
-            ROS_INFO("Turn left");
-
-            pose.position.x = 0;
-            pose.position.y = 0;
-            pose.position.z = 0;
-            pose.orientation = tf::createQuaternionMsgFromYaw(M_PI / 2);
-        }
-
-        sendGoal(pose);
-    }
-}
+ROSbridge *bridge;
 
 /* bool sendInstruction(exploration::Trigger::Request &req, exploration::Trigger::Response &res)
 {
@@ -276,39 +82,7 @@ void moveForward(int &rDirection, Map &mapa)
     // cout << "forward" << endl;
     ROS_INFO("forward");
 
-    handleUnitMovements(0);
-
-    if (DEBUG)
-    {
-        mapa.printMaze(rDirection);
-        // cin.get();
-        ros::Duration(0.1).sleep();
-    }
-}
-
-void moveBackward(int &rDirection, Map &mapa)
-{
-    // cout << "forward" << endl;
-    ROS_INFO("backward");
-
-    handleUnitMovements(2);
-
-    if (DEBUG)
-    {
-        mapa.printMaze(rDirection);
-        // cin.get();
-        ros::Duration(0.1).sleep();
-    }
-}
-
-// Gira a la izquierda y modifica la direccion
-void left(int &rDirection, Map &mapa)
-{
-    (rDirection == 0) ? rDirection = 3 : rDirection--;
-    // cout << "left" << endl;
-    ROS_INFO("left");
-
-    handleUnitMovements(3);
+    bridge->sendUnitGoal(0);
 
     if (DEBUG)
     {
@@ -325,7 +99,39 @@ void right(int &rDirection, Map &mapa)
     // cout << "right" << endl;
     ROS_INFO("right");
 
-    handleUnitMovements(2);
+    bridge->sendUnitGoal(1);
+
+    if (DEBUG)
+    {
+        mapa.printMaze(rDirection);
+        // cin.get();
+        ros::Duration(0.1).sleep();
+    }
+}
+
+void moveBackward(int &rDirection, Map &mapa)
+{
+    // cout << "forward" << endl;
+    ROS_INFO("backward");
+
+    bridge->sendUnitGoal(2);
+
+    if (DEBUG)
+    {
+        mapa.printMaze(rDirection);
+        // cin.get();
+        ros::Duration(0.1).sleep();
+    }
+}
+
+// Gira a la izquierda y modifica la direccion
+void left(int &rDirection, Map &mapa)
+{
+    (rDirection == 0) ? rDirection = 3 : rDirection--;
+    // cout << "left" << endl;
+    ROS_INFO("left");
+
+    bridge->sendUnitGoal(3);
 
     if (DEBUG)
     {
@@ -411,7 +217,7 @@ void moveWest(int &xMaze, int &rDirection, Map &mapa)
 }
 
 // Calcula la posicion en la que estaria el robot al moverse a la direccion indicada por key
-void calcPos(vector<int>& pos, string key, Map &mapa)
+void calcPos(vector<int> &pos, string key, Map &mapa)
 {
     int rampDir = mapa.rampDirection(key);
 
@@ -470,8 +276,6 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 {
     if (tile->adjacentTiles[key])
     {
-        calcPos(mapa.pos, key, mapa);
-        mapa.moveMaze(key);
 
         if (key == "north")
         {
@@ -490,6 +294,15 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             moveWest(xMaze, rDirection, mapa);
         }
 
+        if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
+        {
+            bridge->clearMap();
+            // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
+        }
+
+        calcPos(mapa.pos, key, mapa);
+        mapa.moveMaze(key);
+
         return tile->adjacentTiles[key];
     }
 
@@ -504,16 +317,6 @@ string posvectorToString(vector<int> pos)
 // Regresa la distancia en cm a la pared en la direccion dada
 int getDistance(string key, Map &mapa)
 {
-    // ROS_INFO_STREAM("getDistance: " << key);
-    // if (key == "north")
-    //     rotateTo(rDirection, 0);
-    // else if (key == "east")
-    //     rotateTo(rDirection, 1);
-    // else if (key == "south")
-    //     rotateTo(rDirection, 2);
-    // else if (key == "west")
-    //     rotateTo(rDirection, 3);
-
     if (mapa.getChar(key) == '#')
         return 5;
     else
@@ -577,9 +380,8 @@ Tile *createTile(vector<int> pos, char c, string key, vector<int> &adjPos, Map &
         newTile->weight = 150;
         newTile->rampa = mapa.rampDirection(key);
     }
-    else if (c == 'c') //checkpoint
+    else if (c == 'c') // checkpoint
     {
-        
     }
     else if (checkVictims(mapa))
     {
@@ -606,16 +408,11 @@ void printMap(Map &mapa)
 // Funcion principal, se encarga de llamar a las funciones necesarias para explorar el laberinto completamente y regresar al inicio
 void explore(bool checkpoint, int argc, char **argv)
 {
-    ros::init(argc, argv, "mainAlgorithm");
-    ros::NodeHandle n;
-
     Map mapa;
-    int prueba;
-
 
     if (checkpoint)
     {
-        ROS_INFO_STREAM("Checkpoint");
+        ROS_INFO("Checkpoint");
 
         // {
         std::ifstream ifs("./checkpoint.txt");
@@ -629,7 +426,7 @@ void explore(bool checkpoint, int argc, char **argv)
     }
     else
     {
-        ROS_INFO_STREAM("No checkpoint");
+        ROS_INFO("No checkpoint");
     }
 
     // mapa.printMaze(rDirection);
@@ -731,9 +528,14 @@ void explore(bool checkpoint, int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+    ros::init(argc, argv, "mainAlgorithm");
+    ros::NodeHandle *n = new ros::NodeHandle();
+
+    bridge = new ROSbridge(n);
+
     try
     {
-        if (getColor() == 1) // Checkpoint
+        if (bridge->tcsdata == 1) // Checkpoint
         {
             explore(true, argc, argv);
         }
