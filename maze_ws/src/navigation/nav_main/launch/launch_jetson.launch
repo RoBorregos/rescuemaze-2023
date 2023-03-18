@@ -1,17 +1,20 @@
 <launch>
     <!-- Start options -->
-    <arg name="using_simulation" default="True"/>
+    <arg name="using_simulation" default="false"/>
     <arg name="use_gui" default="false"/>
-    <arg name="open_rviz" default="true"/>
-    <arg name="port" default="/dev/ttyUSB0"/>
+    <arg name="open_rviz" default="false"/>
+    <arg name="portArduino" default="/dev/ttyUSB1"/>
+    <arg name="portLidar" default="/dev/ttyUSB0"/>
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
 
     <arg name="dist_to_walls" default="false"/>
-    <arg name="debug_localization_grid" default="true"/>
+    <arg name="debug_localization_grid" default="false"/>
     
     <!-- Launch sensors-->
-    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors_bringup.launch"/>
+    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors_bringup.launch">
+        <arg name="port" value="$(arg portLidar)"/>
+    </include>
 
     <!-- Launch HS mapping -->
     <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
@@ -33,6 +36,6 @@
 
     <!-- Launch arduino node -->
     <node unless="$(arg using_simulation)" name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
-        <param name="port" value="$(arg port)"/>
+        <param name="port" value="$(arg portArduino)"/>
     </node>
 </launch>
