@@ -53,7 +53,7 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
     int lowestCost = INT_MAX;
     Tile *lowTile = nullptr;
 
-    while (source)
+    while (source)  
     {
         visited[source] = true;
 
@@ -76,6 +76,9 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
         source = cheapestUnknown(tiles, visited, cost);
     }
 
+    cout << "El costo mas bajo es: " << lowestCost << endl;
+    cout << "La casilla de menos costo es: " << lowTile->pos[0] << ", " << lowTile->pos[1] << ", " << lowTile->pos[2] << endl;
+
     pair<Tile *, string> path = paths[lowTile];
     while (path.first)
     {
@@ -85,7 +88,10 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
 
     unvisited.erase(remove(unvisited.begin(), unvisited.end(), lowTile), unvisited.end());
 
-    if (lowTile)
+    if (!lowTile)
+        cout << "No hay casillas sin visitar" << endl;
+
+/*     if (lowTile)
     {
         if (lowTile->weight == -10)
         {
@@ -96,6 +102,6 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
     {
         cout << "No hay casillas sin visitar" << endl;
     }
-
+ */
     return bestPath;
 }

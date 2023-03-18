@@ -19,6 +19,8 @@
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 
+#include <nav_main/GetWalls.h>
+
 #include <string>
 using namespace std;
 
@@ -27,17 +29,28 @@ using namespace std;
 class ROSbridge
 {
 private:
+    bool debugging;
     ros::NodeHandle* nh;
     // ros::Publisher pub;
 
     // Subscribers
     ros::Subscriber tcssub;
     ros::Subscriber bnoxsub;
+    // TODO: Make callback and add to constructor
+    ros::Subscriber limitswitch1;
+    ros::Subscriber localizationsub;
+
+    // Publishers
+    ros::Publisher dispenserpub;
+
+    ros::Publisher debugpub;
 
     // Service clients
-    ros::ServiceClient mapclient;
+    // ros::ServiceClient mapclient;
     ros::ServiceClient moveBaseMapResetClient;
     ros::ServiceClient hsMapReset;
+
+    ros::ServiceClient wallsClient;
 
     // Action clients
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac;
@@ -62,17 +75,24 @@ public:
     ClientScope scope;
     char tcsdata;
     float bnoxdata;
+    bool limitSwitch1;
 
     ROSbridge(ros::NodeHandle* n);
 
     void clearMap();
     void sendUnitGoal(int movement);
 
+    vector<int> getWalls();
+    void sendKit();
+    int getVictims();
+
+    void pubDebug(string msg);
 };
 
 
 ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 {
+    debugging = true;
     ROS_INFO("Creating ROSbridge");
     nh = n;
  
@@ -83,9 +103,14 @@ ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 
     ROS_INFO("Created subscribers");
 
+    dispenserpub = nh->advertise<std_msgs::String>("/dispenser", 1000);
+    debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
+
     // mapclient = nh->serviceClient<nav_msgs::GetMap>();
     moveBaseMapResetClient = nh->serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
     hsMapReset = nh->serviceClient<std_srvs::Trigger>("/reset_map");
+
+    wallsClient = nh->serviceClient<nav_main::GetWalls>("/get_walls");
 
     ROS_INFO("Created service clients");
 }
@@ -95,7 +120,8 @@ ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 void ROSbridge::tcscallback(const std_msgs::Char::ConstPtr& msg)
 {
     ROS_INFO("I heard: [%c]", msg->data);
-    tcsdata = msg->data;
+    // tcsdata = msg->data;
+    tcsdata = 'b';
 }
 
 void ROSbridge::bnoxcallback(const std_msgs::Float64::ConstPtr& msg)
@@ -127,11 +153,16 @@ void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move
 void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback)
 {
 
-    ROS_INFO("Feedback x %f", feedback->base_position.pose.position.x);
-    ROS_INFO("Feedback y %f", feedback->base_position.pose.position.y);
-    ROS_INFO("Feedback z %f", feedback->base_position.pose.position.z);
+    // ROS_INFO("Feedback x %f", feedback->base_position.pose.position.x);
+    // ROS_INFO("Feedback y %f", feedback->base_position.pose.position.y);
+    // ROS_INFO("Feedback z %f", feedback->base_position.pose.position.z);
 
     if (tcsdata == '1')
+    {
+        ROS_INFO("Cancelling goal");
+        ac.cancelGoal();
+    }
+    else if (limitSwitch1)
     {
         ROS_INFO("Cancelling goal");
         ac.cancelGoal();
@@ -248,4 +279,42 @@ void ROSbridge::clearMap()
     hsMapReset.call(trigger);
 
     ROS_INFO("Cleared map");
+}
+
+vector<int> ROSbridge::getWalls()
+{
+    ROS_INFO("Getting walls");
+
+    nav_main::GetWalls walls;
+    wallsClient.call(walls);
+
+    ROS_INFO("Got walls front:%d, right: %d, back: %d, left: %d", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+
+    vector<int> wallsVector = {walls.response.front, walls.response.right, walls.response.back, walls.response.left};
+
+    return wallsVector;
+}
+
+void ROSbridge::sendKit()
+{
+    ROS_INFO("Sending kit");
+
+    std_msgs::String msg;
+    msg.data = "1";
+    dispenserpub.publish(msg);
+}
+
+int ROSbridge::getVictims()
+{
+    return 0;
+}
+
+void ROSbridge::pubDebug(string m)
+{
+    if (debugging)
+    {
+        std_msgs::String msg;
+        msg.data = m;
+        debugpub.publish(msg);
+    }
 }
