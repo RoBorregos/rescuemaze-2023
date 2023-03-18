@@ -1,8 +1,11 @@
 <launch>
   <!-- Start LIDAR-->
+
+  <arg name="port" default="/dev/ttyUSB0"/>
+
   <include file="$(find ldlidar_stl_ros)/launch/ld06.launch">
     <arg name="frame_id" default="base_scan"/>
-    <arg name="port_name" default="/dev/ttyUSB0"/>
+    <arg name="port_name" value="$(arg port)"/>
     <arg name="fix_to_base_link" default="false"/>
   </include>
 

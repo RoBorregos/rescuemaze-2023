@@ -25,13 +25,10 @@ int reps;
 void setup()
 {
   Serial.begin(57600);
-  Serial.println("12345");
-  Serial.println("Start");
 
   setupData(false, false);
 
-  initAll();
-  specificTest(true);
+  specificTest(false);
 
   ros::NodeHandle nh;
   nh.initNode();
@@ -114,6 +111,8 @@ void specificTest(bool test)
 {  
   if (!test)
     return;
+        
+  initAll();
   
   Serial.println("Specific test");
 
