@@ -30,6 +30,8 @@ private:
         ar &visited;
     }
 public:
+    bool defined;
+
     int weight;
     vector<int> pos;
 
@@ -64,6 +66,7 @@ public:
 
 Tile::Tile()
 {
+    defined = false;
     weight = 0;
     pos = {0, 0, 0};
     victim = 0;
@@ -91,6 +94,7 @@ Tile::Tile()
 
 Tile::Tile(vector<int> p, int v, int vict)
 {
+    defined = true;
     weight = v;
     pos = p;
     victim = vict;
