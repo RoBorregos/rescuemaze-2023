@@ -108,7 +108,6 @@ void left(int &rDirection, Map &mapa)
     ROS_INFO(" Move: ");
     ROS_INFO("      left");
 
-
     bridge->sendUnitGoal(3);
 
     if (mapSimDebug)
@@ -303,7 +302,7 @@ bool isWall(string key) // use ros
 {
     int index = (directions[key] - rDirection); // Correct according to robot direction
 
-    while(index < 0)
+    while (index < 0)
         index += 4;
 
     if (bridge->getWalls()[index] == 0)
@@ -316,7 +315,7 @@ bool isWall(string key, Map &mapa)
 {
     if (mapa.getChar(key) == '#')
         return true;
-    
+
     return false;
 }
 
@@ -387,19 +386,19 @@ Tile *createTile(vector<int> pos, string key, vector<int> &adjPos, Map &mapa)
     Tile *newTile = new Tile();
     newTile->pos = pos;
 
-/*     else if (useros && isRamp(key) || !useros && isRamp(key, mapa))
-    {
-        newTile->weight = 150;
-    }
-    else if (useros && checkVictims())
-    {
-        newTile->victim = checkVictims();
-    }
-    else if (!useros && checkVictims(mapa))
-    {
-        newTile->victim = checkVictims(mapa);
-    }
- */
+    /*     else if (useros && isRamp(key) || !useros && isRamp(key, mapa))
+        {
+            newTile->weight = 150;
+        }
+        else if (useros && checkVictims())
+        {
+            newTile->victim = checkVictims();
+        }
+        else if (!useros && checkVictims(mapa))
+        {
+            newTile->victim = checkVictims(mapa);
+        }
+     */
     return newTile;
 }
 
@@ -435,85 +434,140 @@ Tile *createTile(vector<int> pos, char c, string key, vector<int> &adjPos, Map &
     return newTile;
 }
 
-
 int maxX = 0, minX = 0;
 int maxY = 0, minY = 0;
 
-
-void updateLimitsMap(const vector<int> &pos){
-    if (pos[0] > maxX){
+void updateLimitsMap(const vector<int> &pos)
+{
+    if (pos[0] > maxX)
+    {
         maxX = pos[0];
-    } else if (pos[0] < minX){
+    }
+    else if (pos[0] < minX)
+    {
         minX = pos[0];
     }
 
-    if (pos[1] > maxY){
+    if (pos[1] > maxY)
+    {
         maxY = pos[1];
-    } else if (pos[1] < minY){
+    }
+    else if (pos[1] < minY)
+    {
         minY = pos[1];
     }
 }
 
+void checkOverwritten(const vector<vector<char>> &maze, char unknown, int indexX, int indexY)
+{
+    if (maze[indexY][indexX] != unknown)
+    {
+        cout << "Warning: maze[" << indexY << "][" << indexX << "] has been overwritten.\n";
+    }
+}
+
+char getDir(int rDirection){
+    switch (rDirection)
+    {
+    case 0:
+        return '^';
+        break;
+    case 1:
+        return '>';
+        break;
+    case 2:
+        return 'v';
+        break;
+    case 3:
+        return '<';
+        break;
+    default:
+        return 'o';
+        break;
+    }
+}
+
 // TODO: implement function to print ros map.
-void printMapRos(const Map &map){
+void printMapRos(const Map &map)
+{
     // Create matrix to store data
     vector<vector<char>> maze;
 
     int width = abs(minX) + abs(maxX) + 2;
     int height = abs(minY) + abs(maxY) + 2;
-    
+
     int z = 0; // Print only one level of the map.
 
     vector<char> row(width);
 
-    for (int i = 0; i < row.size(); i++)
-        row[i] = 'U'; // Character for unknown data.
+    char unknown = 'U'; // Represents unknown data.
 
-    for (int i = 0 ; i < height; i++)
+    for (int i = 0; i < row.size(); i++)
+        row[i] = unknown; // Character for unknown data.
+
+    for (int i = 0; i < height; i++)
         maze.push_back(row);
 
-    // Find all the visited tiles and mark their walls
-    for(int i = minX; i <= maxX; i++){
-        for (int j = minY; j <= maxY; j++){
-            vector<int> pos {i, j, z};
-            if (mapa.tiles.count(posvectorToString(pos))){
-                int indexX = 0;
-                int indexY = 0;
-                
-                if (indexX > 0){
-                    indexX  = i;
-                } else {
+    // Find all the visited tiles and mark their walls. Alternative approach: dfs/bfs to print map.
+    for (int i = minX; i <= maxX; i++)
+    {
+        for (int j = minY; j <= maxY; j++)
+        {
+            vector<int> pos{i, j, z};
+            if (map.tiles.count(posvectorToString(pos)))
+            {
+                int indexX = j + abs(minX);
 
-                }
+                int indexY = i + abs(minY);
 
-                maze[indexX][indexY] = ' '; // Free space
+                indexY = height - indexY;
 
-                Tile* locatedTile = mapa.tiles.at(posvectorToString(pos)); // Ya existe una tile para esa casilla
+                checkOverwritten(maze, unknown, indexX, indexY);
+                maze[indexY][indexX] = ' '; // Free space
 
-                if (locatedTile->walls['north']){
-                
+                // Save tile's walls. Assume valid indices because width and height are added +2
+                Tile *locatedTile = map.tiles.at(posvectorToString(pos));
+
+                if (locatedTile->walls["north"])
+                {
+                    checkOverwritten(maze, unknown, indexX, indexY-1);
+                    maze[indexY-1][indexX] = '#'; // Wall
                 }
-                if (locatedTile->walls['south']){
-                    
+                if (locatedTile->walls["south"])
+                {
+                    checkOverwritten(maze, unknown, indexX, indexY+1);
+                    maze[indexY+1][indexX] = '#';
                 }
-                if (locatedTile->walls['east']){
-                    
+                if (locatedTile->walls["east"])
+                {
+                    checkOverwritten(maze, unknown, indexX+1, indexY);
+                    maze[indexY][indexX+1] = '#';
                 }
-                if (locatedTile->walls['west']){
-                    
+                if (locatedTile->walls["west"])
+                {
+                    checkOverwritten(maze, unknown, indexX-1, indexY);
+                    maze[indexY][indexX-1] = '#';
                 }
             }
         }
     }
 
+    // Add current location
+    maze[height - (map.pos[1] + abs(minY))][map.pos[0] + abs(minX)] = getDir(rDirection);
+
     // Print the map
-    for (int i = 0; i < height; i++){
-        for (int j = 0; j < width; j++){
+    cout << "Maze of height " << height << " and width " << width << "\n";
+    cout << "MinX: " << minX << ", MaxX: " << maxX << '\n';
+    cout << "MinY: " << minY << ", MaxY: " << maxY << '\n';
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
             cout << maze[i][j];
         }
         cout << '\n';
     }
-
 }
 
 void printTiles(Tile *tile)
@@ -606,7 +660,7 @@ void explore(bool checkpoint, int argc, char **argv)
 
                 if (mapa.tiles.count(posvectorToString(newPos)))
                 {
-                    
+
                     newTile = mapa.tiles.at(posvectorToString(newPos)); // Ya existe una tile para esa casilla
 
                     mapa.tile->appendTile(newTile, key);
@@ -681,6 +735,9 @@ void explore(bool checkpoint, int argc, char **argv)
         // system("pause");
         // cin.get();
 
+        if (useros)
+            printMapRos(mapa);
+
         if (mapa.unvisited.empty())
         {
             steps--;
@@ -709,7 +766,7 @@ int main(int argc, char **argv)
     try
     {
         if (bridge->tcsdata == 1) // Checkpoint
-        {   
+        {
             explore(false, argc, argv);
             // explore(true, argc, argv);
         }

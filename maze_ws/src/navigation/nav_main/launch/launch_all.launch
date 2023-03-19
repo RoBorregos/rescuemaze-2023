@@ -33,7 +33,7 @@
 
     <!-- Launch wall service -->
     <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">
-        <param name="debug" value="true"/>
+        <param name="debug" value="false"/>
     </node>
 
     <!-- Launch arduino node -->
