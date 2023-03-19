@@ -1,6 +1,4 @@
 .vscode
-test.cpp
-test.exe
 serialTest.py
 *.exe
 maze_ws/build/
@@ -11,3 +9,5 @@ robot_description
 notesIgnore.md
 build/
 tempCodeRunnerFile.*
+checkpoint.txt
+sensors_simulation.py
