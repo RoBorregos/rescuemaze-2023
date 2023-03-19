@@ -10,5 +10,5 @@ notesIgnore.md
 build/
 tempCodeRunnerFile.*
 checkpoint.txt
-sensors_simulation.py
 maze_ws/src/test_goals/
+sensors_simulation.py

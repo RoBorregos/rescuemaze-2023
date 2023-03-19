@@ -632,7 +632,7 @@ void explore(bool checkpoint, int argc, char **argv)
                     }
                     else
                     {
-                        bridge->pubDebug("Creating new tile in position: " + posvectorToString(newPos));
+                        bridge->pubDebug("Creating new tile in position: " + posvectorToString(newPos) + " with key: " + key);
                         ROS_INFO("Creating new tile");
                         if (useros)
                         {
