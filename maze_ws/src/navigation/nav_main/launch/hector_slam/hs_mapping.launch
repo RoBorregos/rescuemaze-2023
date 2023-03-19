@@ -20,8 +20,8 @@
   </include>
   
   <node if="$(arg has_imu)" pkg="hector_imu_attitude_to_tf" type="imu_attitude_to_tf_node" name="imu_attitude_to_tf_node" output="screen">
-    <remap from="imu_topic" to="imu" />
-    <!--<remap from="imu_topic" to="$(arg imu_topic)" />-->
+    <!--<remap from="imu_topic" to="imu" />-->
+    <remap from="imu_topic" to="$(arg imu_topic)" />
     <param name="base_stabilized_frame" type="string" value="$(arg base_frame)" />
     <param name="base_frame" type="string" value="$(arg base_link)" />
   </node>

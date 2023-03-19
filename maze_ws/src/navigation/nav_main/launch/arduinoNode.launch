@@ -1,5 +1,5 @@
 <launch>
-    <arg name="port" default="/dev/ttyUSB0"/>
+    <arg name="port" default="/dev/port1"/>
     <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
         <param name="port" value="$(arg port)"/>
     </node>

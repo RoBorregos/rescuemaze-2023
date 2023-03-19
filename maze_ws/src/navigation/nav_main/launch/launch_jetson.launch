@@ -3,8 +3,8 @@
     <arg name="using_simulation" default="false"/>
     <arg name="use_gui" default="false"/>
     <arg name="open_rviz" default="false"/>
-    <arg name="portArduino" default="/dev/ttyUSB1"/>
-    <arg name="portLidar" default="/dev/ttyUSB0"/>
+    <arg name="portArduino" default="/dev/port1"/>
+    <arg name="portLidar" default="/dev/port0"/>
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
 

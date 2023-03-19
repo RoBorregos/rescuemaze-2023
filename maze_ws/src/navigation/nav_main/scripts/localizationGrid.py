@@ -402,11 +402,7 @@ class LocalizationGrid:
 		print("Tile position - x: " + str(casillas_moved_x) + ", y: " + str(casillas_moved_y))
 
 	def loopData(self):
-		counter = 0
-		average = 0
-
 		while not rospy.is_shutdown():
-			start_time = time.time()
 			self.generate_image()
 			d_x, d_y = self.nearest_center()
 			
@@ -416,12 +412,6 @@ class LocalizationGrid:
 			message.y = d_y
 			self.pub.publish(message)
 
-			end_time = time.time()
-			exec_time = (end_time - start_time) * 1000
-			print("--- %s ms ---" % (exec_time))
-			average += exec_time
-			counter += 1
-			print("--- %s Average ms ---" % ((average) / counter))
 
 	def debugData(self, sleep_t):
 		counter = 0

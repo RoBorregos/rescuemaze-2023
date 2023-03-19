@@ -3,7 +3,7 @@
     <arg name="using_simulation" default="True"/>
     <arg name="use_gui" default="false"/>
     <arg name="open_rviz" default="true"/>
-    <arg name="port" default="/dev/ttyUSB0"/>
+    <arg name="port" default="/dev/port1"/>
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
 
