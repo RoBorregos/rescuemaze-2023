@@ -8,7 +8,7 @@
     <arg name="has_imu" default="false"/>
 
     <arg name="dist_to_walls" default="false"/>
-    <arg name="debug_localization_grid" default="true"/>
+    <arg name="debug_localization_grid" default="false"/>
     
     <!-- Launch sensors-->
     <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors_bringup.launch"/>
@@ -29,6 +29,11 @@
     <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">
         <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
         <param name="debug" value="$(arg debug_localization_grid)"/>
+    </node>
+
+    <!-- Launch wall service -->
+    <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">
+        <param name="debug" value="true"/>
     </node>
 
     <!-- Launch arduino node -->
