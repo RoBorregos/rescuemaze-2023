@@ -466,7 +466,8 @@ void checkOverwritten(const vector<vector<char>> &maze, char unknown, int indexX
     }
 }
 
-char getDir(int rDirection){
+char getDir(int rDirection)
+{
     switch (rDirection)
     {
     case 0:
@@ -493,8 +494,8 @@ void printMapRos(const Map &map)
     // Create matrix to store data
     vector<vector<char>> maze;
 
-    int width = abs(minX) + abs(maxX) + 2;
-    int height = abs(minY) + abs(maxY) + 2;
+    int width = 20;
+    int height = 20;
 
     int z = 0; // Print only one level of the map.
 
@@ -516,50 +517,57 @@ void printMapRos(const Map &map)
             vector<int> pos{i, j, z};
             if (map.tiles.count(posvectorToString(pos)))
             {
-                int indexX = j + abs(minX);
-
-                int indexY = i + abs(minY);
-
-                indexY = height - indexY;
+                int indexX = i + width/2;
+                int indexY = height/2 - j;
 
                 checkOverwritten(maze, unknown, indexX, indexY);
                 maze[indexY][indexX] = ' '; // Free space
 
-                // Save tile's walls. Assume valid indices because width and height are added +2
+                // Save tile's walls. Assume valid indices because width and height are assumed to be greater.
                 Tile *locatedTile = map.tiles.at(posvectorToString(pos));
+
+                if (rosDebug)
+                    cout << "Tile counted at: " << locatedTile->pos[0] << ", " << locatedTile->pos[1] << ", " << locatedTile->pos[2] << '\n';
 
                 if (locatedTile->walls["north"])
                 {
-                    checkOverwritten(maze, unknown, indexX, indexY-1);
-                    maze[indexY-1][indexX] = '#'; // Wall
+                    checkOverwritten(maze, unknown, indexX, indexY - 1);
+                    maze[indexY - 1][indexX] = '#'; // Wall
                 }
                 if (locatedTile->walls["south"])
                 {
-                    checkOverwritten(maze, unknown, indexX, indexY+1);
-                    maze[indexY+1][indexX] = '#';
+                    checkOverwritten(maze, unknown, indexX, indexY + 1);
+                    maze[indexY + 1][indexX] = '#';
                 }
                 if (locatedTile->walls["east"])
                 {
-                    checkOverwritten(maze, unknown, indexX+1, indexY);
-                    maze[indexY][indexX+1] = '#';
+                    checkOverwritten(maze, unknown, indexX + 1, indexY);
+                    maze[indexY][indexX + 1] = '#';
                 }
                 if (locatedTile->walls["west"])
                 {
-                    checkOverwritten(maze, unknown, indexX-1, indexY);
-                    maze[indexY][indexX-1] = '#';
+                    checkOverwritten(maze, unknown, indexX - 1, indexY);
+                    maze[indexY][indexX - 1] = '#';
                 }
             }
         }
     }
 
+    // Mark origin. TODO: Check why origin tile isn't added to map.tiles
+    maze[height/2][width/2] = 'o';
+
     // Add current location
-    maze[height - (map.pos[1] + abs(minY))][map.pos[0] + abs(minX)] = getDir(rDirection);
+    maze[height/2 - map.pos[1]][map.pos[0] + width/2] = getDir(rDirection);
 
-    // Print the map
-    cout << "Maze of height " << height << " and width " << width << "\n";
-    cout << "MinX: " << minX << ", MaxX: " << maxX << '\n';
-    cout << "MinY: " << minY << ", MaxY: " << maxY << '\n';
+    // Print map data
+    if (rosDebug)
+    {
+        cout << "Maze of height " << height << " and width " << width << "\n";
+        cout << "MinX: " << minX << ", MaxX: " << maxX << '\n';
+        cout << "MinY: " << minY << ", MaxY: " << maxY << '\n';
+    }
 
+    // Print map
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
