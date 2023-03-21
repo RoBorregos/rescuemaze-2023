@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Test of camera_service"""
+"""Test of camera_service ros"""
 
 import rospy
 from openmv_camera.srv import *

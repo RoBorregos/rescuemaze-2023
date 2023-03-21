@@ -36,7 +36,7 @@ def get_image(pixformat_str, framesize_str):
             # GET BYTES NEEDS TO EXECUTE NEXT IMMEDIATELY WITH LITTLE DELAY NEXT.
             # Read all the image data in one very large transfer.
             interface.get_bytes(img, 5000) # timeout
-            if debug: print(img)
+            if debug_image: print(img)
         else:
             return None
         return img
@@ -64,11 +64,11 @@ def format_image(image):
 def detect_any(req):
 
     # First try to detect if there is red, yellow, or green.
-    detection = interface.call('detect_dominant_color')
+    detection = unpack_res(interface.call('detect_dominant_color'))
 
     if (debug):
         print("Dominant color detected:", end=" ")
-        print(bytes(detection).decode())
+        print(detection)
     
     if detection == 'r' or detection == 'y' or detection == 'g':
         return CameraDetectionResponse(detection)
@@ -79,9 +79,9 @@ def detect_any(req):
     image = get_image("sensor.RGB565", "sensor.QQVGA")
     image = format_image(image)
 
-    print(image.shape)
+    if debug: print(image.shape)
 
-    if debug and image is not None:
+    if debug_image and image is not None:
         cv2.imshow("DebugCamera", image)
         key = cv2.waitKey(0)
 
@@ -117,12 +117,16 @@ if __name__ == '__main__':
     name = rospy.get_name() + "/"
 
     port = '/dev/ttyACM0' # default value for port
-    global debug
+    global debug, debug_image
     debug = False
+    debug_image = False
 
     # Get parameters
     if rospy.has_param(name + "debug"):
         debug = rospy.get_param(name + "debug")
+
+    if rospy.has_param(name + "debug_image"):
+        debug_image = rospy.get_param(name + "debug_image")
 
     if rospy.has_param(name + "port"):
         port = rospy.get_param(name + "port")

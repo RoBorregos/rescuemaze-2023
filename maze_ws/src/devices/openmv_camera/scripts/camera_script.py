@@ -1,13 +1,28 @@
 # Script to load in openmv as rpc slave.
 
+# TODO: tune conditions for discarding blobs (elongation and convexity).
+
 # Original script from: https://github.com/openmv/openmv/blob/master/scripts/examples/08-RPC-Library/34-Remote-Control/image_transfer_jpg_as_the_remote_device_for_your_computer.py
 
 import image, network, omv, rpc, sensor, struct
+
+# Color Tracking Thresholds (L Min, L Max, A Min, A Max, B Min, B Max)
+# Calibrate using Tools > Machine Vision > Threshold Editor
+
+# Minimums and maximums for the LAB L, A, and B channels respectively.
+thresholds = [(27, 68, 33, 70, -1, 54), # red_thresholds
+              (32, 66, -57, -25, 4, 40), # green_thresholds
+              (30, 62, -19, 0, 20, 60)] # yellow_thresholds
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)
 sensor.set_framesize(sensor.QVGA)
 sensor.skip_frames(time = 2000)
+
+sensor.set_auto_gain(False) # must be turned off for color tracking
+sensor.set_auto_whitebal(False) # must be turned off for color tracking
+
+# Flip the image 180 degrees
 sensor.set_vflip(True)
 sensor.set_hmirror(True)
 
@@ -35,11 +50,30 @@ def jpeg_image_read(data):
     interface.schedule_callback(jpeg_image_read_cb)
     return bytes()
     
-# Callback for detecting colors
-# TODO: implement function.
+# Callback for detecting colors. Returns the initial representing the color with greatest blob area.
 def detect_dominant_color(data):
-    res = 'X'
-    return str(res).encode()
+    img = sensor.snapshot()
+    max = 'X'
+    max_area = 0
+    for blob in img.find_blobs(thresholds, pixels_threshold=200, area_threshold=200):
+        # Check conditions for discarting blobs. Try with blob.elongation and blob.convexity()
+        # once real targets are available
+        if blob.elongation() > 0.5:
+            pass
+
+        if blob.area() < max_area:
+            continue
+        
+        max_area = blob.area()
+
+        if blob.code() == 1:
+            max = 'r'
+        if blob.code() == 2:
+            max = 'g'
+        if blob.code() == 4:
+            max = 'y'
+
+    return str(max).encode()
 
 # Register call backs.
 interface.register_callback(jpeg_image_snapshot)
