@@ -488,7 +488,6 @@ char getDir(int rDirection)
     }
 }
 
-// TODO: implement function to print ros map.
 void printMapRos(const Map &map)
 {
     // Create matrix to store data
