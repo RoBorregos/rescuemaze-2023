@@ -7,6 +7,56 @@ int main(int argc, char **argv)
 
     ROSbridge bridge(n);
 
+    while (ros::ok() && !bridge.started)
+    {
+        ros::spinOnce();
+    }
+
+    int dir = 0;
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        ROS_INFO("North yaw is %f", bridge.northYaw);
+        ROS_INFO("East yaw is %f", bridge.eastYaw);
+        ROS_INFO("South yaw is %f", bridge.southYaw);
+        ROS_INFO("West yaw is %f", bridge.westYaw);
+        ROS_INFO("Current yaw is %f", bridge.yaw);
+
+
+        // bridge.sendUnitGoal(1, dir);
+        // dir++;
+        // if (dir > 3)
+        // {
+        //     dir = 0;
+        // }
+        bridge.sendUnitGoal(3, dir);
+        dir--;
+        if (dir < 0)
+        {
+            dir = 3;
+        }
+
+        // bridge.sendUnitGoal(1, dir);
+        // dir++;
+        // bridge.sendUnitGoal(3, dir);
+        // dir--;
+        // bridge.sendUnitGoal(3, dir);
+        // dir--;
+        // bridge.sendUnitGoal(1, dir);
+        // dir++;
+        // bridge.sendUnitGoal(3, dir);
+        // dir--;
+        // bridge.sendUnitGoal(1, dir);
+        // dir++;
+        // bridge.sendUnitGoal(3, dir);
+        // dir--;
+        // ros::Duration(1).sleep();
+    }
+
+
+    // bridge.sendUnitGoal(1, 0);
+    // bridge.ac.waitForResult();
+
     // bridge.sendUnitGoal(4, 0);
     // bridge.sendUnitGoal(1);
     // bridge.tcsdata = '1';
@@ -21,11 +71,11 @@ int main(int argc, char **argv)
     //     // cout << walls[i] << endl;
     // }
 
-    while (ros::ok())
-    {
-        ros::spinOnce();
-        ROS_INFO("yaw: %f", bridge.yaw);
-    }
+    // while (ros::ok())
+    // {
+    //     ros::spinOnce();
+    //     ROS_INFO("yaw: %f", bridge.yaw);
+    // }
     
     ros::spin();
 }

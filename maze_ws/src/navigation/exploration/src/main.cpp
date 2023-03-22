@@ -13,9 +13,6 @@
 
 using namespace std;
 
-#include "ros/callback_queue.h"
-#include "exploration/Trigger.h"
-
 // Move Base
 #include "move_base_msgs/MoveBaseAction.h"
 #include "actionlib/client/simple_action_client.h"
@@ -71,11 +68,11 @@ void moveForward(int &rDirection, Map &mapa)
 // Gira a la derecha y modifica la direccion
 void right(int &rDirection, Map &mapa)
 {
-    (rDirection == 3) ? rDirection = 0 : rDirection++;
     // cout << "right" << endl;
     ROS_INFO("right");
 
     bridge->sendUnitGoal(1, rDirection);
+    (rDirection == 3) ? rDirection = 0 : rDirection++;
 
     if (mapSimDebug)
     {
@@ -105,12 +102,12 @@ void moveBackward(int &rDirection, Map &mapa)
 // Gira a la izquierda y modifica la direccion
 void left(int &rDirection, Map &mapa)
 {
-    (rDirection == 0) ? rDirection = 3 : rDirection--;
     // cout << "left" << endl;
     ROS_INFO(" Move: ");
     ROS_INFO("      left");
 
     bridge->sendUnitGoal(3, rDirection);
+    (rDirection == 0) ? rDirection = 3 : rDirection--;
 
     if (mapSimDebug)
     {

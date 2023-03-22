@@ -10,7 +10,7 @@ using namespace std;
 
 #include "Tile.h"
 
-#define debug true
+#define debug false
 
 string posvectorToString(vector<int> pos)
 {
