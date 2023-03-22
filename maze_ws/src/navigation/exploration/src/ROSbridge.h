@@ -11,6 +11,7 @@
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Quaternion.h"
 #include "tf/transform_datatypes.h"
+#include "sensor_msgs/Imu.h"
 
 // #include <nav_msgs/GetMap.h>
 // #include <nav_msgs/SetMap.h>
@@ -29,8 +30,6 @@ using namespace std;
 class ROSbridge
 {
 private:
-    
-
     bool debugging;
     ros::NodeHandle* nh;
 
@@ -43,6 +42,7 @@ private:
     ros::Subscriber limitswitch1;
     ros::Subscriber localizationsub;
     ros::Subscriber centersub;
+    ros::Subscriber imusub;
 
     // Publishers
     ros::Publisher dispenserpub;
@@ -64,6 +64,7 @@ private:
     void bnoxcallback(const std_msgs::Float64::ConstPtr& msg);
     void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
     void localizationCallback(const geometry_msgs::Point::ConstPtr& msg);
+    void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
 
     // Action client callbacks
     void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result);
@@ -81,6 +82,22 @@ public:
     char tcsdata;
     float bnoxdata;
     bool limitSwitch1;
+
+    // Imu data
+    double xImu;
+    double yImu;
+    double zImu;
+    double wImu;
+    // Roll, pitch, yaw
+    double roll;
+    double pitch;
+    double yaw;
+
+    bool started;
+    double northYaw;
+    double eastYaw;
+    double southYaw;
+    double westYaw;
 
     double xdistCenter;
     double ydistCenter;
@@ -101,6 +118,7 @@ public:
 ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 {
     debugging = true;
+    started = false;
     xdistCenter = 0;
     ydistCenter = 0;
 
@@ -112,6 +130,7 @@ ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
     tcssub = nh->subscribe("/sensor/tcs", 1000, &ROSbridge::tcscallback, this);
     bnoxsub = nh->subscribe("/sensor/bno/x", 1000, &ROSbridge::bnoxcallback, this);
     centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
+    imusub = nh->subscribe("/imu", 10, &ROSbridge::imuCallback, this);
 
     ROS_INFO("Created subscribers");
 
@@ -154,6 +173,62 @@ void ROSbridge::localizationCallback(const geometry_msgs::Point::ConstPtr& msg)
     ROS_INFO("LocalizationCallback: %f, %f", msg->x, msg->y);
     xdistCenter = msg->x;
     ydistCenter = msg->y;
+}
+
+void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+    xImu = msg->orientation.x;
+    yImu = msg->orientation.y;
+    zImu = msg->orientation.z;
+    wImu = msg->orientation.w;
+
+    // Roll, pitch, yaw
+    tf::Quaternion q(xImu, yImu, zImu, wImu);
+    tf::Matrix3x3 m(q);
+    m.getRPY(roll, pitch, yaw);
+
+    if (!started)
+    {
+        started = true;
+        northYaw = yaw;
+
+        // Range: -pi to pi
+        // Clockwise gives smaller values
+        // Counter-clockwise gives larger values
+
+        // // East
+        // if (northYaw > 0)
+        //     eastYaw = northYaw - M_PI_2;
+        // else
+        //     eastYaw = northYaw + M_PI_2;
+
+        // // South
+        // if (northYaw > 0)
+        //     southYaw = northYaw - M_PI;
+        // else
+        //     southYaw = northYaw + M_PI;
+
+        // // West
+        // if (northYaw > 0)
+        //     westYaw = northYaw - M_PI_2 * 3;
+        // else
+        //     westYaw = northYaw + M_PI_2 * 3;
+
+        // ROS_INFO("northYaw: %f", northYaw);
+
+
+    }
+
+    if (false)
+    {
+        // ROS_INFO("x: %f", xImu);
+        // ROS_INFO("y: %f", yImu);
+        // ROS_INFO("z: %f", zImu);
+        // ROS_INFO("w: %f", wImu);
+        // ROS_INFO("roll: %f", roll);
+        // ROS_INFO("pitch: %f", pitch);
+        ROS_INFO("yaw: %f", yaw);
+    }
 }
 
 void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
@@ -255,7 +330,7 @@ void ROSbridge::sendUnitGoal(int movement, int rDirection)
         if (rDirection == 0) // North
         {
             pose.position.x += ydistCenter * 0.01;
-            pose.position.y = xdistCenter * 0.01;
+            pose.position.y = xdistCenter * -0.01;
         }
         else if (rDirection == 1) // East
         {
@@ -270,7 +345,7 @@ void ROSbridge::sendUnitGoal(int movement, int rDirection)
         else if (rDirection == 3) // West
         {
             pose.position.x += xdistCenter * -0.01;
-            pose.position.y = ydistCenter * 0.01;
+            pose.position.y = ydistCenter * -0.01;
         }
         
         pubDebug("Pose x: " + std::to_string(pose.position.x) + " y: " + std::to_string(pose.position.y));
@@ -283,7 +358,11 @@ void ROSbridge::sendUnitGoal(int movement, int rDirection)
         pose.position.x = 0;
         pose.position.y = 0;
         pose.position.z = 0;
-        pose.orientation = tf::createQuaternionMsgFromYaw(-M_PI / 2);
+        // Calculate angle to get 90 degree turn
+        
+
+
+        // pose.orientation = tf::createQuaternionMsgFromYaw(-M_PI / 2);
     }
     else if (movement == 2) // Backward
     {
@@ -304,7 +383,18 @@ void ROSbridge::sendUnitGoal(int movement, int rDirection)
         pose.position.x = 0;
         pose.position.y = 0;
         pose.position.z = 0;
-        pose.orientation = tf::createQuaternionMsgFromYaw(M_PI / 2);
+        // pose.orientation = tf::createQuaternionMsgFromYaw(M_PI / 2);
+
+    }
+
+    else if (movement == 4) // Turn around
+    {
+        // ROS_INFO("Turn around");
+
+        pose.position.x = 0;
+        pose.position.y = 0.3;
+        pose.position.z = 0;
+        pose.orientation = tf::createQuaternionMsgFromYaw(0);
     }
 
     sendGoal(pose);

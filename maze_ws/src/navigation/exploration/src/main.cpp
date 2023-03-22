@@ -35,7 +35,7 @@ int rDirection = 0;
 
 #define mapSimDebug false
 #define useros true
-#define rosDebug true
+#define rosDebug false
 #define canMoveBackward false
 
 ROSbridge *bridge;
@@ -594,6 +594,9 @@ void printMapRos(const Map &map)
 
 void printTile(Tile *tile)
 {
+    if (!rosDebug)
+        return;
+
     bridge->pubDebug(" ");
     bridge->pubDebug("Tile: " + posvectorToString(tile->pos) + "       Adjacent Tiles:");
 
@@ -609,6 +612,9 @@ void printTile(Tile *tile)
 
 void printMap(Map &mapa)
 {
+    if (!rosDebug)
+        return;
+ 
     ROS_INFO("xrmaze: %d, yrmaze: %d, zrmaze: %d", mapa.xMaze, mapa.yMaze, mapa.zMaze);
     ROS_INFO("unvisited: ");
     for (auto i : mapa.unvisited)
@@ -655,8 +661,6 @@ void explore(bool checkpoint, int argc, char **argv)
 
     vector<int> newPos = mapa.pos;
 
-    ROS_INFO("newPos created");
-
     char c;
 
     stack<string> path;
@@ -666,26 +670,30 @@ void explore(bool checkpoint, int argc, char **argv)
     do
     {
         // ROS_INFO("new do while loop iteration");
-
-        bridge->pubDebug(" ");
-        bridge->pubDebug("new do while loop iteration");
+        if (rosDebug)
+        {
+            bridge->pubDebug(" ");
+            bridge->pubDebug("new do while loop iteration");
+        }
 
         mapa.tile->visited = true;
         for (auto &&key : keys)
         {
-            bridge->pubDebug("In position: " + posvectorToString(mapa.pos));
-            bridge->pubDebug("Unvisited tiles: " + to_string(mapa.unvisited.size()));
-            // bridge->pubDebug("Checking key: " + key);
+            if (rosDebug)
+            {
+                bridge->pubDebug("In position: " + posvectorToString(mapa.pos));
+                bridge->pubDebug("Unvisited tiles: " + to_string(mapa.unvisited.size()));
+                // bridge->pubDebug("Checking key: " + key);
+                bridge->pubDebug("Checking key: " + key);
+            }
 
             if (mapa.tile && rosDebug)
             {
                 bridge->pubDebug("Tile: " + posvectorToString(mapa.tile->pos));
                 printTile(mapa.tile);
-
             }
 
             // ROS_INFO("Checking key: %s", key.c_str());
-            bridge->pubDebug("Checking key: " + key);
 
             newPos = mapa.pos;
 
@@ -711,7 +719,9 @@ void explore(bool checkpoint, int argc, char **argv)
                     if (useros && isWall(key))
                     {
                         // ROS_INFO("Wall detected");
-                        bridge->pubDebug("Wall in " + key);
+                        if (rosDebug)
+                            bridge->pubDebug("Wall in " + key);
+
                         mapa.tile->walls[key] = true;
                     }
                     else if (!useros && isWall(key, mapa))
@@ -726,8 +736,10 @@ void explore(bool checkpoint, int argc, char **argv)
                     }
                     else
                     {
-                        bridge->pubDebug("Creating new tile in position: " + posvectorToString(newPos) + " with key: " + key);
-                        ROS_INFO("Creating new tile");
+                        if (rosDebug)
+                            bridge->pubDebug("Creating new tile in position: " + posvectorToString(newPos) + " with key: " + key);
+                        // ROS_INFO("Creating new tile");
+    
                         if (useros)
                         {
                             newTile = createTile(newPos, key, mapa.pos, mapa);
@@ -758,22 +770,25 @@ void explore(bool checkpoint, int argc, char **argv)
             boost::archive::text_oarchive oa(ofs);
             oa << mapa;
 
-            ROS_INFO("Checkpoint saved");
+            // ROS_INFO("Checkpoint saved");
         }
 
-        bridge->pubDebug("Unvisited tiles: " + to_string(mapa.unvisited.size()));
+        if (rosDebug)
+        {
+            bridge->pubDebug("Unvisited tiles: " + to_string(mapa.unvisited.size()));
 
-        bridge->pubDebug("Current tile: " + posvectorToString(mapa.tile->pos));
-        printTile(mapa.tile);
+            bridge->pubDebug("Current tile: " + posvectorToString(mapa.tile->pos));
+            printTile(mapa.tile);
+        }
         path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys);
 
-        if (path.empty())
+        if (rosDebug && path.empty())
         {
             // ROS_INFO("No unvisited tiles");
             bridge->pubDebug("No unvisited tiles");
             // break;
         }
-        else
+        else if (rosDebug)
         {
             // ROS_INFO("Unvisited tiles");
             bridge->pubDebug("Unvisited tiles");
@@ -782,12 +797,13 @@ void explore(bool checkpoint, int argc, char **argv)
 
         mapa.tile = followPath(path, mapa.tile, mapa);
 
-        bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
+        if (rosDebug)
+            bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
         printTile(mapa.tile);
 
         if (mapa.tile->victim != 0)
         {
-            ROS_INFO("Victim found");
+            // ROS_INFO("Victim found");
             bridge->sendKit();
             mapa.tile->victim = 0;
         }

@@ -7,18 +7,24 @@ int main(int argc, char **argv)
 
     ROSbridge bridge(n);
 
-    // bridge.sendUnitGoal(0);
+    // bridge.sendUnitGoal(4, 0);
     // bridge.sendUnitGoal(1);
     // bridge.tcsdata = '1';
     // bridge.sendUnitGoal(2);
     // bridge.sendUnitGoal(3);
 
-    vector<int> walls = bridge.getWalls();
+    // vector<int> walls = bridge.getWalls();
 
-    for (int i = 0; i < walls.size(); i++)
+    // for (int i = 0; i < walls.size(); i++)
+    // {
+    //     ROS_INFO("Wall %d: %d", i, walls[i]);
+    //     // cout << walls[i] << endl;
+    // }
+
+    while (ros::ok())
     {
-        ROS_INFO("Wall %d: %d", i, walls[i]);
-        // cout << walls[i] << endl;
+        ros::spinOnce();
+        ROS_INFO("yaw: %f", bridge.yaw);
     }
     
     ros::spin();
