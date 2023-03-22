@@ -29,8 +29,11 @@ using namespace std;
 class ROSbridge
 {
 private:
+    
+
     bool debugging;
     ros::NodeHandle* nh;
+
     // ros::Publisher pub;
 
     // Subscribers
@@ -39,6 +42,7 @@ private:
     // TODO: Make callback and add to constructor
     ros::Subscriber limitswitch1;
     ros::Subscriber localizationsub;
+    ros::Subscriber centersub;
 
     // Publishers
     ros::Publisher dispenserpub;
@@ -59,6 +63,7 @@ private:
     void tcscallback(const std_msgs::Char::ConstPtr& msg);
     void bnoxcallback(const std_msgs::Float64::ConstPtr& msg);
     void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
+    void localizationCallback(const geometry_msgs::Point::ConstPtr& msg);
 
     // Action client callbacks
     void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result);
@@ -77,10 +82,13 @@ public:
     float bnoxdata;
     bool limitSwitch1;
 
+    double xdistCenter;
+    double ydistCenter;
+
     ROSbridge(ros::NodeHandle* n);
 
     void clearMap();
-    void sendUnitGoal(int movement);
+    void sendUnitGoal(int movement, int rDirection);
 
     vector<int> getWalls();
     void sendKit();
@@ -93,6 +101,9 @@ public:
 ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 {
     debugging = true;
+    xdistCenter = 0;
+    ydistCenter = 0;
+
     ROS_INFO("Creating ROSbridge");
     nh = n;
  
@@ -100,6 +111,7 @@ ROSbridge::ROSbridge(ros::NodeHandle* n) : ac("move_base", true)
 
     tcssub = nh->subscribe("/sensor/tcs", 1000, &ROSbridge::tcscallback, this);
     bnoxsub = nh->subscribe("/sensor/bno/x", 1000, &ROSbridge::bnoxcallback, this);
+    centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
 
     ROS_INFO("Created subscribers");
 
@@ -135,6 +147,13 @@ void ROSbridge::statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &
     ROS_INFO("StatusCallback: %d", msg->status_list[0].status);
     if (scope.startedGoal)
         scope.status = msg->status_list[0].status;
+}
+
+void ROSbridge::localizationCallback(const geometry_msgs::Point::ConstPtr& msg)
+{
+    ROS_INFO("LocalizationCallback: %f, %f", msg->x, msg->y);
+    xdistCenter = msg->x;
+    ydistCenter = msg->y;
 }
 
 void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
@@ -211,16 +230,17 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
     movementClientAsync(goal);
 }
 
-void ROSbridge::sendUnitGoal(int movement)
+void ROSbridge::sendUnitGoal(int movement, int rDirection)
 {
+    ros::spinOnce();
     ROS_INFO_STREAM("handleUnitMovements: " << movement);
 
     geometry_msgs::Pose pose;
 
-    if (movement == 0) // North
+    if (movement == 0) // Forward
     {
         ROS_INFO("North");
-
+        
         pose.position.x = 0.3;
         pose.position.y = 0;
         pose.position.z = 0;
@@ -228,6 +248,33 @@ void ROSbridge::sendUnitGoal(int movement)
         pose.orientation.y = 0;
         pose.orientation.z = 0;
         pose.orientation.w = 1;
+
+        // use the center location to adjust the goal, using the direction of the robot
+        pubDebug("xDist: " + std::to_string(xdistCenter) + " yDist: " + std::to_string(ydistCenter) + " rDir: " + std::to_string(rDirection));
+
+        if (rDirection == 0) // North
+        {
+            pose.position.x += ydistCenter * 0.01;
+            pose.position.y = xdistCenter * 0.01;
+        }
+        else if (rDirection == 1) // East
+        {
+            pose.position.x += xdistCenter * 0.01;
+            pose.position.y = ydistCenter * 0.01;
+        }
+        else if (rDirection == 2) // South
+        {
+            pose.position.x += ydistCenter * -0.01;
+            pose.position.y = xdistCenter * 0.01;
+        }
+        else if (rDirection == 3) // West
+        {
+            pose.position.x += xdistCenter * -0.01;
+            pose.position.y = ydistCenter * 0.01;
+        }
+        
+        pubDebug("Pose x: " + std::to_string(pose.position.x) + " y: " + std::to_string(pose.position.y));
+
     }
     else if (movement == 1) // Turn right
     {
@@ -238,12 +285,12 @@ void ROSbridge::sendUnitGoal(int movement)
         pose.position.z = 0;
         pose.orientation = tf::createQuaternionMsgFromYaw(-M_PI / 2);
     }
-    else if (movement == 2) // South
+    else if (movement == 2) // Backward
     {
         ROS_INFO("Backwards");
 
-        pose.position.x = -0.3;
-        pose.position.y = 0;
+        pose.position.x = -0.3 + xdistCenter;
+        pose.position.y = 0 + ydistCenter;
         pose.position.z = 0;
         pose.orientation.x = 0;
         pose.orientation.y = 0;
