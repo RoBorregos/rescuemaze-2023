@@ -52,6 +52,8 @@ def jpeg_image_read(data):
     
 # Callback for detecting colors. Returns the initial representing the color with greatest blob area.
 def detect_dominant_color(data):
+    sensor.set_auto_gain(False) # must be turned off for color tracking
+    sensor.set_auto_whitebal(False) # must be turned off for color tracking
     img = sensor.snapshot()
     max = 'X'
     max_area = 0

@@ -4,8 +4,7 @@
 
 # Original script from: https://github.com/openmv/openmv/blob/master/tools/rpc/rpc_image_transfer_jpg_as_the_controller_device.py
 
-import rpc
-import rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2
+import rpc, rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2, pytesseract
 import numpy as np
 
 from openmv_camera.srv import CameraDetection, CameraDetectionResponse
@@ -13,7 +12,20 @@ from PIL import Image
 
 # TODO: implement function to detect letter in image.
 def process_image(image):
-    pass
+    text = pytesseract.image_to_string(image)
+
+    if debug:
+        for i in range(len(text)):
+            letter = text[i].upper()
+            print('letter:', letter)
+    
+    for i in range(len(text)):
+        letter = text[i].upper()
+        if letter == 'H' or letter == 'S' or letter == 'U':
+            return letter
+    
+    return 'X'
+
 
 def get_image(pixformat_str, framesize_str):
     if debug: print("Getting Remote Frame...")
@@ -56,8 +68,7 @@ def unpack_res(res):
 # From bytearray into suitable np.array for use with cv2.
 def format_image(image):
     image = Image.open(io.BytesIO(image))
-    image = np.array(image, dtype=np.float32)/255
-    image = cv2.resize(image, (224, 224))
+    image = np.array(image)
     return image
 
 
@@ -76,14 +87,11 @@ def detect_any(req):
     # If there is no color, detect if there is a letter.
 
     # Get image
-    image = get_image("sensor.RGB565", "sensor.QQVGA")
+    image = get_image("sensor.RGB565", "sensor.QVGA")
     image = format_image(image)
 
     if debug: print(image.shape)
 
-    if debug_image and image is not None:
-        cv2.imshow("DebugCamera", image)
-        key = cv2.waitKey(0)
 
     if image is None:
         print("Error, image not obtained from RPC.")
@@ -91,6 +99,10 @@ def detect_any(req):
 
     # Process image
     detection = process_image(image)
+
+    if True and debug_image and image is not None:
+        cv2.imshow("DebugCamera", image)
+        key = cv2.waitKey(0)
 
     # If valid result, return it. Else, return failure/unknown character.
     if detection == 'H' or detection == 'S' or detection == 'U':
