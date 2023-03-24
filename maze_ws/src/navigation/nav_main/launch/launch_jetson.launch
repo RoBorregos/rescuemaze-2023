@@ -34,6 +34,11 @@
         <param name="debug" value="$(arg debug_localization_grid)"/>
     </node>
 
+        <!-- Launch wall service -->
+    <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">
+        <param name="debug" value="true"/>
+    </node>
+
     <!-- Launch arduino node -->
     <node unless="$(arg using_simulation)" name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
         <param name="port" value="$(arg portArduino)"/>

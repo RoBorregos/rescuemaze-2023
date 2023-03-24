@@ -13,6 +13,10 @@ sensor.skip_frames(time = 2000)
 sensor.set_auto_gain(False) # must be turned off for color tracking
 sensor.set_auto_whitebal(False) # must be turned off for color tracking
 
+# Flip the image 180 degrees
+sensor.set_vflip(True)
+sensor.set_hmirror(True)
+
 clock = time.clock()
 
 while(True):

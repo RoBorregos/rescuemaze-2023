@@ -67,8 +67,10 @@ def unpack_res(res):
 
 # From bytearray into suitable np.array for use with cv2.
 def format_image(image):
-    image = Image.open(io.BytesIO(image))
-    image = np.array(image)
+    #image = Image.open(io.BytesIO(image))
+    image = cv2.imdecode(image)
+    print(image.shape)
+    #image = np.array(image)
     return image
 
 

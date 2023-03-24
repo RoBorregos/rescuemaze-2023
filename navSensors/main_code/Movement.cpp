@@ -31,10 +31,10 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(12, 3, 2);
-  motor[FRONT_RIGHT].PIDStraightTunings(12, 3, 2);
-  motor[FRONT_LEFT].PIDStraightTunings(12, 3, 2);
-  motor[BACK_RIGHT].PIDStraightTunings(12, 3, 2);
+  motor[BACK_LEFT].PIDStraightTunings(20, 3, 2);
+  motor[FRONT_RIGHT].PIDStraightTunings(20, 3, 2);
+  motor[FRONT_LEFT].PIDStraightTunings(20, 3, 2);
+  motor[BACK_RIGHT].PIDStraightTunings(20, 3, 2);
 }
 
 void Movement::setMotors()
@@ -227,7 +227,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
   {
     Kinematics::output rpm = kinematics.getRPM(x, y, z);
     Kinematics::output rpm1 = kinematics.getRPM(linear_x, linear_y, angular_z);
-
+    
     updatePIDKinematics(rpm);
 
     if (debug)
