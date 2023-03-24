@@ -1,0 +1,11 @@
+scan_filter_chain:
+- name: range
+  type: laser_filters/LaserScanRangeFilter
+  params:
+    use_message_range_limits: false
+    # Set lower threshold to avoid detecting robot's cables.
+    lower_threshold: 0.1
+    # Set upper threshold to avoid detecting outside of field when lidar gets tilted or is in ramp.
+    upper_threshold: 1.5
+    lower_replacement_value: -.inf
+    upper_replacement_value: .inf

@@ -1,13 +1,20 @@
 <launch>
-  <!-- Start LIDAR-->
 
   <arg name="port" default="/dev/ttyUSB0"/>
+  <arg name="scan_topic" default="scan_filtered">
 
+    <!-- Filters for lidar -->
+  <include file="$(find nav_main)/launch/sensors/laser_filter.launch">
+    <arg name="scan_topic" value="$(arg scan_topic)"/>
+  </include>
+
+  <!-- Start LIDAR-->
   <include file="$(find ldlidar_stl_ros)/launch/ld06.launch">
     <arg name="frame_id" default="base_scan"/>
     <arg name="port_name" value="$(arg port)"/>
     <arg name="fix_to_base_link" default="false"/>
   </include>
+
 
   <!-- Start IMU -->
   <node ns="imu" name="imu_node" pkg="imu_bno055" type="bno055_i2c_node" respawn="true" respawn_delay="2">

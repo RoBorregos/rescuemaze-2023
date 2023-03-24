@@ -1,0 +1,17 @@
+<launch>
+  <arg name="scan_topic" default="scan_filtered"/>
+
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
+  <rosparam command="load" file="$(find nav_main)/launch/sensors/laser_filtering_config.yaml" />
+  <remap from="scan_filtered" to="$(arg scan_topic)"/>
+
+  </node>
+
+<!--
+    (original) laser_filters subscribes to:
+        scan
+    and publishes to:
+        scan_filtered
+
+-->
+</launch>

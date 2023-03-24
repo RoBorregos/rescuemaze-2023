@@ -12,7 +12,7 @@
     <arg name="debug_localization_grid" default="false"/>
     
     <!-- Launch sensors-->
-    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors_bringup.launch">
+    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/sensors_bringup.launch">
         <arg name="port" value="$(arg portLidar)"/>
     </include>
 

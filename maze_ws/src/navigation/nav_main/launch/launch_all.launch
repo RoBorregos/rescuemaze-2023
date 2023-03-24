@@ -7,16 +7,23 @@
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
 
+    <arg name="scan_topic" default="scan_filtered"/>
+
     <arg name="dist_to_walls" default="false"/>
     <arg name="debug_localization_grid" default="false"/>
     
     <!-- Launch sensors-->
-    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors_bringup.launch"/>
+    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/sensors_bringup.launch"/>
+
+    <include if="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/laser_filter.launch">
+      <arg name="scan_topic" value="$(arg scan_topic)"/>
+    </include>
 
     <!-- Launch HS mapping -->
     <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
         <arg name="open_rviz" value="$(arg open_rviz)"/>
         <arg name="has_imu" value="$(arg has_imu)"/>
+        <arg name="scan_topic" value="$(arg scan_topic)"/>
         <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
     </include>
 
