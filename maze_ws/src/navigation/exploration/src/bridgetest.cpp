@@ -13,15 +13,18 @@ int main(int argc, char **argv)
     }
 
     int dir = 0;
+    bridge.publishIdealOrientation(dir);
+
     while (ros::ok())
     {
         ros::spinOnce();
-        ROS_INFO("North yaw is %f", bridge.northYaw);
-        ROS_INFO("East yaw is %f", bridge.eastYaw);
-        ROS_INFO("South yaw is %f", bridge.southYaw);
-        ROS_INFO("West yaw is %f", bridge.westYaw);
-        ROS_INFO("Current yaw is %f", bridge.yaw);
+        // ROS_INFO("North yaw is %f", bridge.northYaw);
+        // ROS_INFO("East yaw is %f", bridge.eastYaw);
+        // ROS_INFO("South yaw is %f", bridge.southYaw);
+        // ROS_INFO("West yaw is %f", bridge.westYaw);
+        // ROS_INFO("Current yaw is %f", bridge.yaw);
 
+        // ROS_INFO("dir is %d", dir);
 
         // bridge.sendUnitGoal(1, dir);
         // dir++;
@@ -29,12 +32,16 @@ int main(int argc, char **argv)
         // {
         //     dir = 0;
         // }
+        // bridge.publishTransform();
         bridge.sendUnitGoal(3, dir);
         dir--;
+
+
         if (dir < 0)
         {
             dir = 3;
         }
+        bridge.publishIdealOrientation(dir);
 
         // bridge.sendUnitGoal(1, dir);
         // dir++;
@@ -52,7 +59,6 @@ int main(int argc, char **argv)
         // dir--;
         // ros::Duration(1).sleep();
     }
-
 
     // bridge.sendUnitGoal(1, 0);
     // bridge.ac.waitForResult();
@@ -76,6 +82,6 @@ int main(int argc, char **argv)
     //     ros::spinOnce();
     //     ROS_INFO("yaw: %f", bridge.yaw);
     // }
-    
+
     ros::spin();
 }

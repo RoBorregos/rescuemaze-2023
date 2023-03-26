@@ -73,7 +73,7 @@ class LocalizationGrid:
 			image[image == 1] = 0
 			return image
 
-		image = dilateBlack(image)
+		# image = dilateBlack(image)
 		image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
 		# Increase size to 500px at least.
@@ -93,20 +93,89 @@ class LocalizationGrid:
 		# Transform input into grid
 		def getCells(image):
 			image = np.uint8(image)
+			
+
 
 			gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 			blur = cv2.GaussianBlur(gray, (3,3), 0)
 			thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
+			# Add border to image
+			border_size = 10
+			thresh = cv2.copyMakeBorder(thresh, border_size, border_size, border_size, border_size, cv2.BORDER_CONSTANT, value=255)
+			cv2.imshow('Thresh', thresh)
+
 			# Obtain horizontal lines mask
 			horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50,1))
 			horizontal_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=1)
-			horizontal_mask = cv2.dilate(horizontal_mask, horizontal_kernel, iterations=9)
+			horizontal_mask = cv2.dilate(horizontal_mask, horizontal_kernel, iterations=1)
+			cv2.imshow('Horizontal', horizontal_mask)
+
+			def extend_horizontal_lines(thresh):
+				
+				# Find contours
+				contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+				new_binary = np.zeros_like(thresh)
+
+				for cnt in contours:
+					ys = cnt[:,:,1]    
+					min_y, max_y = np.min(ys), np.max(ys)
+					# xs = cnt[:,:,0]
+					# min_x, max_x = np.min(xs), np.max(xs)
+
+					cv2.line(new_binary, (0, min_y), (new_binary.shape[1], min_y), 255, thickness=1)
+					cv2.line(new_binary, (0, max_y), (new_binary.shape[1], max_y), 255, thickness=1)
+
+				result = cv2.bitwise_or(thresh, new_binary)
+
+				# Fill lines Holes
+				cnts = cv2.findContours(result, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+				cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+				for c in cnts:
+					x,y,w,h = cv2.boundingRect(c)
+					cv2.rectangle(result, (x, y), (x + w, y + h), 255, -1)
+
+				return result
+			
+			horizontal_mask = extend_horizontal_lines(horizontal_mask)
+			cv2.imshow('Extended Horizontal', horizontal_mask)
+
 
 			# Obtain vertical lines mask
 			vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,50))
 			vertical_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=1)
-			vertical_mask= cv2.dilate(vertical_mask, vertical_kernel, iterations=9)
+			vertical_mask= cv2.dilate(vertical_mask, vertical_kernel, iterations=1)
+			
+			
+			def extend_vertical_lines(thresh):
+				
+				# Find contours
+				contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+				new_binary = np.zeros_like(thresh)
+
+				for cnt in contours:
+					xs = cnt[:,:,0]    
+					min_x, max_x = np.min(xs), np.max(xs)
+					# ys = cnt[:,:,1]
+					# min_y, max_y = np.min(ys), np.max(ys)
+
+					cv2.line(new_binary, (min_x, 0), (min_x, new_binary.shape[0]), 255, thickness=1)
+					cv2.line(new_binary, (max_x, 0), (max_x, new_binary.shape[0]), 255, thickness=1)
+
+				result = cv2.bitwise_or(thresh, new_binary)
+
+				# Fill lines Holes
+				cnts = cv2.findContours(result, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+				cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+				for c in cnts:
+					x,y,w,h = cv2.boundingRect(c)
+					cv2.rectangle(result, (x, y), (x + w, y + h), 255, -1)
+
+				return result
+			
+			vertical_mask = extend_vertical_lines(vertical_mask)
 
 			# Bitwise-and masks together
 			result = 255 - cv2.bitwise_or(vertical_mask, horizontal_mask)
@@ -117,6 +186,16 @@ class LocalizationGrid:
 			for c in cnts:
 				x,y,w,h = cv2.boundingRect(c)
 				cv2.rectangle(result, (x, y), (x + w, y + h), 255, -1)
+			cv2.imshow('Filled', result)
+
+			# Dilate walls for consistent width and overlap
+			# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+			# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+			# result = cv2.dilate(result, kernel1, iterations=1)
+			# result = cv2.dilate(result, kernel2, iterations=1)
+
+			# Remove border	
+			result = result[border_size:-border_size, border_size:-border_size]
 
 			return result
 
@@ -286,31 +365,39 @@ class LocalizationGrid:
 			self.pub_west.publish(d_w)
 			return
 
-		def distance_to_center(units_to_line):
-			"""Transforms cell count into centimeters. Finds distance
-			to nearest center.
-			"""
-			dist_to_line = cell_distance * units_to_line
-			dist_to_line = dist_to_line % 30
-			dist_to_center = 15 - dist_to_line
-			return dist_to_center
+		# def distance_to_center(units_to_line):
+		# 	"""Transforms cell count into centimeters. Finds distance
+		# 	to nearest center.
+		# 	"""
+		# 	dist_to_line = cell_distance * units_to_line
+		# 	dist_to_line = dist_to_line % 30
+		# 	dist_to_center = 15 - dist_to_line
+		# 	return dist_to_center
 		
 		d_x = 15
 		d_y = 15
 
+		# Find distance to center considering walls closer then 20units.
+		if north < 20 and south < 20:
+			dist_to_line = cell_distance * units_to_line
+			d_y = 
+		elif north < 20:
+		elif south < 20:
+
+
+
 		# Use nearest walls as reference to estimate center error..
+		# if west < east:
+		# 	d_x = distance_to_center(west)
+		# else:
+		# 	d_x = distance_to_center(east)
+		# 	d_x *= -1
 
-		if west < east:
-			d_x = distance_to_center(west)
-		else:
-			d_x = distance_to_center(east)
-			d_x *= -1
-
-		if north < south:
-			d_y = distance_to_center(north)
-			d_y *= -1
-		else:
-			d_y = distance_to_center(south)
+		# if north < south:
+		# 	d_y = distance_to_center(north)
+		# 	d_y *= -1
+		# else:
+		# 	d_y = distance_to_center(south)
 		
 		# Send specific values out of range if no point was used.
 		if (south == 1000 and north == 1000):

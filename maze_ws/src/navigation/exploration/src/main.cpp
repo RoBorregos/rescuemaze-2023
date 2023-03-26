@@ -56,6 +56,8 @@ void moveForward(int &rDirection, Map &mapa)
     ROS_INFO("         forward");
 
     bridge->sendUnitGoal(0, rDirection);
+    bridge->publishIdealOrientation(rDirection);
+    
 
     if (mapSimDebug)
     {
@@ -73,7 +75,8 @@ void right(int &rDirection, Map &mapa)
 
     bridge->sendUnitGoal(1, rDirection);
     (rDirection == 3) ? rDirection = 0 : rDirection++;
-
+    bridge->publishIdealOrientation(rDirection);
+    
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -108,7 +111,8 @@ void left(int &rDirection, Map &mapa)
 
     bridge->sendUnitGoal(3, rDirection);
     (rDirection == 0) ? rDirection = 3 : rDirection--;
-
+    bridge->publishIdealOrientation(rDirection);
+    
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -652,6 +656,7 @@ void explore(bool checkpoint, int argc, char **argv)
 
     // ros::Duration(3).sleep();
     Tile *startTile = mapa.tile;
+    startTile->visited = true;
     mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
     Tile *newTile = nullptr;
     vector<string> keys = {"north", "east", "south", "west"};
@@ -663,6 +668,7 @@ void explore(bool checkpoint, int argc, char **argv)
     stack<string> path;
 
     int steps = 2;
+    bridge->publishIdealOrientation(0);    
 
     do
     {
@@ -672,6 +678,8 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug(" ");
             bridge->pubDebug("new do while loop iteration");
         }
+
+        // publishIdealOrientation
 
         mapa.tile->visited = true;
         for (auto &&key : keys)
