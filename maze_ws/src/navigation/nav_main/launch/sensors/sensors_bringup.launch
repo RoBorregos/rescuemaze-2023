@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="port" default="/dev/ttyUSB0"/>
-  <arg name="scan_topic" default="scan_filtered">
+  <arg name="scan_topic" default="scan_filtered"/>
 
     <!-- Filters for lidar -->
   <include file="$(find nav_main)/launch/sensors/laser_filter.launch">

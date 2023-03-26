@@ -3,13 +3,14 @@
     <arg name="rpc_path" default="$(find openmv_camera)/scripts"/>
     <arg name="port" default="/dev/ttyACM0"/>
     <arg name="debug" default="true"/>
-    <arg name="debug_image" default="true"/>
+    <arg name="debug_image" default="false"/>
 
     <!-- Launch camera service -->
     <node name="camera_service" pkg="openmv_camera" type="camera_controller.py" respawn="true" output="screen">
         <param name="debug" value="$(arg debug)"/>
         <param name="debug_image" value="$(arg debug_image)"/>
         <param name="port" value="$(arg port)"/>
+        <param name="working_dir" value="$(find openmv_camera)/scripts/datasets"/>
         <env name="PYTHONPATH" value="$(eval arg('rpc_path') + ':' + optenv('PYTHONPATH'))"/>
     </node>
 </launch>

@@ -4,26 +4,61 @@
 
 # Original script from: https://github.com/openmv/openmv/blob/master/tools/rpc/rpc_image_transfer_jpg_as_the_controller_device.py
 
-import rpc, rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2, pytesseract
+import rpc, rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2, pytesseract, os
 import numpy as np
+import tensorflow as tf
 
 from openmv_camera.srv import CameraDetection, CameraDetectionResponse
 from PIL import Image
 
-# TODO: implement function to detect letter in image.
+
 def process_image(image):
-    text = pytesseract.image_to_string(image)
+    # Use interpreter: https://www.tensorflow.org/api_docs/python/tf/lite/Interpreter
+    if debug:
+        print(os.getcwd())
+        print(os.listdir())
+
+    interpreter = tf.lite.Interpreter(model_path="model.tflite")
+    interpreter.allocate_tensors()
+
+    output = interpreter.get_output_details()[0]  # Model has single output.
+    
+    if debug:
+        print("Output:")
+        print(output)
+
+    input = interpreter.get_input_details()[0]  # Model has single input.
+    input_data = tf.constant(1., shape=[1, 1])
+
+    shape = interpreter.get_input_details()[0]['shape'] # get shape of input -> [1, 224, 224, 3]
+
+    image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB) # convert to RGB -> make image shape [240, 320, 3]
+    image = cv2.resize(image, (shape[1], shape[2])) # resize to input shape
+    image = image.reshape(shape) # reshape image to input shape -> [1, 224, 224, 3]
+
+    interpreter.set_tensor(input['index'], image)
+    interpreter.invoke()
+
+    res = interpreter.get_tensor(output['index'])[0] # Get probabilities of each class.
+
+    sum_p = 0
+    max_p = 0
+    for i in range(len(res)):
+        sum_p += res[i]
+        if res[max_p] < res[i]:
+            max_p = i
+
+    output = ['F', 'H', 'S', 'U']
 
     if debug:
-        for i in range(len(text)):
-            letter = text[i].upper()
-            print('letter:', letter)
-    
-    for i in range(len(text)):
-        letter = text[i].upper()
-        if letter == 'H' or letter == 'S' or letter == 'U':
-            return letter
-    
+        print("Probabilities of most likely:")
+        print(res[max_p]/sum_p)
+        print("Most likely:", res[max_p])
+
+    # If the probability of the most likely character is greater than 50%, return it. Else return unknown.
+    if (res[max_p] / sum_p) > 0.3:
+        return output[max_p]
+
     return 'X'
 
 
@@ -67,10 +102,18 @@ def unpack_res(res):
 
 # From bytearray into suitable np.array for use with cv2.
 def format_image(image):
-    #image = Image.open(io.BytesIO(image))
-    image = cv2.imdecode(image)
-    print(image.shape)
-    #image = np.array(image)
+    # Use PIL to read image as grayscale.
+    # image = Image.open(io.BytesIO(image))
+    # image = image.convert("L")
+    # image = np.array(image)
+
+    # Use numpy to read image as grayscale.
+    image = np.asanyarray(image, dtype="uint8")
+    image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+    
+    if debug:
+        print(image.shape)
+
     return image
 
 
@@ -92,9 +135,6 @@ def detect_any(req):
     image = get_image("sensor.RGB565", "sensor.QVGA")
     image = format_image(image)
 
-    if debug: print(image.shape)
-
-
     if image is None:
         print("Error, image not obtained from RPC.")
         return CameraDetectionResponse('X')
@@ -102,7 +142,7 @@ def detect_any(req):
     # Process image
     detection = process_image(image)
 
-    if True and debug_image and image is not None:
+    if debug_image and image is not None:
         cv2.imshow("DebugCamera", image)
         key = cv2.waitKey(0)
 
@@ -144,6 +184,10 @@ if __name__ == '__main__':
 
     if rospy.has_param(name + "port"):
         port = rospy.get_param(name + "port")
+
+    if rospy.has_param(name + "working_dir"):
+        working_dir = rospy.get_param(name + "working_dir")
+        os.chdir(working_dir)
 
     if (debug): portInformation()
 

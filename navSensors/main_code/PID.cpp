@@ -43,22 +43,27 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
     return;
   }
 
+  double timeDiffSeconds = timeDiff / 1000.0;
+
   // Commented out because the time difference may be greater than sample time.
-  // input = (reset_variable / pulses_per_rev) * count_time_samples_in_one_second;
 
   // reset_variable / pulses per rev -> revs / timeDiff
-  // revs/timeDiff * 1000/timeDiff -> revs / s
+  // revs / timeDiff * 1000/timeDiff -> revs / s
   input = (reset_variable / pulses_per_rev) * (1000.0 / timeDiff);
 
-  reset_variable = 0;
+  reset_variable = 0; // Reset encoder tics
 
-  const double error = setpoint - input; // rev / s
+  const double error = setpoint - input; // Get error in terms of rev / s
+ 
+  errorSum += error * timeDiffSeconds;
+  
+  const double derivative = (error - errorPre) / timeDiffSeconds;
 
-  output = error * kp + errorSum * ki + (error - errorPre) * kd;
+  output = error * kp + errorSum * ki + derivative * kd;
 
   errorPre = error;
-  errorSum += error;
 
+  // Reduce variables to appropiate magnitudes.
   errorSum = max(maxError * -1, min(maxError, errorSum));
   output = max(minOutput, min(maxOutput, output));
 
