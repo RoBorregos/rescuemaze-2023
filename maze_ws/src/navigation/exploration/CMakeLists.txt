@@ -14,6 +14,10 @@ std_msgs
 message_generation
 move_base_msgs
 actionlib
+tf
+geometry_msgs
+tf2_ros
+tf2
 # map_server
   # message_runtime
 )
@@ -219,8 +223,13 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+target_link_libraries(main ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${tf_LIBRARIES})
 add_dependencies(main exploration_gencpp)
+
+add_executable(TfBroadcaster src/TfBroadcaster.cpp)
+target_link_libraries(TfBroadcaster ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${tf_LIBRARIES})
+add_dependencies(TfBroadcaster exploration_gencpp)
+
 
 # add_executable(actionClient src/actionClient.cpp)
 # target_link_libraries(actionClient ${catkin_LIBRARIES})
@@ -234,5 +243,5 @@ add_dependencies(main exploration_gencpp)
 # add_dependencies(testServerMoveBase exploration_genpy)
 
 add_executable(rosbridgetest src/bridgetest.cpp)
-target_link_libraries(rosbridgetest ${catkin_LIBRARIES})
+target_link_libraries(rosbridgetest ${catkin_LIBRARIES} ${tf_LIBRARIES})
 add_dependencies(rosbridgetest exploration_gencpp)

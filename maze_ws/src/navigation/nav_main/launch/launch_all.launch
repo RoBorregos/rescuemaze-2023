@@ -33,10 +33,14 @@
     </include>
 
     <!-- Launch localization of centers node -->
-    <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">
+    <!-- <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">
         <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
         <param name="debug" value="$(arg debug_localization_grid)"/>
-    </node>
+    </node> -->
+
+    <!-- Launch Tf Broadcaster -->
+    <node name="tf_broadcaster" pkg="exploration" type="TfBroadcaster" respawn="true" output="screen" />
+    
 
     <!-- Launch wall service -->
     <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">

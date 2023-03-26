@@ -10,13 +10,12 @@ using namespace std;
 
 #include "Tile.h"
 
-#define debug false
+#define debugdijkstra false
 
 string posvectorToString(vector<int> pos)
 {
     return to_string(pos[0]) + "," + to_string(pos[1]) + "," + to_string(pos[2]);
 }
-
 
 // Parte del algoritmo de Dijkstra: Regresa el tile con el costo mas bajo que no se ha visitado
 Tile *cheapestUnknown(map<string, Tile *> &tiles, map<Tile *, bool> &visited, map<string, int> &cost)
@@ -69,7 +68,7 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
 
     while (source)  
     {
-        if (debug)
+        if (debugdijkstra)
             cout << "Casilla actual: " << source->pos[0] << ", " << source->pos[1] << ", " << source->pos[2] << endl << "Peso: " << source->weight << "    Costo: " << cost[posvectorToString(source->pos)] << endl;
 
         visited[source] = true;
@@ -78,9 +77,9 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
         {
             targetTile = source->adjacentTiles[key];
 
-            if (debug && targetTile)
+            if (debugdijkstra && targetTile)
                 cout << "Casilla adyacente (" << key << "): " << targetTile->pos[0] << ", " << targetTile->pos[1] << ", " << targetTile->pos[2] << endl << "Peso: " << targetTile->weight << "    Costo: " << cost[posvectorToString(targetTile->pos)] << endl;
-            else if (debug)
+            else if (debugdijkstra)
                 cout << "Casilla adyacente: null" << endl;
 
 
@@ -89,7 +88,7 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
                 cost[posvectorToString(targetTile->pos)] = cost[posvectorToString(source->pos)] + targetTile->weight;
                 paths[targetTile] = pair<Tile *, string>{source, key};
 
-                if (debug)
+                if (debugdijkstra)
                     cout << "Nuevo costo de la casilla adyacente: " << cost[posvectorToString(targetTile->pos)] << endl;
 
                 if (cost[posvectorToString(targetTile->pos)] < lowestCost && find(unvisited.begin(), unvisited.end(), targetTile) != unvisited.end())
@@ -97,7 +96,7 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
                     lowestCost = cost[posvectorToString(targetTile->pos)];
                     lowTile = targetTile;
 
-                    if (debug)
+                    if (debugdijkstra)
                         cout << "Nuevo costo mas bajo: " << lowestCost << endl << "Nueva casilla de menos costo: " << lowTile->pos[0] << ", " << lowTile->pos[1] << ", " << lowTile->pos[2] << endl;
                 }
             }
