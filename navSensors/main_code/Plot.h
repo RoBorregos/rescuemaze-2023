@@ -11,7 +11,8 @@ class Plot
 private:
   // Prints data sent in parameters.
   void plotData(const double data1, const double data2, const double data3, const double data4, const double data5);
-
+  
+  
   Movement *moveAll;
 
   unsigned long timeMsg;
@@ -30,6 +31,8 @@ public:
 
   // This function print the current and the target speed.
   void plotTargetandCurrent();
+
+  void plotPWM();
 
   // Sends start sequence to signal the beginning of plot input. Call only once, and right before 
   // calling the plotting functions for the first time.

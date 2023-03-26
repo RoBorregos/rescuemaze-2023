@@ -105,7 +105,7 @@ class serialPlot:
 
 def main():
     # portName = 'COM11'
-    portName = '/dev/ttyUSB0'
+    portName = '/dev/ttyUSB3'
     baudRate = 57600
     maxPlotLength = 100     # number of points in x-axis of real time plot
     dataNumBytes = 4        # number of bytes of 1 data point
@@ -113,12 +113,19 @@ def main():
     s = serialPlot(portName, baudRate, maxPlotLength, dataNumBytes, numPlots)   # initializes all required variables
     s.readSerialStart()                                               # starts background thread
 
+    plot_pwm = False
+
     # plotting starts below
     pltInterval = 35    # Period at which the plot animation updates [ms]
     xmin = 0
     xmax = maxPlotLength
-    ymin = 0
-    ymax = 5
+    if not plot_pwm:
+        ymin = 0
+        ymax = 5
+    else:
+        ymin = 0
+        ymax = 230
+
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(xlim=(xmin, xmax), ylim=(float(ymin - (ymax - ymin) / 10), float(ymax + (ymax - ymin) / 10)))
     ax.set_title("Motor PID graph")

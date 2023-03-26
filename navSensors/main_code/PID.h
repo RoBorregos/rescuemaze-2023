@@ -19,7 +19,7 @@ private:
   double maxOutput {255};
 
   unsigned long timePassed;
-  unsigned long sampleTime {100};
+  unsigned long sampleTime {50};
 
 public:
   // Constructors

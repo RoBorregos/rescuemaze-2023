@@ -153,5 +153,6 @@ void moveRoutine()
   {
     robot->updateStraightPID(90);
     graph.plotTargetandCurrent();
+    //graph.plotPWM();
   }
 }

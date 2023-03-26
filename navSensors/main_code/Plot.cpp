@@ -21,6 +21,7 @@ void Plot::plotMotorSpeed()
     );
 }
 
+
 void Plot::plotTargetandCurrent()
 {
     plotData(
@@ -32,6 +33,16 @@ void Plot::plotTargetandCurrent()
     );
 }
 
+void Plot::plotPWM()
+{
+    plotData(
+        moveAll -> motor[BACK_LEFT].getPWM(),
+        moveAll -> motor[FRONT_LEFT].getPWM(),
+        moveAll -> motor[BACK_RIGHT].getPWM(),
+        moveAll -> motor[FRONT_RIGHT].getPWM(),
+        0
+    );
+}
 
 
 void Plot::plotData(const double data1, const double data2, const double data3, const double data4, const double data5)

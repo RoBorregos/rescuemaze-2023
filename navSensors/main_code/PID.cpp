@@ -32,12 +32,6 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
 
   unsigned long timeDiff = millis() - timePassed;
 
-  if (debug)
-  {
-    Serial.print("timeDiff: ");
-    Serial.println(timeDiff);
-  }
-
   if (timeDiff < sampleTime)
   {
     return;
@@ -71,9 +65,11 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
 
   if (debug)
   {
+    Serial.println("Time diff: " + String(timeDiff));
     Serial.println("Input: " + String(input));
     Serial.println("Error: " + String(error));
     Serial.println("ErrorPre: " + String(errorPre));
+    Serial.println("Derivative: " + String(derivative));
     Serial.println("ErrorSum: " + String(errorSum));
     Serial.println("Output: " + String(output));
   }
