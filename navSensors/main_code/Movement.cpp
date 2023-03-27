@@ -19,6 +19,13 @@ Movement::Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstan
   initMovement(individualConstants);
 }
 
+Movement::Movement(Sensors *sensors, bool individualConstants) : sensors(sensors)
+{
+  nh = nullptr;
+  bno = nullptr;
+  initMovement(individualConstants);
+}
+
 Movement::initMovement(bool individualConstants)
 {
   kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
@@ -216,13 +223,16 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
   if (debug)
   {
-    if (linear_x != x){
+    if (linear_x != x)
+    {
       nh->loginfo("Linear velocity in X constrained!");
     }
-    if (linear_y != y){
+    if (linear_y != y)
+    {
       nh->loginfo("Linear velocity in Y constrained!");
     }
-    if (angular_z != z){
+    if (angular_z != z)
+    {
       nh->loginfo("Angular velocity in Z constrained!");
     }
   }
@@ -231,7 +241,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
   {
     Kinematics::output rpm = kinematics.getRPM(x, y, z);
     Kinematics::output rpm1 = kinematics.getRPM(linear_x, linear_y, angular_z);
-    
+
     updatePIDKinematics(rpm);
 
     if (debug)
@@ -240,15 +250,15 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
       char result[8];
       double rpms[kMotorCount];
       rpms[FRONT_LEFT] = (float)rpm.motor1;
-      rpms[FRONT_RIGHT] = (float) rpm.motor2;
-      rpms[BACK_LEFT] = (float) rpm.motor3;
-      rpms[BACK_RIGHT] = (float) rpm.motor4;
+      rpms[FRONT_RIGHT] = (float)rpm.motor2;
+      rpms[BACK_LEFT] = (float)rpm.motor3;
+      rpms[BACK_RIGHT] = (float)rpm.motor4;
       double rpms1[kMotorCount];
       rpms1[FRONT_LEFT] = (float)rpm1.motor1;
-      rpms1[FRONT_RIGHT] = (float) rpm1.motor2;
-      rpms1[BACK_LEFT] = (float) rpm1.motor3;
-      rpms1[BACK_RIGHT] = (float) rpm1.motor4;
-      
+      rpms1[FRONT_RIGHT] = (float)rpm1.motor2;
+      rpms1[BACK_LEFT] = (float)rpm1.motor3;
+      rpms1[BACK_RIGHT] = (float)rpm1.motor4;
+
       dtostrf(angular_z, 6, 2, result);
       sprintf(log_msg, "Angular Z :%s", result);
       nh->loginfo(log_msg);
@@ -609,10 +619,10 @@ void Movement::checkLimitSwitches()
 void Movement::testMotor()
 {
 
-  //Motor *m = &motor[FRONT_RIGHT];
-   Motor *m = &motor[BACK_LEFT];
-  //Motor *m = &motor[BACK_RIGHT];
-  // Motor *m = &motor[FRONT_LEFT];
+  // Motor *m = &motor[FRONT_RIGHT];
+  Motor *m = &motor[BACK_LEFT];
+  // Motor *m = &motor[BACK_RIGHT];
+  //  Motor *m = &motor[FRONT_LEFT];
 
   while (true)
   {
@@ -622,4 +632,58 @@ void Movement::testMotor()
     Serial.print("Curr target: ");
     Serial.println(m->getTargetSpeed());
   }
+}
+
+void Movement::testAllMotors()
+{
+  Serial.println("Testing all motors");
+  delay(1000);
+
+  Serial.println("FRONT RIGHT - Forward");
+  motor[FRONT_RIGHT].motorSpeedPID(90);
+  delay(2000);
+  motor[FRONT_RIGHT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("FRONT RIGHT - Backwards");
+  motor[FRONT_RIGHT].motorSpeedPID(-90);
+  delay(2000);
+  motor[FRONT_RIGHT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("FRONT LEFT - Forward");
+  motor[FRONT_LEFT].motorSpeedPID(90);
+  delay(2000);
+  motor[FRONT_LEFT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("FRONT LEFT - Backwards");
+  motor[FRONT_LEFT].motorSpeedPID(-90);
+  delay(2000);
+  motor[FRONT_LEFT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("BACK LEFT - Forward");
+  motor[BACK_LEFT].motorSpeedPID(90);
+  delay(2000);
+  motor[BACK_LEFT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("BACK LEFT - Backwards");
+  motor[BACK_LEFT].motorSpeedPID(-90);
+  delay(2000);
+  motor[BACK_LEFT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("BACK RIGHT - Forward");
+  motor[BACK_RIGHT].motorSpeedPID(90);
+  delay(2000);
+  motor[BACK_RIGHT].motorSpeedPID(0);
+  delay(1000);
+
+  Serial.println("BACK RIGHT - Backwards");
+  motor[BACK_RIGHT].motorSpeedPID(-90);
+  delay(2000);
+  motor[BACK_RIGHT].motorSpeedPID(0);
+  delay(1000);
 }

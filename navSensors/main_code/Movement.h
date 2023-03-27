@@ -74,7 +74,7 @@ private:
 
   static constexpr double kLinearXMaxVelocity = kMaxVelocity;
   static constexpr double kLinearYMaxVelocity = kMaxVelocity;
-  static constexpr double kAngularZMaxVelocity = min(kMaxVelocity/kFrWheelsDist, kMaxVelocity/kLrWheelsDist);
+  static constexpr double kAngularZMaxVelocity = min(kMaxVelocity / kFrWheelsDist, kMaxVelocity / kLrWheelsDist);
   static constexpr uint8_t kPwmBits = 8;
 
   // PID
@@ -105,6 +105,9 @@ public:
 
   // Using only Arduino.
   Movement(BNO *bno, Sensors *sensors, bool individualConstants = false);
+
+  // Using only Arduino without bno
+  Movement(Sensors *sensors, bool individualConstants = false);
 
   // Initialize objects in common of constructors.
   initMovement(bool individualConstants = false);
@@ -181,6 +184,10 @@ public:
 
   // For specific tests on specific motors.
   void testMotor();
+
+  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
+  // as well as their directions.
+  void testAllMotors();
 };
 
 #endif

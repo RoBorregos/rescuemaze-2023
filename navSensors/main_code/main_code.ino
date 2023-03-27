@@ -16,7 +16,6 @@ Sensors *s = nullptr;
 MUX2C mux;
 Motor *motor = nullptr;
 
-
 void setup()
 {
   Serial.begin(57600);
@@ -24,13 +23,14 @@ void setup()
   // Setup options
 
   // Set some sensor or i2c device
-  bool setTcs = false bool seti2c = false;
+  bool setTcs = false;
+  bool seti2c = false;
 
   // Set a specific test
-  bool doSpecificTest = false
+  bool doSpecificTest = false;
 
-      // General options
-      bool useVLX = true;
+  // General options
+  bool useVLX = true;
   bool setIndividualConstants = true;
 
   setupData(setTcs, seti2c);

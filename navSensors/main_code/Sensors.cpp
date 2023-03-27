@@ -49,14 +49,8 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 
   if (vlx && usingVLX)
   {
-    for (int i = 0; i < kVLXCount; i++)
-    {
-      Serial.print("VLX sensor ");
-      Serial.print(i + 1);
-      Serial.print(" ");
-      Serial.print(float(getVLXInfo(i)), 4);
-      Serial.println(" M");
-    }
+    Serial.print("VLX sensor: ");
+    Serial.println(float(getVLXInfo(0)), 4);
   }
 
   if (tcs)
@@ -75,11 +69,7 @@ float Sensors::getVLXInfo(int posVLX)
     return -1;
   }
 
-  if (posVLX >= 0 && posVLX < kVLXCount)
-    return vlx[posVLX].getDistance();
-
-  Serial.println("Invalid position for VLX sensor at getVLXInfo().");
-  return -1;
+  return vlx.getDistance();
 }
 
 float Sensors::getQuatX()
