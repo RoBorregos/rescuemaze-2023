@@ -68,20 +68,13 @@ class RosBridge{
     static constexpr uint16_t kWatchdogPeriod = 500;
     
     // Publishers
-
-    ros::Publisher vlx_sensor_publisher_left;
-    ros::Publisher vlx_sensor_publisher_right;
     ros::Publisher vlx_sensor_publisher_front;
-    ros::Publisher vlx_sensor_publisher_back;
-
     ros::Publisher tcs_sensor_publisher;
     ros::Publisher test_publisher;
 
     // Messages
-    sensor_msgs::Range vlx_sensor_msgs_left;  // TOF sensors
-    sensor_msgs::Range vlx_sensor_msgs_right; // TOF sensors
-    sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensors
-    sensor_msgs::Range vlx_sensor_msgs_back;  // TOF sensors
+    sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensor
+    
 
     std_msgs::Char tcs_sensor_msgs;          // Color sensor
     std_msgs::String testT;
@@ -94,12 +87,6 @@ class RosBridge{
     unsigned long watchdog_timer_dispenser = 0;
 
     // Motor and Sensor constants
-    // Sensor
-    static constexpr int kBNOData = 10;
-    static constexpr int kVLXData = 6;
-    static constexpr int kMLXData = 2;
-    static constexpr int kTCSData = 1;
-    static constexpr int kSensorData = kBNOData + kVLXData + kMLXData + kTCSData;
 
     // VLX
     const float kVLX_fov = (45 * 3.1416) / 180;
