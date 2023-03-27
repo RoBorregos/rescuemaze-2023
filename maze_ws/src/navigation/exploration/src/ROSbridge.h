@@ -44,10 +44,14 @@ class ROSbridge
 private:
     bool debugging;
     bool debugmapgoals;
+
     ros::NodeHandle *nh;
 
     geometry_msgs::TransformStamped transformStamped;
     tf::StampedTransform baselink_mapTransform;
+
+    bool blueTile;
+    bool blackTile;
 
     // ros::Publisher pub;
 
@@ -103,11 +107,11 @@ private:
     double yawDifference(double yaw1, double yaw2);
 
 public:
-    void publishIdealOrientation(int orientation);
     ClientScope scope;
     char tcsdata;
     float bnoxdata;
     bool limitSwitch1;
+    bool limitSwitch2;
 
     // Imu data
     double xImu;
@@ -133,9 +137,14 @@ public:
     ROSbridge(ros::NodeHandle *n);
 
     void clearMap();
-    void sendUnitGoal(int movement, int rDirection);
+    int sendUnitGoal(int movement, int rDirection);
     void sendMapGoal(int movement, int rDirection);
-    void sendMapGoalGOAT(int movement, int rDirection);
+
+    // Return values:
+    // 0: Goal not reached, black tile
+    // 1: Goal reached, white tile
+    // 2: Goal reached, blue tile
+    int sendMapGoalGOAT(int movement, int rDirection);
 
     void goNorth();
     void goEast();
@@ -147,6 +156,7 @@ public:
     int getVictims();
 
     void publishTransform();
+    void publishIdealOrientation(int orientation);
 
     void pubDebug(string msg);
 };
@@ -160,6 +170,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     ydistCenter = 0;
     tcsdata = '0';
     limitSwitch1 = false;
+    blueTile = false;
 
     ROS_INFO("Creating ROSbridge");
     nh = n;
@@ -278,7 +289,7 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         //     westYaw = northYaw + M_PI_2 * 3;
     }
 
-    if (false)
+    if (true)
     {
         // ROS_INFO("x: %f", xImu);
         // ROS_INFO("y: %f", yImu);
@@ -287,6 +298,7 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         // ROS_INFO("roll: %f", roll);
         // ROS_INFO("pitch: %f", pitch);
         ROS_INFO("yaw: %f", yaw);
+        ROS_INFO("Pitch: %f", pitch);
     }
 }
 
@@ -310,15 +322,39 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
     // ROS_INFO("Feedback y %f", feedback->base_position.pose.position.y);
     // ROS_INFO("Feedback z %f", feedback->base_position.pose.position.z);
 
-    if (tcsdata == '1')
+    // check color
+    if (tcsdata == 'n' && !blackTile)
     {
-        ROS_INFO("Cancelling goal");
+        if (debugging)
+            ROS_INFO("Black tile, Cancelling goal");
+
+        blackTile = true;
         ac.cancelGoal();
     }
-    else if (limitSwitch1)
+    else if (tcsdata == 'a')
     {
-        ROS_INFO("Cancelling goal");
-        ac.cancelGoal();
+        if (debugging)
+            ROS_INFO("Blue tile detected");
+
+        blueTile = true;
+    }
+
+    // check limit switches
+    if (limitSwitch1)
+    {
+        ROS_INFO("Limit switch 1, recovering");
+        
+    }
+    if (limitSwitch2)
+    {
+        ROS_INFO("Limit switch 2, recovering");
+        
+    }
+
+    // check pitch from imu
+    if (false)
+    {
+
     }
 
     // scope.feedback = feedback->base_position.pose;
@@ -368,16 +404,21 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
     // tfl.transformPose("map", ros::Time(0), goal.target_pose, "base_link", goal.target_pose);
     // tfl.transformPose("map", goal.target_pose, goal.target_pose);
 
-
     // goal.target_pose = poseStamped;
     movementClientAsync(goal);
 }
 
-void ROSbridge::sendMapGoalGOAT(int movement, int rDirection) {
+// Return values:
+// 0: Goal not reached, black tile
+// 1: Goal reached, white tile
+// 2: Goal reached, blue tile
+int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
+{
     geometry_msgs::PoseStamped pose;
     pose.header.stamp = ros::Time::now();
     pose.header.frame_id = "perfect_position";
-    if (movement == 0) {
+    if (movement == 0)
+    {
         ROS_INFO("Forward");
 
         pose.pose.position.x = 0.3;
@@ -413,24 +454,67 @@ void ROSbridge::sendMapGoalGOAT(int movement, int rDirection) {
 
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose = poseMap;
+
+    if (blueTile) // Wait 5 seconds if blue tile is detected
+    {
+        ROS_INFO("Blue tile detected, waiting 5 seconds");
+        ros::Duration(5).sleep();
+        blueTile = false;
+    }
+
     movementClientAsync(goal);
 
-}
-void ROSbridge::sendUnitGoal(int movement, int rDirection)
-{
-    if (true) {
-        sendMapGoalGOAT(movement, rDirection);
+    // Return value if goal is reached
+    if (blackTile)
+    {
+        // Send goal to 0,0 to go to the center of the tile
+        geometry_msgs::PoseStamped pose;
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "perfect_position";
+        pose.pose.position.x = 0;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+        pose.pose.orientation.x = 0;
+        pose.pose.orientation.y = 0;
+        pose.pose.orientation.z = 0;
+        pose.pose.orientation.w = 1;
 
-        return;
+        // Transform pose to map frame
+        geometry_msgs::PoseStamped poseMap;
+        tfl.waitForTransform("map", "perfect_position", ros::Time(0), ros::Duration(1.0));
+        tfl.transformPose("map", ros::Time(0), pose, "perfect_position", poseMap);
+
+        move_base_msgs::MoveBaseGoal goal;
+        goal.target_pose = poseMap;
+
+        movementClientAsync(goal);
+
+        blackTile = false;
+        return 0;
+    }
+    else if (blueTile)
+    {
+        blueTile = false;
+        return 2;
+    }
+    else
+    {
+        return 1;
+    }
+}
+int ROSbridge::sendUnitGoal(int movement, int rDirection)
+{
+    if (true)
+    {
+        return sendMapGoalGOAT(movement, rDirection);
     }
 
     if (sendMapGoals)
     {
         sendMapGoal(movement, rDirection);
 
-        return;
+        return 0;
     }
-
 
     ros::spinOnce();
     ROS_INFO_STREAM("handleUnitMovements: " << movement);
@@ -655,6 +739,8 @@ void ROSbridge::sendUnitGoal(int movement, int rDirection)
     // tfl.transformPose("perfect_position", pose, pose);
 
     sendGoal(pose);
+
+    return 0;
 }
 
 void ROSbridge::sendMapGoal(int movement, int rDirection)
@@ -671,12 +757,12 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
 
         ROS_INFO("Transform looked up, x: %f y: %f", baselink_mapTransform.getOrigin().x(), baselink_mapTransform.getOrigin().y());
     }
-    catch(const tf::TransformException& e)
+    catch (const tf::TransformException &e)
     {
         // std::cerr << e.what() << '\n';
         ROS_ERROR("Transform error: %s", e.what());
     }
-    
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
@@ -684,7 +770,6 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
     goal.target_pose.pose.position.y = baselink_mapTransform.getOrigin().y() + ydistCenter * 0.01;
     goal.target_pose.pose.position.z = baselink_mapTransform.getOrigin().z();
 
-    
     // goal.target_pose.pose.orientation.x = baselink_mapTransform.getRotation().x();
     // goal.target_pose.pose.orientation.y = baselink_mapTransform.getRotation().y();
     // goal.target_pose.pose.orientation.z = baselink_mapTransform.getRotation().z();
@@ -693,7 +778,7 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
     if (movement == 0)
     {
         // goal.target_pose.pose.position.x += 0.3;
-        
+
         switch (rDirection)
         {
         case 0:
@@ -787,7 +872,7 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
                 ROS_INFO("Objective: North, yaw Difference: %f", -M_PI_2 + yawDifference(northYaw, originYaw));
             }
             break;
-        
+
         default:
             break;
         }
@@ -824,7 +909,7 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
 
         case 2:
             goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(M_PI_2 + yawDifference(eastYaw, yaw));
-            
+
             if (debugmapgoals)
             {
                 ROS_INFO("Objective: East, yaw Difference: %f", M_PI_2 + yawDifference(eastYaw, yaw));
@@ -863,16 +948,16 @@ void ROSbridge::goNorth()
         tfl.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(1.0));
         tfl.lookupTransform("map", "base_link", ros::Time(0), baselink_mapTransform);
     }
-    catch(const tf::TransformException& e)
+    catch (const tf::TransformException &e)
     {
         // std::cerr << e.what() << '\n';
         ROS_ERROR("Transform error: %s", e.what());
     }
-    
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter; 
+    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter;
     goal.target_pose.pose.position.y = baselink_mapTransform.getOrigin().y() + xdistCenter;
     goal.target_pose.pose.position.z = baselink_mapTransform.getOrigin().z();
     goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(northYaw);
@@ -889,16 +974,16 @@ void ROSbridge::goEast()
         tfl.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(1.0));
         tfl.lookupTransform("map", "base_link", ros::Time(0), baselink_mapTransform);
     }
-    catch(const tf::TransformException& e)
+    catch (const tf::TransformException &e)
     {
         // std::cerr << e.what() << '\n';
         ROS_ERROR("Transform error: %s", e.what());
     }
-    
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + ydistCenter; 
+    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + ydistCenter;
     goal.target_pose.pose.position.y = baselink_mapTransform.getOrigin().y() - 0.3 + xdistCenter;
     goal.target_pose.pose.position.z = baselink_mapTransform.getOrigin().z();
     goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(northYaw);
@@ -915,16 +1000,16 @@ void ROSbridge::goSouth()
         tfl.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(1.0));
         tfl.lookupTransform("map", "base_link", ros::Time(0), baselink_mapTransform);
     }
-    catch(const tf::TransformException& e)
+    catch (const tf::TransformException &e)
     {
         // std::cerr << e.what() << '\n';
         ROS_ERROR("Transform error: %s", e.what());
     }
-    
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter; 
+    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter;
     goal.target_pose.pose.position.y = baselink_mapTransform.getOrigin().y() + xdistCenter;
     goal.target_pose.pose.position.z = baselink_mapTransform.getOrigin().z();
     goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(northYaw);
@@ -941,16 +1026,16 @@ void ROSbridge::goWest()
         tfl.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(1.0));
         tfl.lookupTransform("map", "base_link", ros::Time(0), baselink_mapTransform);
     }
-    catch(const tf::TransformException& e)
+    catch (const tf::TransformException &e)
     {
         // std::cerr << e.what() << '\n';
         ROS_ERROR("Transform error: %s", e.what());
     }
-    
+
     move_base_msgs::MoveBaseGoal goal;
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
-    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter; 
+    goal.target_pose.pose.position.x = baselink_mapTransform.getOrigin().x() + 0.3 + ydistCenter;
     goal.target_pose.pose.position.y = baselink_mapTransform.getOrigin().y() + xdistCenter;
     goal.target_pose.pose.position.z = baselink_mapTransform.getOrigin().z();
     goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(northYaw);
@@ -999,45 +1084,45 @@ void ROSbridge::sendKit()
     dispenserpub.publish(msg);
 }
 
-    /* void ROSbridge::publishTransform()
-    {
-    ros::spinOnce();
-    transformStamped.header.stamp = ros::Time::now();
-    // if (xdistCenter != 31)
-    // {
-    //     transformStamped.transform.translation.x = xdistCenter * 0.01;
-    // }
-    // else
-    // {
-    //     transformStamped.transform.translation.x = 0;
-    // }
-    // if (ydistCenter != 31)
-    // {
-    //     transformStamped.transform.translation.y = ydistCenter * 0.01;
-    // }
-    // else
-    // {
-    //     transformStamped.transform.translation.y = 0;
-    // }
-    // transformStamped.transform.translation.z = 0.0;
+/* void ROSbridge::publishTransform()
+{
+ros::spinOnce();
+transformStamped.header.stamp = ros::Time::now();
+// if (xdistCenter != 31)
+// {
+//     transformStamped.transform.translation.x = xdistCenter * 0.01;
+// }
+// else
+// {
+//     transformStamped.transform.translation.x = 0;
+// }
+// if (ydistCenter != 31)
+// {
+//     transformStamped.transform.translation.y = ydistCenter * 0.01;
+// }
+// else
+// {
+//     transformStamped.transform.translation.y = 0;
+// }
+// transformStamped.transform.translation.z = 0.0;
 
-    transformStamped.transform.translation.x = 0;
-    transformStamped.transform.translation.y = 0;
-    transformStamped.transform.translation.z = 0.0;
+transformStamped.transform.translation.x = 0;
+transformStamped.transform.translation.y = 0;
+transformStamped.transform.translation.z = 0.0;
 
-    ROS_INFO("Yaw: %f, transformYaw: %f", yaw, transformYaw);
+ROS_INFO("Yaw: %f, transformYaw: %f", yaw, transformYaw);
 
-    if (true)
-    {
-        transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(transformYaw - yaw);
-    }
-    // else
-    // {
-    //     transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(yaw - transformYaw);
-    // }
+if (true)
+{
+    transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(transformYaw - yaw);
+}
+// else
+// {
+//     transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(yaw - transformYaw);
+// }
 
-    tfbr.sendTransform(transformStamped);
-    } */
+tfbr.sendTransform(transformStamped);
+} */
 
 int ROSbridge::getVictims()
 {
@@ -1076,7 +1161,8 @@ double ROSbridge::yawDifference(double targetYaw, double originYaw)
     return diff;
 }
 
-void ROSbridge::publishIdealOrientation(int orientation) {
+void ROSbridge::publishIdealOrientation(int orientation)
+{
     double radians = 0;
     /* switch (orientation)
     {
@@ -1099,19 +1185,20 @@ void ROSbridge::publishIdealOrientation(int orientation) {
         default:
             break;
     } */
-    switch(orientation) {
-        case 0: // north
-            radians = 0;
-            break;
-        case 1: // east
-            radians = -M_PI / 2;
-            break;
-        case 2: // south
-            radians = M_PI;
-            break;
-        case 3: // west
-            radians = M_PI / 2;
-            break;
+    switch (orientation)
+    {
+    case 0: // north
+        radians = 0;
+        break;
+    case 1: // east
+        radians = -M_PI / 2;
+        break;
+    case 2: // south
+        radians = M_PI;
+        break;
+    case 3: // west
+        radians = M_PI / 2;
+        break;
     }
     std_msgs::Float64 msg;
     msg.data = radians;

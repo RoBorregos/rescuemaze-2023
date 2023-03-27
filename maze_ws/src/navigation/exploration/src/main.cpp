@@ -32,7 +32,7 @@ int rDirection = 0;
 
 #define mapSimDebug false
 #define useros true
-#define rosDebug false
+#define rosDebug true
 #define canMoveBackward false
 
 ROSbridge *bridge;
@@ -49,15 +49,15 @@ map<int, string> invDirections = {
     {2, "south"},
     {3, "west"}};
 
-void moveForward(int &rDirection, Map &mapa)
+int moveForward(int &rDirection, Map &mapa)
 {
     // cout << "forward" << endl;
     ROS_INFO("Move: ");
     ROS_INFO("         forward");
 
-    bridge->sendUnitGoal(0, rDirection);
-    bridge->publishIdealOrientation(rDirection);
-    
+    ros::Duration(1).sleep();
+    int result = bridge->sendUnitGoal(0, rDirection);
+    // bridge->publishIdealOrientation(rDirection);
 
     if (mapSimDebug)
     {
@@ -65,6 +65,8 @@ void moveForward(int &rDirection, Map &mapa)
         // cin.get();
         ros::Duration(0.1).sleep();
     }
+
+    return result;
 }
 
 // Gira a la derecha y modifica la direccion
@@ -73,10 +75,12 @@ void right(int &rDirection, Map &mapa)
     // cout << "right" << endl;
     ROS_INFO("right");
 
+    // bridge->publishIdealOrientation(rDirection);
+    ros::Duration(1).sleep();
     bridge->sendUnitGoal(1, rDirection);
     (rDirection == 3) ? rDirection = 0 : rDirection++;
     bridge->publishIdealOrientation(rDirection);
-    
+
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -109,10 +113,12 @@ void left(int &rDirection, Map &mapa)
     ROS_INFO(" Move: ");
     ROS_INFO("      left");
 
+    // bridge->publishIdealOrientation(rDirection);
+    ros::Duration(1).sleep();
     bridge->sendUnitGoal(3, rDirection);
     (rDirection == 0) ? rDirection = 3 : rDirection--;
     bridge->publishIdealOrientation(rDirection);
-    
+
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -141,7 +147,7 @@ void rotateTo(int &rDirection, int newDirection, Map &mapa)
 }
 
 // Mueve el robot hacia el norte
-void moveNorth(int &yMaze, int &rDirection, Map &mapa)
+int moveNorth(int &yMaze, int &rDirection, Map &mapa)
 {
     // cout << "moveNorth" << endl;
 
@@ -149,11 +155,11 @@ void moveNorth(int &yMaze, int &rDirection, Map &mapa)
         moveBackward(rDirection, mapa);
 
     rotateTo(rDirection, 0, mapa);
-    moveForward(rDirection, mapa);
+    return moveForward(rDirection, mapa);
 }
 
 // Mueve el robot hacia el sur
-void moveSouth(int &yMaze, int &rDirection, Map &mapa)
+int moveSouth(int &yMaze, int &rDirection, Map &mapa)
 {
     // cout << "moveSouth" << endl;
 
@@ -161,11 +167,11 @@ void moveSouth(int &yMaze, int &rDirection, Map &mapa)
         moveBackward(rDirection, mapa);
 
     rotateTo(rDirection, 2, mapa);
-    moveForward(rDirection, mapa);
+    return moveForward(rDirection, mapa);
 }
 
 // Mueve el robot hacia el este
-void moveEast(int &xMaze, int &rDirection, Map &mapa)
+int moveEast(int &xMaze, int &rDirection, Map &mapa)
 {
     // cout << "moveEast" << endl;
 
@@ -173,11 +179,11 @@ void moveEast(int &xMaze, int &rDirection, Map &mapa)
         moveBackward(rDirection, mapa);
 
     rotateTo(rDirection, 1, mapa);
-    moveForward(rDirection, mapa);
+    return moveForward(rDirection, mapa);
 }
 
 // Mueve el robot hacia el oeste
-void moveWest(int &xMaze, int &rDirection, Map &mapa)
+int moveWest(int &xMaze, int &rDirection, Map &mapa)
 {
     // cout << "moveWest" << endl;
 
@@ -185,7 +191,7 @@ void moveWest(int &xMaze, int &rDirection, Map &mapa)
         moveBackward(rDirection, mapa);
 
     rotateTo(rDirection, 3, mapa);
-    moveForward(rDirection, mapa);
+    return moveForward(rDirection, mapa);
 }
 
 // Calcula la posicion en la que estaria el robot al moverse a la direccion indicada por key
@@ -252,22 +258,23 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 {
     if (tile->adjacentTiles[key])
     {
+        int goalResult = 0;
 
         if (key == "north")
         {
-            moveNorth(yMaze, rDirection, mapa);
+            goalResult = moveNorth(yMaze, rDirection, mapa);
         }
         else if (key == "east")
         {
-            moveEast(xMaze, rDirection, mapa);
+            goalResult = moveEast(xMaze, rDirection, mapa);
         }
         else if (key == "south")
         {
-            moveSouth(yMaze, rDirection, mapa);
+            goalResult = moveSouth(yMaze, rDirection, mapa);
         }
         else if (key == "west")
         {
-            moveWest(xMaze, rDirection, mapa);
+            goalResult = moveWest(xMaze, rDirection, mapa);
         }
 
         if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
@@ -276,10 +283,24 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
         }
 
+        // Change tile properties based on goal result
+        if (goalResult == 0) // Black tile
+        {
+            tile->black = true;
+            return tile;
+        }
+        else if (goalResult >= 2) // Obstacle tile
+        {
+            tile->weight = 100;
+        }
+
+
         calcPos(mapa.pos, key, mapa);
 
         if (!useros)
             mapa.moveMaze(key);
+        
+
 
         return tile->adjacentTiles[key];
     }
@@ -532,8 +553,8 @@ void printMapRos(const Map &map)
             vector<int> pos{i, j, z};
             if (map.tiles.count(posvectorToString(pos)))
             {
-                int indexX = i + width/2;
-                int indexY = height/2 - j;
+                int indexX = i + width / 2;
+                int indexY = height / 2 - j;
 
                 checkOverwritten(maze, unknown, indexX, indexY);
                 maze[indexY][indexX] = ' '; // Free space
@@ -569,10 +590,10 @@ void printMapRos(const Map &map)
     }
 
     // Mark origin. TODO: Check why origin tile isn't added to map.tiles
-    maze[height/2][width/2] = 'o';
+    maze[height / 2][width / 2] = 'o';
 
     // Add current location
-    maze[height/2 - map.pos[1]][map.pos[0] + width/2] = getDir(rDirection);
+    maze[height / 2 - map.pos[1]][map.pos[0] + width / 2] = getDir(rDirection);
 
     // Print map data
     if (rosDebug)
@@ -615,7 +636,7 @@ void printMap(Map &mapa)
 {
     if (!rosDebug)
         return;
- 
+
     ROS_INFO("xrmaze: %d, yrmaze: %d, zrmaze: %d", mapa.xMaze, mapa.yMaze, mapa.zMaze);
     ROS_INFO("unvisited: ");
     for (auto i : mapa.unvisited)
@@ -668,7 +689,7 @@ void explore(bool checkpoint, int argc, char **argv)
     stack<string> path;
 
     int steps = 2;
-    bridge->publishIdealOrientation(0);    
+    bridge->publishIdealOrientation(0);
 
     do
     {
@@ -692,18 +713,27 @@ void explore(bool checkpoint, int argc, char **argv)
                 bridge->pubDebug("Checking key: " + key);
             }
 
+
             if (mapa.tile && rosDebug)
             {
                 bridge->pubDebug("Tile: " + posvectorToString(mapa.tile->pos));
                 printTile(mapa.tile);
             }
-
             // ROS_INFO("Checking key: %s", key.c_str());
 
-            newPos = mapa.pos;
 
-            if (mapa.tile->adjacentTiles[key] == nullptr && !mapa.tile->walls[key])
+
+            if (useros && isWall(key))
             {
+                // ROS_INFO("Wall detected");
+                if (rosDebug)
+                    bridge->pubDebug("Wall in " + key);
+
+                mapa.tile->walls[key] = true;
+            }
+            else if (mapa.tile->adjacentTiles[key] == nullptr && !mapa.tile->walls[key])
+            {
+                newPos = mapa.pos;
                 if (!useros)
                     c = mapa.getChar(key);
 
@@ -720,16 +750,7 @@ void explore(bool checkpoint, int argc, char **argv)
                 }
                 else // no existe tile
                 {
-
-                    if (useros && isWall(key))
-                    {
-                        // ROS_INFO("Wall detected");
-                        if (rosDebug)
-                            bridge->pubDebug("Wall in " + key);
-
-                        mapa.tile->walls[key] = true;
-                    }
-                    else if (!useros && isWall(key, mapa))
+                    if (!useros && isWall(key, mapa))
                     {
                         // ROS_INFO("Wall detected");
                         mapa.tile->walls[key] = true;
@@ -744,7 +765,7 @@ void explore(bool checkpoint, int argc, char **argv)
                         if (rosDebug)
                             bridge->pubDebug("Creating new tile in position: " + posvectorToString(newPos) + " with key: " + key);
                         // ROS_INFO("Creating new tile");
-    
+
                         if (useros)
                         {
                             newTile = createTile(newPos, key, mapa.pos, mapa);

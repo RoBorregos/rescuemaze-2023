@@ -28,9 +28,12 @@ private:
         ar &adjacentTiles;
         ar &walls;
         ar &visited;
+        ar &defined;
+        ar &black;
     }
 public:
     bool defined;
+    bool black;
 
     int weight;
     vector<int> pos;
@@ -70,6 +73,7 @@ Tile::Tile()
     weight = 0;
     pos = {0, 0, 0};
     victim = 0;
+    black = false;
 
     rampa = -1;
     height1 = 0;
@@ -98,6 +102,7 @@ Tile::Tile(vector<int> p, int v, int vict)
     weight = v;
     pos = p;
     victim = vict;
+    black = false;
 
     rampa = -1;
     height1 = 0;
