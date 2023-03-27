@@ -18,15 +18,15 @@
 class Sensors
 {
   // Sensors Count
-  static constexpr int kBNOCount = 10;                                               // BNO sensor data count
-  static constexpr int kVLXCount = 4;                                                // VLX sensors data count
-  static constexpr int kTCSCount = 1;                                                // TCS sensors data count
-  static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount;             // Total sensors data count
+  static constexpr int kBNOCount = 10;                                   // BNO sensor data count
+  static constexpr int kVLXCount = 4;                                    // VLX sensors data count
+  static constexpr int kTCSCount = 1;                                    // TCS sensors data count
+  static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount; // Total sensors data count
 
   // TCS constants
-  static constexpr int kTCSPrecision = 10; // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 7; // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"obBwrgbn"};   // List of color initials
+  static constexpr int kTCSPrecision = 10;                         // Precision for matching color values.
+  static constexpr uint8_t colorAmount = 7;                        // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"obBwrgbn"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
   static constexpr uint8_t colors[colorAmount][3] = {
       {137, 78, 58},
@@ -42,12 +42,12 @@ class Sensors
 
   // Sensors.
   BNO *bno;
-  VLX vlx[kVLXCount];
+  VLX vlx;
   TCS tcs;
 
   // Sensor Pins.
-  int kMuxVLX[kVLXCount] = {1, 7, 5, 3}; // VLX multiplexor pins
-  int kMuxTCS = 6;                       // TCS multiplexor pin
+  int kMuxVLX = {1}; // VLX multiplexor pins
+  int kMuxTCS = 6;   // TCS multiplexor pin
 
 public:
   // Constructor
@@ -56,7 +56,7 @@ public:
   // @param *bno pointer to BNO object.
   // @param usingVLX if true, vlx will be initialized.
   Sensors(BNO *bno, bool usignVLX = true);
-  
+
   // Constuctor for using sensors with external BNO.
   // @param usingVLX if true, vlx will be initialized.
   Sensors(bool usignVLX = true);
@@ -124,8 +124,8 @@ public:
   void bnoAngles(float &x, float &y, float &z);
 
   void bnoPrint();
-  
-  // Make general checks to ensure TCS is working correctly. 
+
+  // Make general checks to ensure TCS is working correctly.
   void checkTCS();
 };
 

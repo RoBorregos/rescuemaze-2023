@@ -1,13 +1,11 @@
 #include <ros.h>
 
-#include "BNO.h"
 #include "Movement.h"
 #include "Sensors.h"
 #include "Motor.h"
 #include "MotorID.h"
 #include "Plot.h"
 #include "MUX2C.h"
-#include "TCS.h"
 #include "RosBridge.h"
 
 #define DELAY_MS 500
@@ -16,19 +14,28 @@
 Movement *robot = nullptr;
 Sensors *s = nullptr;
 MUX2C mux;
-BNO bno;
 Motor *motor = nullptr;
-TCS tcs(0, 15);
 
-int reps;
 
 void setup()
 {
   Serial.begin(57600);
 
-  setupData(false, false);
+  // Setup options
 
-  specificTest(false);
+  // Set some sensor or i2c device
+  bool setTcs = false bool seti2c = false;
+
+  // Set a specific test
+  bool doSpecificTest = false
+
+      // General options
+      bool useVLX = true;
+  bool setIndividualConstants = true;
+
+  setupData(setTcs, seti2c);
+
+  specificTest(doSpecificTest, useVLX, setIndividualConstants);
 
   ros::NodeHandle nh;
   nh.initNode();
@@ -39,54 +46,30 @@ void setup()
 
   // Without ROS
 
-  initAllRos(&nh);
+  initAllRos(&nh, useVLX, setIndividualConstants);
 
   nh.loginfo("Arduino node initialized");
 
-  reps = 0;
   RosBridge rosbridge(robot, s, &nh);
   rosbridge.run();
 }
 
-void initAllRos(ros::NodeHandle* nh)
+void initAllRos(ros::NodeHandle *nh, bool useVLX, bool setIndividualConstants)
 {
-  bno.init();
-  static Sensors sensors(&bno);
+  static Sensors sensors(useVLX);
   s = &sensors;
 
-  static Movement movement(nh, s, true);
+  static Movement movement(nh, s, setIndividualConstants);
   robot = &movement;
-
-  uint8_t colors[3][3] = {
-      {137, 78, 58},
-      {64, 85, 128},
-      {85, 85, 85},
-  };
-
-  uint8_t colorAmount = 3;
-  char colorList[4] = {"obB"};
-
-  tcs.init(colors, colorAmount, colorList);
 }
 
-void initAll()
+void initAll(bool useVLX, bool setIndividualConstants)
 {
-  bno.init();
-  static Sensors sensors(&bno);
+  static Sensors sensors(useVLX);
   s = &sensors;
 
-  static Movement movement(&bno, s, true);
+  static Movement movement(s, setIndividualConstants);
   robot = &movement;
-
-  uint8_t colors[3][3] = {
-      {137, 78, 58},
-      {64, 85, 128},
-      {85, 85, 85},
-  };
-
-  uint8_t colorAmount = 3;
-  char colorList[4] = {"obB"};
-  tcs.init(colors, colorAmount, colorList);
 }
 
 void setupData(bool tcsSet, bool i2c)
@@ -96,47 +79,41 @@ void setupData(bool tcsSet, bool i2c)
 
   if (tcsSet)
   {
+    static Sensors sensors(false);
     while (true)
     {
-      tcs.printRGB();
+      sensors.getTCSInfo();
     }
   }
-  
+
   if (i2c)
     while (true)
       delay(100);
 }
 
-void specificTest(bool test)
-{  
+void specificTest(bool test, bool useVLX, bool setIndividualConstants)
+{
   if (!test)
     return;
-        
-  initAll();
-  
+
+  initAll(useVLX, setIndividualConstants);
+
+  // Do some specific test. E.g. pid test
   Serial.println("Specific test");
 
-  while (false)
-    tcs.printColor();
+  moveRoutine(); // Test PID
 
-  moveRoutine();
-  
   while (true)
     testMotor();
-  
+
   robot->advanceXMeters(1);
 
-  while (true) 
+  while (true)
     delay(5000);
 }
 
 void loop()
 {
-  if (reps == ITERATIONS)
-    return;
-
-  reps++;
-  delay(DELAY_MS);
 }
 
 void testMotor()
@@ -153,6 +130,6 @@ void moveRoutine()
   {
     robot->updateStraightPID(90);
     graph.plotTargetandCurrent();
-    //graph.plotPWM();
+    // graph.plotPWM();
   }
 }

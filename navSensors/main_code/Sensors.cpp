@@ -7,7 +7,7 @@ constexpr uint8_t Sensors::colors[Sensors::colorAmount][3];
 
 // Constructors
 
-Sensors::Sensors(bool usingVLX) : bno(bno)
+Sensors::Sensors(bool usingVLX)
 {
   this->usingVLX = usingVLX;
   this->usingBNO = false;
@@ -27,16 +27,8 @@ void Sensors::initSensors()
 {
   if (usingVLX)
   {
-    for (int i = 0; i < kVLXCount; i++)
-    {
-      vlx[i].setMux(kMuxVLX[i]);
-    }
-
-    // VLX init
-    for (int i = 0; i < kVLXCount; i++)
-    {
-      vlx[i].init();
-    }
+    vlx.setMux(kMuxVLX);
+    vlx.init(); // VLX init
   }
 
   // TCS init
@@ -77,7 +69,8 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 
 float Sensors::getVLXInfo(int posVLX)
 {
-  if (!usingVLX){
+  if (!usingVLX)
+  {
     Serial.println("WARNING: invalid method call, VLX marked as not used.");
     return -1;
   }
@@ -161,19 +154,21 @@ char Sensors::getTCSInfo()
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
 {
-  if (!usingBNO){
+  if (!usingBNO)
+  {
     Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
-  } 
+  }
   bno->getAll(x, y, z);
 }
 
 void Sensors::bnoPrint()
 {
-  if (!usingBNO){
+  if (!usingBNO)
+  {
     Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
-  } 
+  }
   bno->anglesInfo();
 }
 
