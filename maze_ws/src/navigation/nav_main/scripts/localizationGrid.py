@@ -103,13 +103,13 @@ class LocalizationGrid:
 			# Add border to image
 			border_size = 10
 			thresh = cv2.copyMakeBorder(thresh, border_size, border_size, border_size, border_size, cv2.BORDER_CONSTANT, value=255)
-			cv2.imshow('Thresh', thresh)
+			# cv2.imshow( 'Thresh', thresh)
 
 			# Obtain horizontal lines mask
 			horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (50,1))
 			horizontal_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=1)
 			horizontal_mask = cv2.dilate(horizontal_mask, horizontal_kernel, iterations=1)
-			cv2.imshow('Horizontal', horizontal_mask)
+			# cv2.imshow('Horizontal', horizontal_mask)
 
 			def extend_horizontal_lines(thresh):
 				
@@ -139,7 +139,7 @@ class LocalizationGrid:
 				return result
 			
 			horizontal_mask = extend_horizontal_lines(horizontal_mask)
-			cv2.imshow('Extended Horizontal', horizontal_mask)
+			# cv2.imshow('Extended Horizontal', horizontal_mask)
 
 
 			# Obtain vertical lines mask
@@ -186,7 +186,7 @@ class LocalizationGrid:
 			for c in cnts:
 				x,y,w,h = cv2.boundingRect(c)
 				cv2.rectangle(result, (x, y), (x + w, y + h), 255, -1)
-			cv2.imshow('Filled', result)
+			# cv2.imshow('Filled', result)
 
 			# Dilate walls for consistent width and overlap
 			# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
@@ -365,24 +365,45 @@ class LocalizationGrid:
 			self.pub_west.publish(d_w)
 			return
 
-		# def distance_to_center(units_to_line):
-		# 	"""Transforms cell count into centimeters. Finds distance
-		# 	to nearest center.
-		# 	"""
-		# 	dist_to_line = cell_distance * units_to_line
-		# 	dist_to_line = dist_to_line % 30
-		# 	dist_to_center = 15 - dist_to_line
-		# 	return dist_to_center
+		def distance_to_center(units_to_line):
+			"""Transforms cell count into centimeters. Finds distance
+			to nearest center.
+			"""
+			dist_to_line = cell_distance * units_to_line
+			dist_to_line = dist_to_line % 30
+			dist_to_center = 15 - dist_to_line
+			return dist_to_center
 		
 		d_x = 15
 		d_y = 15
 
-		# Find distance to center considering walls closer then 20units.
+		# Find distance to center considering walls closer then 20units. 
+		center = 15
+
+		if west < 20 and east < 20:
+			center = (west + east) / 2
+			# d_x = (west + east) / 2 - dist_to_line
+		if west < east:
+			dist_to_line = cell_distance * west
+			d_x = center - dist_to_line
+		else:
+			dist_to_line = cell_distance * east
+			d_x = center - dist_to_line
+			d_x *= -1
+
+		center = 15
+
 		if north < 20 and south < 20:
-			dist_to_line = cell_distance * units_to_line
-			d_y = 
-		elif north < 20:
-		elif south < 20:
+			center = (north + south) / 2
+		if north < south:
+			dist_to_line = cell_distance * north
+			d_y = center - dist_to_line
+			d_y *= -1
+		else:
+			dist_to_line = cell_distance * south
+			d_y = center - dist_to_line
+
+		# TODO change measurement lines
 
 
 
