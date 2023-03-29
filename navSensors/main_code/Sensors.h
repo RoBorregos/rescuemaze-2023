@@ -114,6 +114,9 @@ public:
   // Returns the TCS color detected
   char getTCSInfo();
 
+  // Print the rgb values detected by the tcs.
+  void rgbTCS();
+
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.
   // @param vlx True to print vlx distances.

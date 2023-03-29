@@ -162,6 +162,10 @@ void Sensors::bnoPrint()
   bno->anglesInfo();
 }
 
+void Sensors::rgbTCS(){
+  tcs.printRGB();
+}
+
 void Sensors::checkTCS()
 {
   tcs.printColorMatrix();

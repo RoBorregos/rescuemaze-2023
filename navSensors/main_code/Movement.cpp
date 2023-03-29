@@ -686,4 +686,7 @@ void Movement::testAllMotors()
   delay(2000);
   motor[BACK_RIGHT].motorSpeedPID(0);
   delay(1000);
+
+  while (true)
+    delay(1000);
 }

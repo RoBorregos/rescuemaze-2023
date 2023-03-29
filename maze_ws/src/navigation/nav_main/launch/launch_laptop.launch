@@ -1,15 +1,42 @@
 <launch>
     <!-- Start options -->
-    <arg name="open_rviz" default="true"/>
+    <arg name="using_simulation" default="false"/>
+    <arg name="use_gui" default="false"/>
+    <arg name="open_rviz" default="false"/>
+    <arg name="portArduino" default="/dev/port1"/>
+    <arg name="portLidar" default="/dev/port0"/>
     <arg name="node_start_delay" default="0.0"/>
-    <arg name="only_show" default="true"/>
+    <arg name="has_imu" default="false"/>
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_description)/rviz/urdf.rviz"/>
-  <!--
-    <include file="$(find robot_description)/launch/display.launch">
-      <arg name="open_rviz" value="$(arg open_rviz)"/>
-      <arg name="node_start_delay" value="$(arg node_start_delay)"/>
-      <arg name="only_show" value="$(arg only_show)"/>
+    <arg name="dist_to_walls" default="false"/>
+    <arg name="debug_localization_grid" default="false"/>
+    
+    <!-- Launch sensors-->
+    <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/sensors_bringup.launch">
+        <arg name="port" value="$(arg portLidar)"/>
     </include>
-  -->
+
+    <!-- Launch HS mapping -->
+    <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
+        <arg name="open_rviz" value="$(arg open_rviz)"/>
+        <arg name="has_imu" value="$(arg has_imu)"/>
+        <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
+    </include>
+
+    <!-- Launch move base -->
+    <include file="$(find nav_main)/launch/move_base.launch">
+        <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
+    </include>
+
+    <!-- Launch localization of centers node -->
+    <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">
+        <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
+        <param name="debug" value="$(arg debug_localization_grid)"/>
+    </node>
+
+        <!-- Launch wall service -->
+    <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">
+        <param name="debug" value="true"/>
+    </node>
+
 </launch>
