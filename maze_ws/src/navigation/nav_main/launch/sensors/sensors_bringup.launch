@@ -8,33 +8,25 @@
     <arg name="scan_topic" value="$(arg scan_topic)"/>
   </include>
 
-  <!-- Start LIDAR
+  <!-- Start LIDAR -->
   <include file="$(find ldlidar_stl_ros)/launch/ld06.launch">
     <arg name="frame_id" default="base_scan"/>
     <arg name="port_name" value="$(arg port)"/>
     <arg name="fix_to_base_link" default="false"/>
   </include>
-  -->
-
-  <!-- Rplidar 
-  <include file="$(find rplidar_ros)/launch/rplidar.launch">
-    <param name="frame_id" type="string" value="base_scan"/>
-    <param name="serial_port" value="$(arg port)"/>
-    <param name="serial_baudrate" default="230400"/>
-  </include>
-  -->
   
+  <!-- Rplidar 
   <node name="rplidarNode" pkg="rplidar_ros" type="rplidarNode" output="screen">
     <param name="serial_port"         type="string" value="/dev/ttyUSB0"/>
-    <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
-    <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
+    <param name="serial_baudrate"     type="int"    value="115200"/>
     <param name="frame_id"            type="string" value="base_scan"/>
     <param name="inverted"            type="bool"   value="true"/>
     <param name="angle_compensate"    type="bool"   value="true"/>
   </node>
+  -->
 
-
-  <!-- End LIDAR 
+  <!--
+   End LIDAR 
   Start IMU 
   <node ns="imu" name="imu_node" pkg="imu_bno055" type="bno055_i2c_node" respawn="true" respawn_delay="2">
     <param name="device" type="string" value="/dev/i2c-1"/>

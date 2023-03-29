@@ -1,8 +1,11 @@
 local_costmap:
   global_frame: map
   robot_base_frame: base_footprint
-
-  # These values are overwritten bty the static map layer
+  
+  update_frequency: 1.0
+  publish_frequency: 0.5
+  
+  # These values are overwritten by the static map layer
   width: 2.25
   height: 2.25
   

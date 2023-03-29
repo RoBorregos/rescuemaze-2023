@@ -6,6 +6,7 @@
     <arg name="port" default="/dev/port1"/>
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
+    <arg name="use_gmapping" default="false"/>
 
     <arg name="scan_topic" default="scan_filtered"/>
 
@@ -19,13 +20,24 @@
       <arg name="scan_topic" value="$(arg scan_topic)"/>
     </include>
 
-    <!-- Launch HS mapping -->
-    <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
+    <!-- Launch HS mapping 
+    <include file="$(find nav_main)/launch/hector_slam/hs_mapping_internet.launch" unless="$(arg use_gmapping)"/>
+    -->
+    <!---->
+    <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch" unless="$(arg use_gmapping)">
         <arg name="open_rviz" value="$(arg open_rviz)"/>
         <arg name="has_imu" value="$(arg has_imu)"/>
         <arg name="scan_topic" value="$(arg scan_topic)"/>
         <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
     </include>
+    
+    <!-- Launch gmapping -->
+    <group if ="$(arg use_gmapping)">
+        <!-- odom node -->
+        <rosparam file="$(find nav_main)/param/diff_drive_controller.yaml" command="load" ns="diff_drive_controller"/>
+        <!-- gmapping node -->
+        <include file="$(find nav_main)/launch/gmapping/gs_mapping.launch"/>
+    </group>
 
     <!-- Launch move base -->
     <include file="$(find nav_main)/launch/move_base.launch">

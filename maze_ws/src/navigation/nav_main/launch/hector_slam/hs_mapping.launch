@@ -69,8 +69,9 @@
     <param name="scan_topic" value="$(arg scan_topic)"/>
     
     <!-- Debug parameters -->
-    <!--
+    
       <param name="output_timing" value="false"/>
+      <!--
       <param name="pub_drawings" value="true"/>
       <param name="pub_debug_output" value="true"/>
     -->

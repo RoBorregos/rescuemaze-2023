@@ -20,8 +20,8 @@ class WallFollower:
 
     def scan_callback(self, scan_msg):
         # calculate error in distance from wall
-        left_distances = scan_msg.ranges[0:180]
-        right_distances = scan_msg.ranges[900:1080]
+        left_distances = scan_msg.ranges[0:360]
+        right_distances = scan_msg.ranges[360:720]
         left_mean = sum(left_distances) / len(left_distances)
         right_mean = sum(right_distances) / len(right_distances)
         error = self.wall_dist - right_mean
