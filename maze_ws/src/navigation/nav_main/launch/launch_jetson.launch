@@ -2,11 +2,14 @@
     <!-- Start options -->
     <arg name="using_simulation" default="false"/>
     <arg name="use_gui" default="false"/>
-    <arg name="open_rviz" default="false"/>
+    <arg name="open_rviz" default="true"/>
     <arg name="portArduino" default="/dev/port1"/>
-    <arg name="portLidar" default="/dev/port0"/>
+    <arg name="portLidar" default="/dev/ttyUSB0"/>
+    <!--<arg name="portLidar" default="/dev/port0"/>-->
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
+
+    <arg name="scan_topic" default="scan_filtered"/>
 
     <arg name="dist_to_walls" default="false"/>
     <arg name="debug_localization_grid" default="false"/>
@@ -20,6 +23,7 @@
     <include file="$(find nav_main)/launch/hector_slam/hs_mapping.launch">
         <arg name="open_rviz" value="$(arg open_rviz)"/>
         <arg name="has_imu" value="$(arg has_imu)"/>
+        <arg name="scan_topic" value="$(arg scan_topic)"/>
         <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
     </include>
 
@@ -33,14 +37,15 @@
         <param name="send_dist_to_walls" value ="$(arg dist_to_walls)"/>
         <param name="debug" value="$(arg debug_localization_grid)"/>
     </node>
-
+    
         <!-- Launch wall service -->
     <node name="get_walls" pkg="nav_main" type="walls.py" respawn="true" output="screen">
         <param name="debug" value="true"/>
     </node>
 
-    <!-- Launch arduino node -->
+    <!-- Launch arduino node 
     <node unless="$(arg using_simulation)" name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
         <param name="port" value="$(arg portArduino)"/>
     </node>
+    -->
 </launch>

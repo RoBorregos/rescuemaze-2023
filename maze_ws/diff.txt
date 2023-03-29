@@ -1,0 +1,2192 @@
+diff -r src/navigation/nav_main/launch/hector_slam/hs_mapping.launch /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/launch/hector_slam/hs_mapping.launch
+82c82
+< </launch>
+\ No newline at end of file
+---
+> </launch>
+Only in src/navigation/nav_main/launch/hector_slam: hs_modified.launch
+diff -r src/navigation/nav_main/launch/launch_all.launch /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/launch/launch_all.launch
+13c13
+<     <arg name="debug_localization_grid" default="true"/>
+---
+>     <arg name="debug_localization_grid" default="false"/>
+diff -r src/navigation/nav_main/launch/launch_jetson.launch /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/launch/launch_jetson.launch
+9c9
+<     <arg name="has_imu" default="true"/>
+---
+>     <arg name="has_imu" default="false"/>
+diff -r src/navigation/nav_main/launch/move_base.launch /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/launch/move_base.launch
+14c14
+<       <rosparam file="$(find nav_main)/param/local_costmap_params.yaml" command="load"/>
+---
+>       <rosparam file="$(find nav_main)/param/local_costmap_params.yaml" command="load" />
+diff -r src/navigation/nav_main/param/costmap_common_params.yaml /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/param/costmap_common_params.yaml
+18,24d17
+< 
+< #plugins:
+< #  - {name: static_map, type: "costmap_2d::StaticLayer"}
+< #  - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+< 
+< #static_map:
+< #  map_topic: "map"
+\ No newline at end of file
+diff -r src/navigation/nav_main/param/dwa_local_planner_params.yaml /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/param/dwa_local_planner_params.yaml
+10,11c10,11
+<   max_vel_x: 0.88
+<   min_vel_x: -0.88
+---
+>   max_vel_x: 0.6
+>   min_vel_x: -0.6
+18,19c18,19
+<   max_vel_theta: 6.8
+<   min_vel_theta: 5
+---
+>   max_vel_theta: 3.5
+>   min_vel_theta: 2.5
+26c26
+<   min_in_place_vel_theta: 0.7
+---
+>   min_in_place_vel_theta: 0.6
+diff -r src/navigation/nav_main/param/global_costmap_params.yaml /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/param/global_costmap_params.yaml
+8,9c8,9
+<   width: 5
+<   height: 5
+\ No newline at end of file
+---
+>   width: 10
+>   height: 10
+\ No newline at end of file
+diff -r src/navigation/nav_main/param/local_costmap_params.yaml /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/param/local_costmap_params.yaml
+5d4
+<   # These values are overwritten bty the static map layer
+diff -r src/navigation/nav_main/scripts/localizationGrid.py /home/oscar/Downloads/catkin_tmp/src/navigation/nav_main/scripts/localizationGrid.py
+70c70
+< 			#image = cv2.dilate(image, kernel, iterations=2)
+---
+> 			image = cv2.dilate(image, kernel, iterations=2)
+76c76
+< 		#image = dilateBlack(image)
+---
+> 		# image = dilateBlack(image)
+304c304
+< 		mapHeight = round(self.occupancy_grid.info.resolution, 3) * self.occupancy_grid.info.height * 100 # in cm
+---
+> 		mapHeight = 225 # in cm
+diff -r src/navigation/robot_description/rviz/urdf.rviz /home/oscar/Downloads/catkin_tmp/src/navigation/robot_description/rviz/urdf.rviz
+8a9
+>         - /TF1
+11c12
+<     Tree Height: 803
+---
+>     Tree Height: 533
+179c180
+<       Enabled: false
+---
+>       Enabled: true
+182a184,221
+>         TOF1_link:
+>           Value: false
+>         TOF2_link:
+>           Value: false
+>         TOF3_link:
+>           Value: false
+>         TOF4_link:
+>           Value: false
+>         TOF5_link:
+>           Value: false
+>         TOF6_link:
+>           Value: false
+>         back_link:
+>           Value: false
+>         base_footprint:
+>           Value: false
+>         base_link:
+>           Value: true
+>         base_link_rotated:
+>           Value: false
+>         base_scan:
+>           Value: false
+>         front_link:
+>           Value: false
+>         imu_link:
+>           Value: false
+>         llanta1_Link:
+>           Value: false
+>         llanta2_Link:
+>           Value: false
+>         llanta3_Link:
+>           Value: false
+>         llanta4_Link:
+>           Value: false
+>         map:
+>           Value: true
+>         perfect_position:
+>           Value: true
+190c229,260
+<         {}
+---
+>         map:
+>           base_footprint:
+>             base_link:
+>               base_link_rotated:
+>                 back_link:
+>                   llanta3_Link:
+>                     {}
+>                   llanta4_Link:
+>                     {}
+>                 base_scan:
+>                   {}
+>                 front_link:
+>                   TOF1_link:
+>                     {}
+>                   TOF2_link:
+>                     {}
+>                   TOF3_link:
+>                     {}
+>                   TOF4_link:
+>                     {}
+>                   TOF5_link:
+>                     {}
+>                   TOF6_link:
+>                     {}
+>                   llanta1_Link:
+>                     {}
+>                   llanta2_Link:
+>                     {}
+>                 imu_link:
+>                   {}
+>               perfect_position:
+>                 {}
+192c262
+<       Value: false
+---
+>       Value: true
+503c573
+<   Height: 1016
+---
+>   Height: 752
+506c576
+<   QMainWindow State: 000000ff00000000fd00000004000000000000016e0000035efc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000035e000000c700fffffffb0000000c00430061006d0065007200610000000241000001560000000000000000fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000379fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000379000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007380000003efc0100000002fb0000000800540069006d00650100000000000007380000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000005c40000035e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+---
+>   QMainWindow State: 000000ff00000000fd00000004000000000000016e00000252fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000252000000c900fffffffb0000000c00430061006d0065007200610000000241000001560000000000000000fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000379fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000379000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000043c0000003efc0100000002fb0000000800540069006d006501000000000000043c000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000002c80000025200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+515,517c585,587
+<   Width: 1848
+<   X: 72
+<   Y: 27
+---
+>   Width: 1084
+>   X: 945
+>   Y: 124
+diff -r src/navigation/robot_description/urdf/robot.gazebo.xacro /home/oscar/Downloads/catkin_tmp/src/navigation/robot_description/urdf/robot.gazebo.xacro
+98c98,99
+<       <update_rate>40</update_rate>
+---
+>       <!-- <update_rate>40</update_rate> -->
+>       <update_rate>10</update_rate>
+diff -r src/navigation/robot_description/urdf/robot.urdf.xacro /home/oscar/Downloads/catkin_tmp/src/navigation/robot_description/urdf/robot.urdf.xacro
+743,750d742
+<       <!-- For physical robot
+<         <origin
+<       xyz="-0.00017646 -8.0307E-05 0.10023"
+<       rpy="0 0 3.1416" />-->
+<       <!-- For simulation
+<         <origin
+<       xyz="-0.00017646 -8.0307E-05 0.10023"
+<       rpy="0 0 0" />-->
+diff -r src/simulation/models/maze_world/blender/MazeField.dae /home/oscar/Downloads/catkin_tmp/src/simulation/models/maze_world/blender/MazeField.dae
+8,9c8,9
+<     <created>2022-09-04T22:18:13</created>
+<     <modified>2022-09-04T22:18:13</modified>
+---
+>     <created>2023-03-26T23:18:58</created>
+>     <modified>2023-03-26T23:18:58</modified>
+15c15
+<     <geometry id="Plane_061-mesh" name="Plane.061">
+---
+>     <geometry id="Cube_032-mesh" name="Cube.032">
+17,18c17,18
+<         <source id="Plane_061-mesh-positions">
+<           <float_array id="Plane_061-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_032-mesh-positions">
+>           <float_array id="Cube_032-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+20c20
+<             <accessor source="#Plane_061-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_032-mesh-positions-array" count="8" stride="3">
+27,28c27,28
+<         <source id="Plane_061-mesh-normals">
+<           <float_array id="Plane_061-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_032-mesh-normals">
+>           <float_array id="Cube_032-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+30c30
+<             <accessor source="#Plane_061-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_032-mesh-normals-array" count="6" stride="3">
+37,38c37,38
+<         <source id="Plane_061-mesh-map-0">
+<           <float_array id="Plane_061-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_032-mesh-map-0">
+>           <float_array id="Cube_032-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+40c40
+<             <accessor source="#Plane_061-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_032-mesh-map-0-array" count="36" stride="2">
+46,47c46,47
+<         <vertices id="Plane_061-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_061-mesh-positions"/>
+---
+>         <vertices id="Cube_032-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_032-mesh-positions"/>
+49,53c49,53
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_061-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_061-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_061-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_032-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_032-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_032-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+57c57
+<     <geometry id="Plane_060-mesh" name="Plane.060">
+---
+>     <geometry id="Cube_031-mesh" name="Cube.031">
+59,60c59,60
+<         <source id="Plane_060-mesh-positions">
+<           <float_array id="Plane_060-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_031-mesh-positions">
+>           <float_array id="Cube_031-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+62c62
+<             <accessor source="#Plane_060-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_031-mesh-positions-array" count="8" stride="3">
+69,70c69,70
+<         <source id="Plane_060-mesh-normals">
+<           <float_array id="Plane_060-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_031-mesh-normals">
+>           <float_array id="Cube_031-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+72c72
+<             <accessor source="#Plane_060-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_031-mesh-normals-array" count="6" stride="3">
+79,80c79,80
+<         <source id="Plane_060-mesh-map-0">
+<           <float_array id="Plane_060-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_031-mesh-map-0">
+>           <float_array id="Cube_031-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+82c82
+<             <accessor source="#Plane_060-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_031-mesh-map-0-array" count="36" stride="2">
+88,89c88,89
+<         <vertices id="Plane_060-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_060-mesh-positions"/>
+---
+>         <vertices id="Cube_031-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_031-mesh-positions"/>
+91,95c91,95
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_060-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_060-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_060-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_031-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_031-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_031-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+99c99
+<     <geometry id="Plane_059-mesh" name="Plane.059">
+---
+>     <geometry id="Cube_030-mesh" name="Cube.030">
+101,102c101,102
+<         <source id="Plane_059-mesh-positions">
+<           <float_array id="Plane_059-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_030-mesh-positions">
+>           <float_array id="Cube_030-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+104c104
+<             <accessor source="#Plane_059-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_030-mesh-positions-array" count="8" stride="3">
+111,112c111,112
+<         <source id="Plane_059-mesh-normals">
+<           <float_array id="Plane_059-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_030-mesh-normals">
+>           <float_array id="Cube_030-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+114c114
+<             <accessor source="#Plane_059-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_030-mesh-normals-array" count="6" stride="3">
+121,122c121,122
+<         <source id="Plane_059-mesh-map-0">
+<           <float_array id="Plane_059-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_030-mesh-map-0">
+>           <float_array id="Cube_030-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+124c124
+<             <accessor source="#Plane_059-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_030-mesh-map-0-array" count="36" stride="2">
+130,131c130,131
+<         <vertices id="Plane_059-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_059-mesh-positions"/>
+---
+>         <vertices id="Cube_030-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_030-mesh-positions"/>
+133,137c133,137
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_059-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_059-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_059-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_030-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_030-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_030-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+141c141
+<     <geometry id="Plane_058-mesh" name="Plane.058">
+---
+>     <geometry id="Cube_029-mesh" name="Cube.029">
+143,144c143,144
+<         <source id="Plane_058-mesh-positions">
+<           <float_array id="Plane_058-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_029-mesh-positions">
+>           <float_array id="Cube_029-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+146c146
+<             <accessor source="#Plane_058-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_029-mesh-positions-array" count="8" stride="3">
+153,154c153,154
+<         <source id="Plane_058-mesh-normals">
+<           <float_array id="Plane_058-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_029-mesh-normals">
+>           <float_array id="Cube_029-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+156c156
+<             <accessor source="#Plane_058-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_029-mesh-normals-array" count="6" stride="3">
+163,164c163,164
+<         <source id="Plane_058-mesh-map-0">
+<           <float_array id="Plane_058-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_029-mesh-map-0">
+>           <float_array id="Cube_029-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+166c166
+<             <accessor source="#Plane_058-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_029-mesh-map-0-array" count="36" stride="2">
+172,173c172,173
+<         <vertices id="Plane_058-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_058-mesh-positions"/>
+---
+>         <vertices id="Cube_029-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_029-mesh-positions"/>
+175,179c175,179
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_058-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_058-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_058-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_029-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_029-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_029-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+183c183
+<     <geometry id="Plane_057-mesh" name="Plane.057">
+---
+>     <geometry id="Cube_028-mesh" name="Cube.028">
+185,186c185,186
+<         <source id="Plane_057-mesh-positions">
+<           <float_array id="Plane_057-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_028-mesh-positions">
+>           <float_array id="Cube_028-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+188c188
+<             <accessor source="#Plane_057-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_028-mesh-positions-array" count="8" stride="3">
+195,196c195,196
+<         <source id="Plane_057-mesh-normals">
+<           <float_array id="Plane_057-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_028-mesh-normals">
+>           <float_array id="Cube_028-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+198c198
+<             <accessor source="#Plane_057-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_028-mesh-normals-array" count="6" stride="3">
+205,206c205,206
+<         <source id="Plane_057-mesh-map-0">
+<           <float_array id="Plane_057-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_028-mesh-map-0">
+>           <float_array id="Cube_028-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+208c208
+<             <accessor source="#Plane_057-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_028-mesh-map-0-array" count="36" stride="2">
+214,215c214,215
+<         <vertices id="Plane_057-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_057-mesh-positions"/>
+---
+>         <vertices id="Cube_028-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_028-mesh-positions"/>
+217,221c217,221
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_057-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_057-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_057-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_028-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_028-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_028-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+225c225
+<     <geometry id="Plane_056-mesh" name="Plane.056">
+---
+>     <geometry id="Cube_027-mesh" name="Cube.027">
+227,228c227,228
+<         <source id="Plane_056-mesh-positions">
+<           <float_array id="Plane_056-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_027-mesh-positions">
+>           <float_array id="Cube_027-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+230c230
+<             <accessor source="#Plane_056-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_027-mesh-positions-array" count="8" stride="3">
+237,238c237,238
+<         <source id="Plane_056-mesh-normals">
+<           <float_array id="Plane_056-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_027-mesh-normals">
+>           <float_array id="Cube_027-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+240c240
+<             <accessor source="#Plane_056-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_027-mesh-normals-array" count="6" stride="3">
+247,248c247,248
+<         <source id="Plane_056-mesh-map-0">
+<           <float_array id="Plane_056-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_027-mesh-map-0">
+>           <float_array id="Cube_027-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+250c250
+<             <accessor source="#Plane_056-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_027-mesh-map-0-array" count="36" stride="2">
+256,257c256,257
+<         <vertices id="Plane_056-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_056-mesh-positions"/>
+---
+>         <vertices id="Cube_027-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_027-mesh-positions"/>
+259,263c259,263
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_056-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_056-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_056-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_027-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_027-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_027-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+267c267
+<     <geometry id="Plane_055-mesh" name="Plane.055">
+---
+>     <geometry id="Cube_026-mesh" name="Cube.026">
+269,270c269,270
+<         <source id="Plane_055-mesh-positions">
+<           <float_array id="Plane_055-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_026-mesh-positions">
+>           <float_array id="Cube_026-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+272c272
+<             <accessor source="#Plane_055-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_026-mesh-positions-array" count="8" stride="3">
+279,280c279,280
+<         <source id="Plane_055-mesh-normals">
+<           <float_array id="Plane_055-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_026-mesh-normals">
+>           <float_array id="Cube_026-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+282c282
+<             <accessor source="#Plane_055-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_026-mesh-normals-array" count="6" stride="3">
+289,290c289,290
+<         <source id="Plane_055-mesh-map-0">
+<           <float_array id="Plane_055-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_026-mesh-map-0">
+>           <float_array id="Cube_026-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+292c292
+<             <accessor source="#Plane_055-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_026-mesh-map-0-array" count="36" stride="2">
+298,299c298,299
+<         <vertices id="Plane_055-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_055-mesh-positions"/>
+---
+>         <vertices id="Cube_026-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_026-mesh-positions"/>
+301,305c301,305
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_055-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_055-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_055-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_026-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_026-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_026-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+309c309
+<     <geometry id="Plane_053-mesh" name="Plane.053">
+---
+>     <geometry id="Cube_025-mesh" name="Cube.025">
+311,312c311,312
+<         <source id="Plane_053-mesh-positions">
+<           <float_array id="Plane_053-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_025-mesh-positions">
+>           <float_array id="Cube_025-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+314c314
+<             <accessor source="#Plane_053-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_025-mesh-positions-array" count="8" stride="3">
+321,322c321,322
+<         <source id="Plane_053-mesh-normals">
+<           <float_array id="Plane_053-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_025-mesh-normals">
+>           <float_array id="Cube_025-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+324c324
+<             <accessor source="#Plane_053-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_025-mesh-normals-array" count="6" stride="3">
+331,332c331,332
+<         <source id="Plane_053-mesh-map-0">
+<           <float_array id="Plane_053-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_025-mesh-map-0">
+>           <float_array id="Cube_025-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+334c334
+<             <accessor source="#Plane_053-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_025-mesh-map-0-array" count="36" stride="2">
+340,341c340,341
+<         <vertices id="Plane_053-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_053-mesh-positions"/>
+---
+>         <vertices id="Cube_025-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_025-mesh-positions"/>
+343,347c343,347
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_053-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_053-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_053-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_025-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_025-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_025-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+351c351
+<     <geometry id="Plane_052-mesh" name="Plane.052">
+---
+>     <geometry id="Cube_024-mesh" name="Cube.024">
+353,354c353,354
+<         <source id="Plane_052-mesh-positions">
+<           <float_array id="Plane_052-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_024-mesh-positions">
+>           <float_array id="Cube_024-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+356c356
+<             <accessor source="#Plane_052-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_024-mesh-positions-array" count="8" stride="3">
+363,364c363,364
+<         <source id="Plane_052-mesh-normals">
+<           <float_array id="Plane_052-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_024-mesh-normals">
+>           <float_array id="Cube_024-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+366c366
+<             <accessor source="#Plane_052-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_024-mesh-normals-array" count="6" stride="3">
+373,374c373,374
+<         <source id="Plane_052-mesh-map-0">
+<           <float_array id="Plane_052-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_024-mesh-map-0">
+>           <float_array id="Cube_024-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+376c376
+<             <accessor source="#Plane_052-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_024-mesh-map-0-array" count="36" stride="2">
+382,383c382,383
+<         <vertices id="Plane_052-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_052-mesh-positions"/>
+---
+>         <vertices id="Cube_024-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_024-mesh-positions"/>
+385,389c385,389
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_052-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_052-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_052-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_024-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_024-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_024-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+393c393
+<     <geometry id="Plane_051-mesh" name="Plane.051">
+---
+>     <geometry id="Cube_023-mesh" name="Cube.023">
+395,396c395,396
+<         <source id="Plane_051-mesh-positions">
+<           <float_array id="Plane_051-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_023-mesh-positions">
+>           <float_array id="Cube_023-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+398c398
+<             <accessor source="#Plane_051-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_023-mesh-positions-array" count="8" stride="3">
+405,406c405,406
+<         <source id="Plane_051-mesh-normals">
+<           <float_array id="Plane_051-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_023-mesh-normals">
+>           <float_array id="Cube_023-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+408c408
+<             <accessor source="#Plane_051-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_023-mesh-normals-array" count="6" stride="3">
+415,416c415,416
+<         <source id="Plane_051-mesh-map-0">
+<           <float_array id="Plane_051-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_023-mesh-map-0">
+>           <float_array id="Cube_023-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+418c418
+<             <accessor source="#Plane_051-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_023-mesh-map-0-array" count="36" stride="2">
+424,425c424,425
+<         <vertices id="Plane_051-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_051-mesh-positions"/>
+---
+>         <vertices id="Cube_023-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_023-mesh-positions"/>
+427,431c427,431
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_051-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_051-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_051-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_023-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_023-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_023-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+435c435
+<     <geometry id="Plane_049-mesh" name="Plane.049">
+---
+>     <geometry id="Cube_022-mesh" name="Cube.022">
+437,438c437,438
+<         <source id="Plane_049-mesh-positions">
+<           <float_array id="Plane_049-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_022-mesh-positions">
+>           <float_array id="Cube_022-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+440c440
+<             <accessor source="#Plane_049-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_022-mesh-positions-array" count="8" stride="3">
+447,448c447,448
+<         <source id="Plane_049-mesh-normals">
+<           <float_array id="Plane_049-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_022-mesh-normals">
+>           <float_array id="Cube_022-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+450c450
+<             <accessor source="#Plane_049-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_022-mesh-normals-array" count="6" stride="3">
+457,458c457,458
+<         <source id="Plane_049-mesh-map-0">
+<           <float_array id="Plane_049-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_022-mesh-map-0">
+>           <float_array id="Cube_022-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+460c460
+<             <accessor source="#Plane_049-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_022-mesh-map-0-array" count="36" stride="2">
+466,467c466,467
+<         <vertices id="Plane_049-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_049-mesh-positions"/>
+---
+>         <vertices id="Cube_022-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_022-mesh-positions"/>
+469,473c469,473
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_049-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_049-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_049-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_022-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_022-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_022-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+477c477
+<     <geometry id="Plane_048-mesh" name="Plane.048">
+---
+>     <geometry id="Cube_021-mesh" name="Cube.021">
+479,480c479,480
+<         <source id="Plane_048-mesh-positions">
+<           <float_array id="Plane_048-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_021-mesh-positions">
+>           <float_array id="Cube_021-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+482c482
+<             <accessor source="#Plane_048-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_021-mesh-positions-array" count="8" stride="3">
+489,490c489,490
+<         <source id="Plane_048-mesh-normals">
+<           <float_array id="Plane_048-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_021-mesh-normals">
+>           <float_array id="Cube_021-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+492c492
+<             <accessor source="#Plane_048-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_021-mesh-normals-array" count="6" stride="3">
+499,500c499,500
+<         <source id="Plane_048-mesh-map-0">
+<           <float_array id="Plane_048-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_021-mesh-map-0">
+>           <float_array id="Cube_021-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+502c502
+<             <accessor source="#Plane_048-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_021-mesh-map-0-array" count="36" stride="2">
+508,509c508,509
+<         <vertices id="Plane_048-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_048-mesh-positions"/>
+---
+>         <vertices id="Cube_021-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_021-mesh-positions"/>
+511,515c511,515
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_048-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_048-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_048-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_021-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_021-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_021-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+519c519
+<     <geometry id="Plane_047-mesh" name="Plane.047">
+---
+>     <geometry id="Cube_020-mesh" name="Cube.020">
+521,522c521,522
+<         <source id="Plane_047-mesh-positions">
+<           <float_array id="Plane_047-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_020-mesh-positions">
+>           <float_array id="Cube_020-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+524c524
+<             <accessor source="#Plane_047-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_020-mesh-positions-array" count="8" stride="3">
+531,532c531,532
+<         <source id="Plane_047-mesh-normals">
+<           <float_array id="Plane_047-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_020-mesh-normals">
+>           <float_array id="Cube_020-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+534c534
+<             <accessor source="#Plane_047-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_020-mesh-normals-array" count="6" stride="3">
+541,542c541,542
+<         <source id="Plane_047-mesh-map-0">
+<           <float_array id="Plane_047-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_020-mesh-map-0">
+>           <float_array id="Cube_020-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+544c544
+<             <accessor source="#Plane_047-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_020-mesh-map-0-array" count="36" stride="2">
+550,551c550,551
+<         <vertices id="Plane_047-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_047-mesh-positions"/>
+---
+>         <vertices id="Cube_020-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_020-mesh-positions"/>
+553,557c553,557
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_047-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_047-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_047-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_020-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_020-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_020-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+561c561
+<     <geometry id="Plane_042-mesh" name="Plane.042">
+---
+>     <geometry id="Cube_019-mesh" name="Cube.019">
+563,564c563,564
+<         <source id="Plane_042-mesh-positions">
+<           <float_array id="Plane_042-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_019-mesh-positions">
+>           <float_array id="Cube_019-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+566c566
+<             <accessor source="#Plane_042-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_019-mesh-positions-array" count="8" stride="3">
+573,574c573,574
+<         <source id="Plane_042-mesh-normals">
+<           <float_array id="Plane_042-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_019-mesh-normals">
+>           <float_array id="Cube_019-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+576c576
+<             <accessor source="#Plane_042-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_019-mesh-normals-array" count="6" stride="3">
+583,584c583,584
+<         <source id="Plane_042-mesh-map-0">
+<           <float_array id="Plane_042-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_019-mesh-map-0">
+>           <float_array id="Cube_019-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+586c586
+<             <accessor source="#Plane_042-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_019-mesh-map-0-array" count="36" stride="2">
+592,593c592,593
+<         <vertices id="Plane_042-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_042-mesh-positions"/>
+---
+>         <vertices id="Cube_019-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_019-mesh-positions"/>
+595,599c595,599
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_042-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_042-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_042-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_019-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_019-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_019-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+603c603
+<     <geometry id="Plane_043-mesh" name="Plane.043">
+---
+>     <geometry id="Cube_018-mesh" name="Cube.018">
+605,606c605,606
+<         <source id="Plane_043-mesh-positions">
+<           <float_array id="Plane_043-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_018-mesh-positions">
+>           <float_array id="Cube_018-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+608c608
+<             <accessor source="#Plane_043-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_018-mesh-positions-array" count="8" stride="3">
+615,616c615,616
+<         <source id="Plane_043-mesh-normals">
+<           <float_array id="Plane_043-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_018-mesh-normals">
+>           <float_array id="Cube_018-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+618c618
+<             <accessor source="#Plane_043-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_018-mesh-normals-array" count="6" stride="3">
+625,626c625,626
+<         <source id="Plane_043-mesh-map-0">
+<           <float_array id="Plane_043-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_018-mesh-map-0">
+>           <float_array id="Cube_018-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+628c628
+<             <accessor source="#Plane_043-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_018-mesh-map-0-array" count="36" stride="2">
+634,635c634,635
+<         <vertices id="Plane_043-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_043-mesh-positions"/>
+---
+>         <vertices id="Cube_018-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_018-mesh-positions"/>
+637,641c637,641
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_043-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_043-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_043-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_018-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_018-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_018-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+645c645
+<     <geometry id="Plane_044-mesh" name="Plane.044">
+---
+>     <geometry id="Cube_017-mesh" name="Cube.017">
+647,648c647,648
+<         <source id="Plane_044-mesh-positions">
+<           <float_array id="Plane_044-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_017-mesh-positions">
+>           <float_array id="Cube_017-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+650c650
+<             <accessor source="#Plane_044-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_017-mesh-positions-array" count="8" stride="3">
+657,658c657,658
+<         <source id="Plane_044-mesh-normals">
+<           <float_array id="Plane_044-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_017-mesh-normals">
+>           <float_array id="Cube_017-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+660c660
+<             <accessor source="#Plane_044-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_017-mesh-normals-array" count="6" stride="3">
+667,668c667,668
+<         <source id="Plane_044-mesh-map-0">
+<           <float_array id="Plane_044-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_017-mesh-map-0">
+>           <float_array id="Cube_017-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+670c670
+<             <accessor source="#Plane_044-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_017-mesh-map-0-array" count="36" stride="2">
+676,677c676,677
+<         <vertices id="Plane_044-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_044-mesh-positions"/>
+---
+>         <vertices id="Cube_017-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_017-mesh-positions"/>
+679,683c679,683
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_044-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_044-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_044-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_017-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_017-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_017-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+687c687
+<     <geometry id="Plane_045-mesh" name="Plane.045">
+---
+>     <geometry id="Cube_016-mesh" name="Cube.016">
+689,690c689,690
+<         <source id="Plane_045-mesh-positions">
+<           <float_array id="Plane_045-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_016-mesh-positions">
+>           <float_array id="Cube_016-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+692c692
+<             <accessor source="#Plane_045-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_016-mesh-positions-array" count="8" stride="3">
+699,700c699,700
+<         <source id="Plane_045-mesh-normals">
+<           <float_array id="Plane_045-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_016-mesh-normals">
+>           <float_array id="Cube_016-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+702c702
+<             <accessor source="#Plane_045-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_016-mesh-normals-array" count="6" stride="3">
+709,710c709,710
+<         <source id="Plane_045-mesh-map-0">
+<           <float_array id="Plane_045-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_016-mesh-map-0">
+>           <float_array id="Cube_016-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+712c712
+<             <accessor source="#Plane_045-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_016-mesh-map-0-array" count="36" stride="2">
+718,719c718,719
+<         <vertices id="Plane_045-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_045-mesh-positions"/>
+---
+>         <vertices id="Cube_016-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_016-mesh-positions"/>
+721,725c721,725
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_045-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_045-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_045-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_016-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_016-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_016-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+729c729
+<     <geometry id="Plane_046-mesh" name="Plane.046">
+---
+>     <geometry id="Cube_015-mesh" name="Cube.015">
+731,732c731,732
+<         <source id="Plane_046-mesh-positions">
+<           <float_array id="Plane_046-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_015-mesh-positions">
+>           <float_array id="Cube_015-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+734c734
+<             <accessor source="#Plane_046-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_015-mesh-positions-array" count="8" stride="3">
+741,742c741,742
+<         <source id="Plane_046-mesh-normals">
+<           <float_array id="Plane_046-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_015-mesh-normals">
+>           <float_array id="Cube_015-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+744c744
+<             <accessor source="#Plane_046-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_015-mesh-normals-array" count="6" stride="3">
+751,752c751,752
+<         <source id="Plane_046-mesh-map-0">
+<           <float_array id="Plane_046-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_015-mesh-map-0">
+>           <float_array id="Cube_015-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+754c754
+<             <accessor source="#Plane_046-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_015-mesh-map-0-array" count="36" stride="2">
+760,761c760,761
+<         <vertices id="Plane_046-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_046-mesh-positions"/>
+---
+>         <vertices id="Cube_015-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_015-mesh-positions"/>
+763,767c763,767
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_046-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_046-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_046-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_015-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_015-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_015-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+771c771
+<     <geometry id="Plane_037-mesh" name="Plane.037">
+---
+>     <geometry id="Cube_014-mesh" name="Cube.014">
+773,774c773,774
+<         <source id="Plane_037-mesh-positions">
+<           <float_array id="Plane_037-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_014-mesh-positions">
+>           <float_array id="Cube_014-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+776c776
+<             <accessor source="#Plane_037-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_014-mesh-positions-array" count="8" stride="3">
+783,784c783,784
+<         <source id="Plane_037-mesh-normals">
+<           <float_array id="Plane_037-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_014-mesh-normals">
+>           <float_array id="Cube_014-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+786c786
+<             <accessor source="#Plane_037-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_014-mesh-normals-array" count="6" stride="3">
+793,794c793,794
+<         <source id="Plane_037-mesh-map-0">
+<           <float_array id="Plane_037-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_014-mesh-map-0">
+>           <float_array id="Cube_014-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+796c796
+<             <accessor source="#Plane_037-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_014-mesh-map-0-array" count="36" stride="2">
+802,803c802,803
+<         <vertices id="Plane_037-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_037-mesh-positions"/>
+---
+>         <vertices id="Cube_014-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_014-mesh-positions"/>
+805,809c805,809
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_037-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_037-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_037-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_014-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_014-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_014-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+813c813
+<     <geometry id="Plane_038-mesh" name="Plane.038">
+---
+>     <geometry id="Cube_013-mesh" name="Cube.013">
+815,816c815,816
+<         <source id="Plane_038-mesh-positions">
+<           <float_array id="Plane_038-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_013-mesh-positions">
+>           <float_array id="Cube_013-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+818c818
+<             <accessor source="#Plane_038-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_013-mesh-positions-array" count="8" stride="3">
+825,826c825,826
+<         <source id="Plane_038-mesh-normals">
+<           <float_array id="Plane_038-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_013-mesh-normals">
+>           <float_array id="Cube_013-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+828c828
+<             <accessor source="#Plane_038-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_013-mesh-normals-array" count="6" stride="3">
+835,836c835,836
+<         <source id="Plane_038-mesh-map-0">
+<           <float_array id="Plane_038-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_013-mesh-map-0">
+>           <float_array id="Cube_013-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+838c838
+<             <accessor source="#Plane_038-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_013-mesh-map-0-array" count="36" stride="2">
+844,845c844,845
+<         <vertices id="Plane_038-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_038-mesh-positions"/>
+---
+>         <vertices id="Cube_013-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_013-mesh-positions"/>
+847,851c847,851
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_038-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_038-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_038-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_013-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_013-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_013-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+855c855
+<     <geometry id="Plane_039-mesh" name="Plane.039">
+---
+>     <geometry id="Cube_012-mesh" name="Cube.012">
+857,858c857,858
+<         <source id="Plane_039-mesh-positions">
+<           <float_array id="Plane_039-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_012-mesh-positions">
+>           <float_array id="Cube_012-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+860c860
+<             <accessor source="#Plane_039-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_012-mesh-positions-array" count="8" stride="3">
+867,868c867,868
+<         <source id="Plane_039-mesh-normals">
+<           <float_array id="Plane_039-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_012-mesh-normals">
+>           <float_array id="Cube_012-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+870c870
+<             <accessor source="#Plane_039-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_012-mesh-normals-array" count="6" stride="3">
+877,878c877,878
+<         <source id="Plane_039-mesh-map-0">
+<           <float_array id="Plane_039-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_012-mesh-map-0">
+>           <float_array id="Cube_012-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+880c880
+<             <accessor source="#Plane_039-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_012-mesh-map-0-array" count="36" stride="2">
+886,887c886,887
+<         <vertices id="Plane_039-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_039-mesh-positions"/>
+---
+>         <vertices id="Cube_012-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_012-mesh-positions"/>
+889,893c889,893
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_039-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_039-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_039-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_012-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_012-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_012-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+897c897
+<     <geometry id="Plane_040-mesh" name="Plane.040">
+---
+>     <geometry id="Cube_011-mesh" name="Cube.011">
+899,900c899,900
+<         <source id="Plane_040-mesh-positions">
+<           <float_array id="Plane_040-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_011-mesh-positions">
+>           <float_array id="Cube_011-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+902c902
+<             <accessor source="#Plane_040-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_011-mesh-positions-array" count="8" stride="3">
+909,910c909,910
+<         <source id="Plane_040-mesh-normals">
+<           <float_array id="Plane_040-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_011-mesh-normals">
+>           <float_array id="Cube_011-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+912c912
+<             <accessor source="#Plane_040-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_011-mesh-normals-array" count="6" stride="3">
+919,920c919,920
+<         <source id="Plane_040-mesh-map-0">
+<           <float_array id="Plane_040-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_011-mesh-map-0">
+>           <float_array id="Cube_011-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+922c922
+<             <accessor source="#Plane_040-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_011-mesh-map-0-array" count="36" stride="2">
+928,929c928,929
+<         <vertices id="Plane_040-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_040-mesh-positions"/>
+---
+>         <vertices id="Cube_011-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_011-mesh-positions"/>
+931,935c931,935
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_040-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_040-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_040-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_011-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_011-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_011-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+939c939
+<     <geometry id="Plane_041-mesh" name="Plane.041">
+---
+>     <geometry id="Cube_010-mesh" name="Cube.010">
+941,942c941,942
+<         <source id="Plane_041-mesh-positions">
+<           <float_array id="Plane_041-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_010-mesh-positions">
+>           <float_array id="Cube_010-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+944c944
+<             <accessor source="#Plane_041-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_010-mesh-positions-array" count="8" stride="3">
+951,952c951,952
+<         <source id="Plane_041-mesh-normals">
+<           <float_array id="Plane_041-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_010-mesh-normals">
+>           <float_array id="Cube_010-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+954c954
+<             <accessor source="#Plane_041-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_010-mesh-normals-array" count="6" stride="3">
+961,962c961,962
+<         <source id="Plane_041-mesh-map-0">
+<           <float_array id="Plane_041-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_010-mesh-map-0">
+>           <float_array id="Cube_010-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+964c964
+<             <accessor source="#Plane_041-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_010-mesh-map-0-array" count="36" stride="2">
+970,971c970,971
+<         <vertices id="Plane_041-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_041-mesh-positions"/>
+---
+>         <vertices id="Cube_010-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_010-mesh-positions"/>
+973,977c973,977
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_041-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_041-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_041-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_010-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_010-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_010-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+981c981
+<     <geometry id="Plane_032-mesh" name="Plane.032">
+---
+>     <geometry id="Cube_009-mesh" name="Cube.009">
+983,984c983,984
+<         <source id="Plane_032-mesh-positions">
+<           <float_array id="Plane_032-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_009-mesh-positions">
+>           <float_array id="Cube_009-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+986c986
+<             <accessor source="#Plane_032-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_009-mesh-positions-array" count="8" stride="3">
+993,994c993,994
+<         <source id="Plane_032-mesh-normals">
+<           <float_array id="Plane_032-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_009-mesh-normals">
+>           <float_array id="Cube_009-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+996c996
+<             <accessor source="#Plane_032-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_009-mesh-normals-array" count="6" stride="3">
+1003,1004c1003,1004
+<         <source id="Plane_032-mesh-map-0">
+<           <float_array id="Plane_032-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_009-mesh-map-0">
+>           <float_array id="Cube_009-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1006c1006
+<             <accessor source="#Plane_032-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_009-mesh-map-0-array" count="36" stride="2">
+1012,1013c1012,1013
+<         <vertices id="Plane_032-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_032-mesh-positions"/>
+---
+>         <vertices id="Cube_009-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_009-mesh-positions"/>
+1015,1019c1015,1019
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_032-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_032-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_032-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_009-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_009-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_009-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1023c1023
+<     <geometry id="Plane_033-mesh" name="Plane.033">
+---
+>     <geometry id="Cube_008-mesh" name="Cube.008">
+1025,1026c1025,1026
+<         <source id="Plane_033-mesh-positions">
+<           <float_array id="Plane_033-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_008-mesh-positions">
+>           <float_array id="Cube_008-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1028c1028
+<             <accessor source="#Plane_033-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_008-mesh-positions-array" count="8" stride="3">
+1035,1036c1035,1036
+<         <source id="Plane_033-mesh-normals">
+<           <float_array id="Plane_033-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_008-mesh-normals">
+>           <float_array id="Cube_008-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1038c1038
+<             <accessor source="#Plane_033-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_008-mesh-normals-array" count="6" stride="3">
+1045,1046c1045,1046
+<         <source id="Plane_033-mesh-map-0">
+<           <float_array id="Plane_033-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_008-mesh-map-0">
+>           <float_array id="Cube_008-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1048c1048
+<             <accessor source="#Plane_033-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_008-mesh-map-0-array" count="36" stride="2">
+1054,1055c1054,1055
+<         <vertices id="Plane_033-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_033-mesh-positions"/>
+---
+>         <vertices id="Cube_008-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_008-mesh-positions"/>
+1057,1061c1057,1061
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_033-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_033-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_033-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_008-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_008-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_008-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1065c1065
+<     <geometry id="Plane_034-mesh" name="Plane.034">
+---
+>     <geometry id="Cube_007-mesh" name="Cube.007">
+1067,1068c1067,1068
+<         <source id="Plane_034-mesh-positions">
+<           <float_array id="Plane_034-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_007-mesh-positions">
+>           <float_array id="Cube_007-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1070c1070
+<             <accessor source="#Plane_034-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_007-mesh-positions-array" count="8" stride="3">
+1077,1078c1077,1078
+<         <source id="Plane_034-mesh-normals">
+<           <float_array id="Plane_034-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_007-mesh-normals">
+>           <float_array id="Cube_007-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1080c1080
+<             <accessor source="#Plane_034-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_007-mesh-normals-array" count="6" stride="3">
+1087,1088c1087,1088
+<         <source id="Plane_034-mesh-map-0">
+<           <float_array id="Plane_034-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_007-mesh-map-0">
+>           <float_array id="Cube_007-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1090c1090
+<             <accessor source="#Plane_034-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_007-mesh-map-0-array" count="36" stride="2">
+1096,1097c1096,1097
+<         <vertices id="Plane_034-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_034-mesh-positions"/>
+---
+>         <vertices id="Cube_007-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_007-mesh-positions"/>
+1099,1103c1099,1103
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_034-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_034-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_034-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_007-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_007-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_007-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1107c1107
+<     <geometry id="Plane_035-mesh" name="Plane.035">
+---
+>     <geometry id="Cube_006-mesh" name="Cube.006">
+1109,1110c1109,1110
+<         <source id="Plane_035-mesh-positions">
+<           <float_array id="Plane_035-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_006-mesh-positions">
+>           <float_array id="Cube_006-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1112c1112
+<             <accessor source="#Plane_035-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_006-mesh-positions-array" count="8" stride="3">
+1119,1120c1119,1120
+<         <source id="Plane_035-mesh-normals">
+<           <float_array id="Plane_035-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_006-mesh-normals">
+>           <float_array id="Cube_006-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1122c1122
+<             <accessor source="#Plane_035-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_006-mesh-normals-array" count="6" stride="3">
+1129,1130c1129,1130
+<         <source id="Plane_035-mesh-map-0">
+<           <float_array id="Plane_035-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_006-mesh-map-0">
+>           <float_array id="Cube_006-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1132c1132
+<             <accessor source="#Plane_035-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_006-mesh-map-0-array" count="36" stride="2">
+1138,1139c1138,1139
+<         <vertices id="Plane_035-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_035-mesh-positions"/>
+---
+>         <vertices id="Cube_006-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_006-mesh-positions"/>
+1141,1145c1141,1145
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_035-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_035-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_035-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_006-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_006-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_006-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1149c1149
+<     <geometry id="Plane_036-mesh" name="Plane.036">
+---
+>     <geometry id="Cube_005-mesh" name="Cube.005">
+1151,1152c1151,1152
+<         <source id="Plane_036-mesh-positions">
+<           <float_array id="Plane_036-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_005-mesh-positions">
+>           <float_array id="Cube_005-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1154c1154
+<             <accessor source="#Plane_036-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_005-mesh-positions-array" count="8" stride="3">
+1161,1162c1161,1162
+<         <source id="Plane_036-mesh-normals">
+<           <float_array id="Plane_036-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_005-mesh-normals">
+>           <float_array id="Cube_005-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1164c1164
+<             <accessor source="#Plane_036-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_005-mesh-normals-array" count="6" stride="3">
+1171,1172c1171,1172
+<         <source id="Plane_036-mesh-map-0">
+<           <float_array id="Plane_036-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_005-mesh-map-0">
+>           <float_array id="Cube_005-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1174c1174
+<             <accessor source="#Plane_036-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_005-mesh-map-0-array" count="36" stride="2">
+1180,1181c1180,1181
+<         <vertices id="Plane_036-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_036-mesh-positions"/>
+---
+>         <vertices id="Cube_005-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_005-mesh-positions"/>
+1183,1187c1183,1187
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_036-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_036-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_036-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_005-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_005-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_005-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1191c1191
+<     <geometry id="Plane_027-mesh" name="Plane.027">
+---
+>     <geometry id="Cube_004-mesh" name="Cube.004">
+1193,1194c1193,1194
+<         <source id="Plane_027-mesh-positions">
+<           <float_array id="Plane_027-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_004-mesh-positions">
+>           <float_array id="Cube_004-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1196c1196
+<             <accessor source="#Plane_027-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_004-mesh-positions-array" count="8" stride="3">
+1203,1204c1203,1204
+<         <source id="Plane_027-mesh-normals">
+<           <float_array id="Plane_027-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_004-mesh-normals">
+>           <float_array id="Cube_004-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1206c1206
+<             <accessor source="#Plane_027-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_004-mesh-normals-array" count="6" stride="3">
+1213,1214c1213,1214
+<         <source id="Plane_027-mesh-map-0">
+<           <float_array id="Plane_027-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_004-mesh-map-0">
+>           <float_array id="Cube_004-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1216c1216
+<             <accessor source="#Plane_027-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_004-mesh-map-0-array" count="36" stride="2">
+1222,1223c1222,1223
+<         <vertices id="Plane_027-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_027-mesh-positions"/>
+---
+>         <vertices id="Cube_004-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_004-mesh-positions"/>
+1225,1229c1225,1229
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_027-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_027-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_027-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_004-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_004-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_004-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1233c1233
+<     <geometry id="Plane_028-mesh" name="Plane.028">
+---
+>     <geometry id="Cube_003-mesh" name="Cube.003">
+1235,1236c1235,1236
+<         <source id="Plane_028-mesh-positions">
+<           <float_array id="Plane_028-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_003-mesh-positions">
+>           <float_array id="Cube_003-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1238c1238
+<             <accessor source="#Plane_028-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_003-mesh-positions-array" count="8" stride="3">
+1245,1246c1245,1246
+<         <source id="Plane_028-mesh-normals">
+<           <float_array id="Plane_028-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_003-mesh-normals">
+>           <float_array id="Cube_003-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1248c1248
+<             <accessor source="#Plane_028-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_003-mesh-normals-array" count="6" stride="3">
+1255,1256c1255,1256
+<         <source id="Plane_028-mesh-map-0">
+<           <float_array id="Plane_028-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_003-mesh-map-0">
+>           <float_array id="Cube_003-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1258c1258
+<             <accessor source="#Plane_028-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_003-mesh-map-0-array" count="36" stride="2">
+1264,1265c1264,1265
+<         <vertices id="Plane_028-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_028-mesh-positions"/>
+---
+>         <vertices id="Cube_003-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_003-mesh-positions"/>
+1267,1271c1267,1271
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_028-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_028-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_028-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_003-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_003-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_003-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1275c1275
+<     <geometry id="Plane_029-mesh" name="Plane.029">
+---
+>     <geometry id="Cube_002-mesh" name="Cube.002">
+1277,1278c1277,1278
+<         <source id="Plane_029-mesh-positions">
+<           <float_array id="Plane_029-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_002-mesh-positions">
+>           <float_array id="Cube_002-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1280c1280
+<             <accessor source="#Plane_029-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_002-mesh-positions-array" count="8" stride="3">
+1287,1288c1287,1288
+<         <source id="Plane_029-mesh-normals">
+<           <float_array id="Plane_029-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_002-mesh-normals">
+>           <float_array id="Cube_002-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1290c1290
+<             <accessor source="#Plane_029-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_002-mesh-normals-array" count="6" stride="3">
+1297,1298c1297,1298
+<         <source id="Plane_029-mesh-map-0">
+<           <float_array id="Plane_029-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_002-mesh-map-0">
+>           <float_array id="Cube_002-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1300c1300
+<             <accessor source="#Plane_029-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_002-mesh-map-0-array" count="36" stride="2">
+1306,1307c1306,1307
+<         <vertices id="Plane_029-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_029-mesh-positions"/>
+---
+>         <vertices id="Cube_002-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_002-mesh-positions"/>
+1309,1313c1309,1313
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_029-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_029-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_029-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_002-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_002-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_002-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1317c1317
+<     <geometry id="Plane_030-mesh" name="Plane.030">
+---
+>     <geometry id="Cube_001-mesh" name="Cube.001">
+1319,1320c1319,1320
+<         <source id="Plane_030-mesh-positions">
+<           <float_array id="Plane_030-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube_001-mesh-positions">
+>           <float_array id="Cube_001-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1322c1322
+<             <accessor source="#Plane_030-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube_001-mesh-positions-array" count="8" stride="3">
+1329,1330c1329,1330
+<         <source id="Plane_030-mesh-normals">
+<           <float_array id="Plane_030-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube_001-mesh-normals">
+>           <float_array id="Cube_001-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1332c1332
+<             <accessor source="#Plane_030-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube_001-mesh-normals-array" count="6" stride="3">
+1339,1340c1339,1340
+<         <source id="Plane_030-mesh-map-0">
+<           <float_array id="Plane_030-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube_001-mesh-map-0">
+>           <float_array id="Cube_001-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1342c1342
+<             <accessor source="#Plane_030-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube_001-mesh-map-0-array" count="36" stride="2">
+1348,1349c1348,1349
+<         <vertices id="Plane_030-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_030-mesh-positions"/>
+---
+>         <vertices id="Cube_001-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube_001-mesh-positions"/>
+1351,1355c1351,1355
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_030-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_030-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_030-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube_001-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube_001-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube_001-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1359c1359
+<     <geometry id="Plane_031-mesh" name="Plane.031">
+---
+>     <geometry id="Cube-mesh" name="Cube">
+1361,1362c1361,1362
+<         <source id="Plane_031-mesh-positions">
+<           <float_array id="Plane_031-mesh-positions-array" count="12">-1 -1 0 1 -1 0 -1 1 0 1 1 0</float_array>
+---
+>         <source id="Cube-mesh-positions">
+>           <float_array id="Cube-mesh-positions-array" count="24">-1 -1 -1 -1 -1 1 -1 1 -1 -1 1 1 1 -1 -1 1 -1 1 1 1 -1 1 1 1</float_array>
+1364c1364
+<             <accessor source="#Plane_031-mesh-positions-array" count="4" stride="3">
+---
+>             <accessor source="#Cube-mesh-positions-array" count="8" stride="3">
+1371,1372c1371,1372
+<         <source id="Plane_031-mesh-normals">
+<           <float_array id="Plane_031-mesh-normals-array" count="3">0 0 1</float_array>
+---
+>         <source id="Cube-mesh-normals">
+>           <float_array id="Cube-mesh-normals-array" count="18">-1 0 0 0 1 0 1 0 0 0 -1 0 0 0 -1 0 0 1</float_array>
+1374c1374
+<             <accessor source="#Plane_031-mesh-normals-array" count="1" stride="3">
+---
+>             <accessor source="#Cube-mesh-normals-array" count="6" stride="3">
+1381,1382c1381,1382
+<         <source id="Plane_031-mesh-map-0">
+<           <float_array id="Plane_031-mesh-map-0-array" count="12">1 0 0 1 0 0 1 0 1 1 0 1</float_array>
+---
+>         <source id="Cube-mesh-map-0">
+>           <float_array id="Cube-mesh-map-0-array" count="72">0.625 0 0.375 0.25 0.375 0 0.625 0.25 0.375 0.5 0.375 0.25 0.625 0.5 0.375 0.75 0.375 0.5 0.625 0.75 0.375 1 0.375 0.75 0.375 0.5 0.125 0.75 0.125 0.5 0.875 0.5 0.625 0.75 0.625 0.5 0.625 0 0.625 0.25 0.375 0.25 0.625 0.25 0.625 0.5 0.375 0.5 0.625 0.5 0.625 0.75 0.375 0.75 0.625 0.75 0.625 1 0.375 1 0.375 0.5 0.375 0.75 0.125 0.75 0.875 0.5 0.875 0.75 0.625 0.75</float_array>
+1384c1384
+<             <accessor source="#Plane_031-mesh-map-0-array" count="6" stride="2">
+---
+>             <accessor source="#Cube-mesh-map-0-array" count="36" stride="2">
+1390,1391c1390,1391
+<         <vertices id="Plane_031-mesh-vertices">
+<           <input semantic="POSITION" source="#Plane_031-mesh-positions"/>
+---
+>         <vertices id="Cube-mesh-vertices">
+>           <input semantic="POSITION" source="#Cube-mesh-positions"/>
+1393,1397c1393,1397
+<         <triangles count="2">
+<           <input semantic="VERTEX" source="#Plane_031-mesh-vertices" offset="0"/>
+<           <input semantic="NORMAL" source="#Plane_031-mesh-normals" offset="1"/>
+<           <input semantic="TEXCOORD" source="#Plane_031-mesh-map-0" offset="2" set="0"/>
+<           <p>1 0 0 2 0 1 0 0 2 1 0 3 3 0 4 2 0 5</p>
+---
+>         <triangles count="12">
+>           <input semantic="VERTEX" source="#Cube-mesh-vertices" offset="0"/>
+>           <input semantic="NORMAL" source="#Cube-mesh-normals" offset="1"/>
+>           <input semantic="TEXCOORD" source="#Cube-mesh-map-0" offset="2" set="0"/>
+>           <p>1 0 0 2 0 1 0 0 2 3 1 3 6 1 4 2 1 5 7 2 6 4 2 7 6 2 8 5 3 9 0 3 10 4 3 11 6 4 12 0 4 13 2 4 14 3 5 15 5 5 16 7 5 17 1 0 18 3 0 19 2 0 20 3 1 21 7 1 22 6 1 23 7 2 24 5 2 25 4 2 26 5 3 27 1 3 28 0 3 29 6 4 30 4 4 31 0 4 32 3 5 33 1 5 34 5 5 35</p>
+1404,1534c1404,1534
+<       <node id="Plane_058" name="Plane.058" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.1485844 0 -0.1493448 0 0.5959532 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_061-mesh" name="Plane.058"/>
+<       </node>
+<       <node id="Plane_057" name="Plane.057" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.2980058 -0.00208883 -3.68641e-5 0.9999007 0.1475444 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_060-mesh" name="Plane.057"/>
+<       </node>
+<       <node id="Plane_056" name="Plane.056" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.4499629 0 -0.1493448 0 0.2981478 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_059-mesh" name="Plane.056"/>
+<       </node>
+<       <node id="Plane_055" name="Plane.055" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.4515039 0 -0.1493448 0 0 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_058-mesh" name="Plane.055"/>
+<       </node>
+<       <node id="Plane_054" name="Plane.054" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.1458572 0 -0.1493448 0 -0.5947151 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_057-mesh" name="Plane.054"/>
+<       </node>
+<       <node id="Plane_053" name="Plane.053" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.1510326 0 -0.1493448 0 0.2981478 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_056-mesh" name="Plane.053"/>
+<       </node>
+<       <node id="Plane_052" name="Plane.052" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.2992485 -0.00208883 -3.68641e-5 0.9999007 0.4420883 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_055-mesh" name="Plane.052"/>
+<       </node>
+<       <node id="Plane_050" name="Plane.050" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.2992485 -0.00208883 -3.68641e-5 0.9999007 -0.1483037 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_053-mesh" name="Plane.050"/>
+<       </node>
+<       <node id="Plane_048" name="Plane.048" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.4477068 0 -0.1493448 0 -0.2991067 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_052-mesh" name="Plane.048"/>
+<       </node>
+<       <node id="Plane_049" name="Plane.049" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.2992485 -0.00208883 -3.68641e-5 0.9999007 -0.4409395 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_051-mesh" name="Plane.049"/>
+<       </node>
+<       <node id="Plane_047" name="Plane.047" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.2980058 -0.00208883 -3.68641e-5 0.9999007 -0.4395848 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_049-mesh" name="Plane.047"/>
+<       </node>
+<       <node id="Plane_046" name="Plane.046" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.5970541 -0.00208883 -3.68641e-5 0.9999007 0.1463095 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_048-mesh" name="Plane.046"/>
+<       </node>
+<       <node id="Plane_045" name="Plane.045" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.4463261 0 -0.1493448 0 0.2981478 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_047-mesh" name="Plane.045"/>
+<       </node>
+<       <node id="Plane_040" name="Plane.040" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.001100838 -0.00208883 -3.68641e-5 0.9999007 0.740204 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_042-mesh" name="Plane.040"/>
+<       </node>
+<       <node id="Plane_041" name="Plane.041" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.2992485 -0.00208883 -3.68641e-5 0.9999007 0.7402776 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_043-mesh" name="Plane.041"/>
+<       </node>
+<       <node id="Plane_042" name="Plane.042" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.5970541 -0.00208883 -3.68641e-5 0.9999007 0.7403511 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_044-mesh" name="Plane.042"/>
+<       </node>
+<       <node id="Plane_043" name="Plane.043" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.2980058 -0.00208883 -3.68641e-5 0.9999007 0.7401302 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_045-mesh" name="Plane.043"/>
+<       </node>
+<       <node id="Plane_044" name="Plane.044" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.5936142 -0.00208883 -3.68641e-5 0.9999007 0.7400572 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_046-mesh" name="Plane.044"/>
+<       </node>
+<       <node id="Plane_035" name="Plane.035" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.5936142 -0.00208883 -3.68641e-5 0.9999007 -0.7497282 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_037-mesh" name="Plane.035"/>
+<       </node>
+<       <node id="Plane_036" name="Plane.036" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 -0.2980058 -0.00208883 -3.68641e-5 0.9999007 -0.7496552 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_038-mesh" name="Plane.036"/>
+<       </node>
+<       <node id="Plane_037" name="Plane.037" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.5970541 -0.00208883 -3.68641e-5 0.9999007 -0.7494343 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_039-mesh" name="Plane.037"/>
+<       </node>
+<       <node id="Plane_038" name="Plane.038" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.2992485 -0.00208883 -3.68641e-5 0.9999007 -0.7495078 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_040-mesh" name="Plane.038"/>
+<       </node>
+<       <node id="Plane_039" name="Plane.039" type="NODE">
+<         <matrix sid="transform">5.15604e-7 -0.1493448 -2.46814e-4 0.001100838 -0.00208883 -3.68641e-5 0.9999007 -0.7495814 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_041-mesh" name="Plane.039"/>
+<       </node>
+<       <node id="Plane_030" name="Plane.030" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.7497587 0 -0.1493448 0 0 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_032-mesh" name="Plane.030"/>
+<       </node>
+<       <node id="Plane_031" name="Plane.031" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.7497587 0 -0.1493448 0 0.2981478 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_033-mesh" name="Plane.031"/>
+<       </node>
+<       <node id="Plane_032" name="Plane.032" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.7497587 0 -0.1493448 0 0.5959532 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_034-mesh" name="Plane.032"/>
+<       </node>
+<       <node id="Plane_033" name="Plane.033" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.7497587 0 -0.1493448 0 -0.2991067 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_035-mesh" name="Plane.033"/>
+<       </node>
+<       <node id="Plane_034" name="Plane.034" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 0.7497587 0 -0.1493448 0 -0.5947151 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_036-mesh" name="Plane.034"/>
+<       </node>
+<       <node id="Plane_025" name="Plane.025" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.7547598 0 -0.1493448 0 -0.5947151 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_027-mesh" name="Plane.025"/>
+<       </node>
+<       <node id="Plane_026" name="Plane.026" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.7547598 0 -0.1493448 0 -0.2991067 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_028-mesh" name="Plane.026"/>
+<       </node>
+<       <node id="Plane_027" name="Plane.027" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.7547598 0 -0.1493448 0 0.5959532 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_029-mesh" name="Plane.027"/>
+<       </node>
+<       <node id="Plane_028" name="Plane.028" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.7547598 0 -0.1493448 0 0.2981478 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_030-mesh" name="Plane.028"/>
+<       </node>
+<       <node id="Plane_029" name="Plane.029" type="NODE">
+<         <matrix sid="transform">0.00208883 0 -0.9999008 -0.7547598 0 -0.1493448 0 0 0.1482442 0 0.01408907 0.1471686 0 0 0 1</matrix>
+<         <instance_geometry url="#Plane_031-mesh" name="Plane.029"/>
+---
+>       <node id="Cube_032" name="Cube.032" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.428248 -0.1466097 -8.83226e-5 0 -0.3025902 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_032-mesh" name="Cube.032"/>
+>       </node>
+>       <node id="Cube_031" name="Cube.031" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.3017009 0 0.009694355 0 0.1368427 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_031-mesh" name="Cube.031"/>
+>       </node>
+>       <node id="Cube_030" name="Cube.030" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.4457299 -0.1466097 -8.83226e-5 0 0.2889266 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_030-mesh" name="Cube.030"/>
+>       </node>
+>       <node id="Cube_029" name="Cube.029" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.4457299 -0.1466097 -8.83226e-5 0 -0.004550815 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_029-mesh" name="Cube.029"/>
+>       </node>
+>       <node id="Cube_028" name="Cube.028" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.3017009 0 0.009694355 0 -0.4544165 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_028-mesh" name="Cube.028"/>
+>       </node>
+>       <node id="Cube_027" name="Cube.027" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.1512416 -0.1466097 -8.83226e-5 0 -0.5990441 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_027-mesh" name="Cube.027"/>
+>       </node>
+>       <node id="Cube_026" name="Cube.026" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.1489588 -0.1466097 -8.83226e-5 0 0.5905311 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_026-mesh" name="Cube.026"/>
+>       </node>
+>       <node id="Cube_025" name="Cube.025" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.1500952 -0.1466097 -8.83226e-5 0 0.2889266 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_025-mesh" name="Cube.025"/>
+>       </node>
+>       <node id="Cube_024" name="Cube.024" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.4377349 -0.1466097 -8.83226e-5 0 0.2889266 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_024-mesh" name="Cube.024"/>
+>       </node>
+>       <node id="Cube_023" name="Cube.023" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.5840467 0 0.009694355 0 0.1459743 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_023-mesh" name="Cube.023"/>
+>       </node>
+>       <node id="Cube_022" name="Cube.022" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.2895584 0 0.009694355 0 -0.148514 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_022-mesh" name="Cube.022"/>
+>       </node>
+>       <node id="Cube_021" name="Cube.021" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.2895584 0 0.009694355 0 0.4313585 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_021-mesh" name="Cube.021"/>
+>       </node>
+>       <node id="Cube_020" name="Cube.020" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.2895584 0 0.009694355 0 -0.463548 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_020-mesh" name="Cube.020"/>
+>       </node>
+>       <node id="Cube_019" name="Cube.019" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.5840467 0 0.009694355 0 0.7395164 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_019-mesh" name="Cube.019"/>
+>       </node>
+>       <node id="Cube_018" name="Cube.018" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.2895584 0 0.009694355 0 0.7417994 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_018-mesh" name="Cube.018"/>
+>       </node>
+>       <node id="Cube_017" name="Cube.017" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.007212698 0 0.009694355 0 0.7417994 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_017-mesh" name="Cube.017"/>
+>       </node>
+>       <node id="Cube_016" name="Cube.016" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.3017009 0 0.009694355 0 0.7395164 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_016-mesh" name="Cube.016"/>
+>       </node>
+>       <node id="Cube_015" name="Cube.015" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.6007549 0 0.009694355 0 0.7372336 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_015-mesh" name="Cube.015"/>
+>       </node>
+>       <node id="Cube_014" name="Cube.014" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.7322232 -0.1466097 -8.83226e-5 0 0.5905311 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_014-mesh" name="Cube.014"/>
+>       </node>
+>       <node id="Cube_013" name="Cube.013" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.7322232 -0.1466097 -8.83226e-5 0 0.2889266 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_013-mesh" name="Cube.013"/>
+>       </node>
+>       <node id="Cube_012" name="Cube.012" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.7299405 -0.1466097 -8.83226e-5 0 -0.004550815 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_012-mesh" name="Cube.012"/>
+>       </node>
+>       <node id="Cube_011" name="Cube.011" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.7276576 -0.1466097 -8.83226e-5 0 -0.3025902 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_011-mesh" name="Cube.011"/>
+>       </node>
+>       <node id="Cube_010" name="Cube.010" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 0.7230919 -0.1466097 -8.83226e-5 0 -0.5990441 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_010-mesh" name="Cube.010"/>
+>       </node>
+>       <node id="Cube_009" name="Cube.009" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.758481 -0.1466097 -8.83226e-5 0 -0.3025902 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_009-mesh" name="Cube.009"/>
+>       </node>
+>       <node id="Cube_008" name="Cube.008" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.758481 -0.1466097 -8.83226e-5 0 -0.5990441 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_008-mesh" name="Cube.008"/>
+>       </node>
+>       <node id="Cube_007" name="Cube.007" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.758481 -0.1466097 -8.83226e-5 0 0.2889266 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_007-mesh" name="Cube.007"/>
+>       </node>
+>       <node id="Cube_006" name="Cube.006" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.758481 -0.1466097 -8.83226e-5 0 0.5905311 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_006-mesh" name="Cube.006"/>
+>       </node>
+>       <node id="Cube_005" name="Cube.005" type="NODE">
+>         <matrix sid="transform">-0.001335777 0.009693952 0 -0.758481 -0.1466097 -8.83226e-5 0 -0.004550815 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_005-mesh" name="Cube.005"/>
+>       </node>
+>       <node id="Cube_004" name="Cube.004" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.3017009 0 0.009694355 0 -0.7420563 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_004-mesh" name="Cube.004"/>
+>       </node>
+>       <node id="Cube_003" name="Cube.003" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.6007549 0 0.009694355 0 -0.7420563 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_003-mesh" name="Cube.003"/>
+>       </node>
+>       <node id="Cube_002" name="Cube.002" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.5840467 0 0.009694355 0 -0.7420563 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_002-mesh" name="Cube.002"/>
+>       </node>
+>       <node id="Cube_001" name="Cube.001" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 0.2895584 0 0.009694355 0 -0.7420563 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube_001-mesh" name="Cube.001"/>
+>       </node>
+>       <node id="Cube" name="Cube" type="NODE">
+>         <matrix sid="transform">0.1466158 0 0 -0.007212698 0 0.009694355 0 -0.7420563 0 0 0.1518852 0.1474645 0 0 0 1</matrix>
+>         <instance_geometry url="#Cube-mesh" name="Cube"/>
+diff -r src/simulation/models/maze_world/MazeField/modelLap.sdf /home/oscar/Downloads/catkin_tmp/src/simulation/models/maze_world/MazeField/modelLap.sdf
+22c22
+<             <uri>/home/oscar/Repositories/rescuemaze-2023/maze_ws/src/simulation/models/maze_world/blender/MazeField.dae</uri>
+---
+>             <uri>/home/diego/coding/rescuemaze-2023/maze_ws/src/simulation/models/maze_world/blender/MazeField.dae</uri>
+43c43
+<             <uri>/home/oscar/Repositories/rescuemaze-2023/maze_ws/src/simulation/models/maze_world/blender/MazeField.dae</uri>
+---
+>             <uri>/home/diego/coding/rescuemaze-2023/maze_ws/src/simulation/models/maze_world/blender/MazeField.dae</uri>
+Only in src/: test_goals

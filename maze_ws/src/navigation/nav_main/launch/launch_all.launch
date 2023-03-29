@@ -10,7 +10,7 @@
     <arg name="scan_topic" default="scan_filtered"/>
 
     <arg name="dist_to_walls" default="false"/>
-    <arg name="debug_localization_grid" default="false"/>
+    <arg name="debug_localization_grid" default="true"/>
     
     <!-- Launch sensors-->
     <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/sensors_bringup.launch"/>

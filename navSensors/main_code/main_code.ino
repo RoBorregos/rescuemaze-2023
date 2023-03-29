@@ -30,7 +30,7 @@ void setup()
   bool doSpecificTest = false;
 
   // General options
-  bool useVLX = true;
+  bool useVLX = false;
   bool setIndividualConstants = true;
 
   setupData(setTcs, seti2c);
@@ -82,7 +82,8 @@ void setupData(bool tcsSet, bool i2c)
     static Sensors sensors(false);
     while (true)
     {
-      sensors.getTCSInfo();
+      sensors.rgbTCS();
+      // Serial.println(sensors.getTCSInfo());
     }
   }
 
@@ -101,6 +102,8 @@ void specificTest(bool test, bool useVLX, bool setIndividualConstants)
   // Do some specific test. E.g. pid test
   Serial.println("Specific test");
 
+  robot->testAllMotors(); // Test motor direction.
+  
   moveRoutine(); // Test PID
 
   while (true)

@@ -67,13 +67,13 @@ class LocalizationGrid:
 			kernel = np.ones((5, 5), np.uint8)
 			image[image == 0] = 1
 			image[image == 255] = 0
-			image = cv2.dilate(image, kernel, iterations=2)
+			#image = cv2.dilate(image, kernel, iterations=2)
 			image = cv2.erode(image, kernel, iterations=2)
 			image[image == 0] = 255
 			image[image == 1] = 0
 			return image
 
-		# image = dilateBlack(image)
+		#image = dilateBlack(image)
 		image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
 
 		# Increase size to 500px at least.
@@ -301,7 +301,7 @@ class LocalizationGrid:
 
 		width = 500
 		height = int(500 * (self.occupancy_grid.info.height/self.occupancy_grid.info.width))
-		mapHeight = 225 # in cm
+		mapHeight = round(self.occupancy_grid.info.resolution, 3) * self.occupancy_grid.info.height * 100 # in cm
 		cell_distance = mapHeight / height
 
 		north, south, east, west = 1000, 1000, 1000, 1000
