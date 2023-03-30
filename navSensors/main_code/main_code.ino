@@ -25,15 +25,16 @@ void setup()
   // Set some sensor or i2c device
   bool setTcs = false;
   bool seti2c = false;
+  bool setVLX = false;
 
   // Set a specific test
   bool doSpecificTest = false;
 
   // General options
-  bool useVLX = false;
+  bool useVLX = true;
   bool setIndividualConstants = true;
 
-  setupData(setTcs, seti2c);
+  setupData(setTcs, seti2c, setVLX);
 
   specificTest(doSpecificTest, useVLX, setIndividualConstants);
 
@@ -72,7 +73,7 @@ void initAll(bool useVLX, bool setIndividualConstants)
   robot = &movement;
 }
 
-void setupData(bool tcsSet, bool i2c)
+void setupData(bool tcsSet, bool i2c, bool setVLX)
 {
   if (i2c)
     mux.findI2C();
@@ -85,6 +86,15 @@ void setupData(bool tcsSet, bool i2c)
       sensors.rgbTCS();
       // Serial.println(sensors.getTCSInfo());
     }
+  }
+
+  if (setVLX)
+  {
+    static Sensors sensors(setVLX);
+    while (true)
+    {
+      Serial.println(sensors.getVLXInfo(0));
+    }   
   }
 
   if (i2c)

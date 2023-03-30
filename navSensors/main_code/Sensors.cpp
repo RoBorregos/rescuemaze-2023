@@ -27,6 +27,8 @@ void Sensors::initSensors()
 {
   if (usingVLX)
   {
+    Serial.println("VLX init with kMux");
+    Serial.println(kMuxVLX);
     vlx.setMux(kMuxVLX);
     vlx.init(); // VLX init
   }

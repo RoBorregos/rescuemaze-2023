@@ -6,7 +6,7 @@
     <arg name="port" default="/dev/port1"/>
     <arg name="node_start_delay" default="0.0"/>
     <arg name="has_imu" default="false"/>
-    <arg name="use_gmapping" default="false"/>
+    <arg name="use_gmapping" default="true"/>
 
     <arg name="scan_topic" default="scan_filtered"/>
 
