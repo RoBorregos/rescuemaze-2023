@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <math.h>
+#include <PID_v1.h>
 
 class PID
 {
@@ -10,6 +11,10 @@ private:
   double kp {0};
   double ki {0};
   double kd {0};
+
+  double kp_conservative {0};
+  double ki_conservative {0};
+  double kd_conservative {0};
 
   double errorSum {0};
   double errorPre {0};

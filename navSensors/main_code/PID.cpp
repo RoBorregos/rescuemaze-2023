@@ -7,8 +7,9 @@ PID::PID()
   timePassed = millis();
 }
 
-PID::PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time)
+PID::PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary)
 {
+  this->useLibrary = useLibrary;
   timePassed = millis();
   setTunings(kp, ki, kd);
   sampleTime = sample_time;
@@ -47,31 +48,34 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
 
   reset_variable = 0; // Reset encoder tics
 
-  const double error = setpoint - input; // Get error in terms of rev / s
- 
-  errorSum += error * timeDiffSeconds;
-  
-  const double derivative = (error - errorPre) / timeDiffSeconds;
-
-  output = error * kp + errorSum * ki + derivative * kd;
-
-  errorPre = error;
-
-  // Reduce variables to appropiate magnitudes.
-  errorSum = max(maxError * -1, min(maxError, errorSum));
-  output = max(minOutput, min(maxOutput, output));
-
-  timePassed = millis();
-
-  if (debug)
+  if (!useLibrary)
   {
-    Serial.println("Time diff: " + String(timeDiff));
-    Serial.println("Input: " + String(input));
-    Serial.println("Error: " + String(error));
-    Serial.println("ErrorPre: " + String(errorPre));
-    Serial.println("Derivative: " + String(derivative));
-    Serial.println("ErrorSum: " + String(errorSum));
-    Serial.println("Output: " + String(output));
+    const double error = setpoint - input; // Get error in terms of rev / s
+
+    errorSum += error * timeDiffSeconds;
+
+    const double derivative = (error - errorPre) / timeDiffSeconds;
+
+    output = error * kp + errorSum * ki + derivative * kd;
+
+    errorPre = error;
+
+    // Reduce variables to appropiate magnitudes.
+    errorSum = max(maxError * -1, min(maxError, errorSum));
+    output = max(minOutput, min(maxOutput, output));
+
+    timePassed = millis();
+
+    if (debug)
+    {
+      Serial.println("Time diff: " + String(timeDiff));
+      Serial.println("Input: " + String(input));
+      Serial.println("Error: " + String(error));
+      Serial.println("ErrorPre: " + String(errorPre));
+      Serial.println("Derivative: " + String(derivative));
+      Serial.println("ErrorSum: " + String(errorSum));
+      Serial.println("Output: " + String(output));
+    }
   }
 }
 

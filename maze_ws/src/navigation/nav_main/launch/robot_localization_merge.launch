@@ -1,0 +1,33 @@
+<launch>
+  <!-- Load the slam_out_pose message -->
+  <arg name="slam_out_pose_topic" default="/slam_out_pose" />
+  <arg name="imu_topic" default="/imu">
+
+  <!-- Launch the Robot Localization node -->
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization">
+    <param name="frequency" type="double" value="10.0" />
+    <param name="sensor_timeout" type="double" value="0.1" />
+    <param name="two_d_mode" type="bool" value="false" />
+
+    <!-- Configure the state estimation -->
+    <param name="odom_frame" value="base_footprint" />
+    <param name="base_link_frame" value="base_footprint" />
+    <param name="map_frame" value="map" />
+    <param name="world_frame" value="map" />
+
+    <!-- Configure the sensors -->
+    <param name="imu0_config" type="str" value="x: 0
+      y: 0
+      z: 0
+      roll: 0
+      pitch: 0
+      yaw: 0
+      imu_topic: $(arg imu_topic)" />
+    <!--<param name="odom0_config" type="str" value="odom_topic: /odom" />-->
+    <param name="pose0_config" type="str" value="map_frame: map
+      odom_frame: odom
+      base_link_frame: base_link
+      publish_tf: true
+      slam_out_pose_topic: $(arg slam_out_pose_topic)" />
+  </node>
+</launch>

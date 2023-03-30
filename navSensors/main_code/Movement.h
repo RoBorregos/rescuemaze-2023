@@ -1,181 +1,193 @@
-#ifndef Motor_h
-#define Motor_h
+#ifndef Movement_h
+#define Movement_h
 
 #include <Arduino.h>
-#include "MotorID.h"
-#include "PID.h"
 
-// Describes the state of a specific motor.
-enum class MotorState
-{
-  Backward = -1,
-  Stop = 0,
-  Forward = 1
-};
+#include <ros.h>
+#include <std_msgs/String.h>
+#include <math.h>
+#include "Motor.h"
+#include "Kinematics.h"
+#include "Dispenser.h"
+#include "BNO.h"
+#include "Sensors.h"
 
-// Class for controlling motor movement.
-class Motor
+// Motor Ids
+#define FRONT_LEFT 0
+#define BACK_LEFT 1
+#define FRONT_RIGHT 2
+#define BACK_RIGHT 3
+
+// Movement comands
+#define ROBOT_FORWARD 1
+#define ROBOT_TURN_RIGHT 2
+#define ROBOT_TURN_LEFT 3
+#define ROBOT_RAMP 4
+
+class Movement
 {
 private:
-  // Motor info
+  // ROS node.
+  ros::NodeHandle *nh;
+  // Servo dispenser
+  Dispenser dispenser;
+  // BNO sensors
+  BNO *bno;
+  // Sensors
+  Sensors *sensors;
 
-  uint8_t digitalOne;
-  uint8_t digitalTwo;
-  int pwmPin;
-  uint8_t encoderA;
-  uint8_t encoderB;
-  MotorID motorID;
-  MotorState currentState;
+  // Servo
+  static constexpr uint8_t kServoPin = 7;
 
-  // Velocity Data
+  // Leds
+  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
 
-  uint8_t pwm = 0;
+  // Limit Switches
+  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25};
 
-  // TODO: preguntar, no deberían ser volatiles estas variables? Porque las accede el arduino usando un interrupt.
-  long long int ticsCounter = 0;
-  int pidTics = 0;
+  // Motor.
+  static constexpr int kMotorCount = 4;
 
-  double currentSpeed = 0;
-  double targetSpeed = 0;
+  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {34, 35};
+  static constexpr uint8_t kAnalogPinFrontLeftMotor = 10;
+  static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {3, 49}; // A,B
 
-  // Motor characteristics.
+  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {32, 33};
+  static constexpr uint8_t kAnalogPinBackLeftMotor = 12;
+  static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {18, 47};
 
-  static constexpr double kPulsesPerRevolution = 451.0;
-  static constexpr double kWheelDiameter = 0.05;                   // (m)
-  static constexpr double kRPM = 150;                              // (rev/m)
-  static constexpr double kRPS = kRPM / 60;                        // (rev/s)
-  static constexpr double kDistancePerRev = M_PI * kWheelDiameter; // (m)
-  static constexpr double kMaxVelocity = kRPS * kDistancePerRev;   // (m/s)
-  static constexpr double kMaxPWM = 255;
-  static constexpr double kPwmDeadZone = 0;
-  static constexpr double kMinPwmForMovement = 0;
+  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {37, 36};
+  static constexpr uint8_t kAnalogPinFrontRightMotor = 11;
+  static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {2, 48};
 
-  // PID Data.
+  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
+  static constexpr uint8_t kAnalogPinBackRightMotor = 13;
+  static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
 
-  static constexpr uint8_t kPidMinOutputLimit = 30;
-  static constexpr uint8_t kPidMaxOutputLimit = 255;
-  static constexpr uint16_t kPidMaxErrorSum = 2000;
-  static constexpr uint8_t kPidMotorTimeSample = 100; // Time before calculating speed again (ms)
-  static constexpr double kOneSecondInMillis = 1000.0;
-  static constexpr double kSecondsInMinute = 60;
-  static constexpr double kPidCountTimeSamplesInOneSecond = kOneSecondInMillis / kPidMotorTimeSample;
-  static constexpr double kPidCountTimeSamplesInOneMinute = kSecondsInMinute * kPidCountTimeSamplesInOneSecond;
+  // Velocity maximum.
+  static constexpr double kFrWheelsDist = 0.145;
+  static constexpr double kLrWheelsDist = 0.18;
+  static constexpr double kWheelDiameter = 0.07;
+  static constexpr double kRPM = 240;
+  static constexpr double kRPS = kRPM / 60;
+  static constexpr double kMaxVelocity = kRPS * (M_PI * kWheelDiameter);
 
-  // PID controllers for straight movement. Manual calibration
+  static constexpr double kLinearXMaxVelocity = kMaxVelocity;
+  static constexpr double kLinearYMaxVelocity = kMaxVelocity;
+  static constexpr double kAngularZMaxVelocity = min(kMaxVelocity / kFrWheelsDist, kMaxVelocity / kLrWheelsDist);
+  static constexpr uint8_t kPwmBits = 8;
 
-  PID pidStraight;
-  static constexpr double kPStraight = 13; // 13; // 60
-  static constexpr double kIStraight = 6;  // 6;  // 55
-  static constexpr double kDStraight = 2;  // 2;  // 40
+  // PID
+  static constexpr bool kUsingPID = true;
+  static constexpr double kPStraightFR = 7; // 60
+  static constexpr double kIStraightFR = 3; // 55
+  static constexpr double kDStraightFR = 2; // 40
 
-  // PID controllers for rotations (used only in Movement::cmdMovement).
+  // Kinematics.
+  Kinematics kinematics;
 
-  PID pidRotate;
-  static constexpr double kPRotate = 1.25; // 0.5
-  static constexpr double kIRotate = 0;
-  static constexpr double kDRotate = 0;
+  // Cmd movement constants
+  static constexpr int kMovementRPMs = 60;
+  static constexpr double kMaxAngle = 359.0;
+  static constexpr double kMinAngle = 0.0;
 
 public:
+  // Motor Array.
+  Motor motor[4]; // Public to allow access in encoder.ino.
+
   // Constructors
 
-  Motor(uint8_t digitalOne, uint8_t digitalTwo, int pwmPin, uint8_t encoderA, uint8_t entcoderB, MotorID motorID);
-  Motor();
+  // Using ROS and BNO with arduino
+  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants = false);
 
-  // Motor Functions
+  // Using ROS, with external use of BNO.
+  Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants = false);
 
-  // Returns motor current state
-  MotorState getCurrentState();
+  // Using only Arduino.
+  Movement(BNO *bno, Sensors *sensors, bool individualConstants = false);
 
-  // Returns motor current speed in RPM
-  double getCurrentSpeed();
+  // Using only Arduino without bno
+  Movement(Sensors *sensors, bool individualConstants = false);
 
-  // Returns motor target speed in RPM
-  double getTargetSpeed();
+  // Initialize objects in common of constructors.
+  initMovement(bool individualConstants = false);
 
-  // Returns target RPS
-  // @param velocity Target speed in meters
-  double getTargetRps(double velocity);
+  // Initialization
 
-  // Returns motor current PID tics
-  int getPidTics();
+  // Initializes motors, leds, servo, limit switches, and kinematics.
+  void initRobot();
 
-  // Updates pid tics
-  void deltaPidTics(int delta);
+  // Sets the values of the PID for each motor.
+  void setIndividualPID();
 
-  // Initialization of motor
+  // Sets pins for all motors.
+  void setMotors();
 
-  void initMotor();
+  // Initializes indicator leds.
+  void initLeds();
 
-  void motorSetup();
+  // Initializes limit switches.
+  void initSwitches();
 
   // Encoder Methods
+  // @return The motor's mean distance traveled.
+  double meanDistanceTraveled();
 
-  // Returns encoder B pin
-  uint8_t getEncoderB();
+  // Resets all encoders counts
+  void resetEncoders();
 
-  // Returns encoder A pin
-  uint8_t getEncoderA();
+  // Modifies pointer with encoder counts for all motors
+  void getEncoderCounts(int *delta_encoder_counts);
 
-  // Returns motor encoder tics
-  int getEncoderTics();
+  // Prints all encoder tics in serial monitor.
+  void encoderTics();
 
-  // Sets encoder tics to argument
-  void setEncoderTics(int tics);
+  // Movement Methods
+  // Comand Velocity, using kinematics.
+  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
 
-  // Returns distance traveled in meters
-  double getDistanceTraveled();
+  // Comand Movement, using PID and static velocity
+  void cmdMovement(int movement_type);
 
-  // Attach interrupt of encoders.
-  void initEncoders();
+  // Sets motors state to turn right.
+  void girarDerecha();
 
-  // Updates encoder tics
-  void deltaEncoderTics(int delta);
+  // Sets motors state to turn left.
+  void girarIzquierda();
 
-  // Unit Conversion
+  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
+  // @param RPMs The target speed in RPMs.
+  void updateStraightPID(int RPMs);
 
-  // Returns RPMs in RPSs
-  double RPM2RPS(double velocity);
+  // Calls straight PID method for all motors, each with its specific target RMPs.
+  // @param rpm Kinematic object with target rpms per wheel.
+  void Movement::updatePIDKinematics(Kinematics::output rpm);
 
-  // Returns Meters in RPS
-  // @param MS meters.
-  double Ms2Rps(double MS);
+  // Moves the robot forward the specified distance.
+  // @param x Distance in meters.
+  void advanceXMeters(double x);
 
-  // Control Methods
+  // Decides how to turn depinding on the current and desired angles
+  void turnDecider(double current_angle, double desired_angle);
 
-  // Sets motor direction forward
-  void motorForward();
+  // Uses turn decider but with a delta angle
+  void girarDeltaAngulo(double delta_theta);
 
-  // Sets motor direction backward
-  void motorBackward();
+  void stop();
 
-  // Stops motor
-  void motorStop();
+  // Other Methods
+  // Gets sign which refers to where should a kit be dropped
+  void dropDecider(int ros_sign_callback);
 
-  // Sets motor PWM
-  void setPWM(double PWM);
+  // Cheks limit switches state to then decide how to move
+  void checkLimitSwitches();
 
-  // Returns current PWM
-  double getPWM();
+  // For specific tests on specific motors.
+  void testMotor();
 
-  // Computes target speed using straight PID controller. Enter true as
-  // second argument to print debug messages.
-  void motorSpeedPID(double target_speed, bool debug = false);
-
-  // Computes target speed without using PID controller, using PWM Kinematics
-  void motorSpeedPWM(double target_speed);
-
-  // Computes rotation using rotate PID controller (right rotation)
-  void motorRotateDerPID(double target_angle, double current_angle);
-
-  // computes rotation using rotate PID controller (left rotation)
-  void motorRotateIzqPID(double target_angle, double current_angle);
-
-  // PID METHODS
-
-  // Sets PID controllers for straight movement
-  void PIDStraightTunings(double kp, double ki, double kd);
-
-  // Sets PID controllers for rotation movement
-  void PIDRotateTunings(double kp, double ki, double kd);
+  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
+  // as well as their directions.
+  void testAllMotors();
 };
+
 #endif
