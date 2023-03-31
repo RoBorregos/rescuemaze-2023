@@ -161,7 +161,7 @@ public:
 
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
-  void Movement::updatePIDKinematics(Kinematics::output rpm);
+  void updatePIDKinematics(Kinematics::output rpm);
 
   // Moves the robot forward the specified distance.
   // @param x Distance in meters.
@@ -178,6 +178,9 @@ public:
   // Other Methods
   // Gets sign which refers to where should a kit be dropped
   void dropDecider(int ros_sign_callback);
+  
+  int rightLimitSwitch();
+  int leftLimitSwitch();
 
   void debugLimitSwitches();
 

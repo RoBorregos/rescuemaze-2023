@@ -170,6 +170,28 @@ void Movement::initSwitches()
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
 }
 
+int Movement::leftLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+  if (val == HIGH)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+int Movement::rightLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[1]);
+  if (val == HIGH)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
 void Movement::debugLimitSwitches()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[0]);

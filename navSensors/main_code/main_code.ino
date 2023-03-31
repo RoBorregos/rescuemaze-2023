@@ -40,6 +40,7 @@ void setup()
 
   ros::NodeHandle nh;
   nh.initNode();
+  
   while (!nh.connected())
   {
     nh.spinOnce();
