@@ -37,13 +37,13 @@ private:
   Sensors *sensors;
 
   // Servo
-  static constexpr uint8_t kServoPin = 7;
+  static constexpr uint8_t kServoPin = 7; // TODO: check pin
 
   // Leds
-  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
+  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
 
   // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25};
+  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
   // Motor.
   static constexpr int kMotorCount = 4;
@@ -179,8 +179,7 @@ public:
   // Gets sign which refers to where should a kit be dropped
   void dropDecider(int ros_sign_callback);
 
-  // Cheks limit switches state to then decide how to move
-  void checkLimitSwitches();
+  void debugLimitSwitches();
 
   // For specific tests on specific motors.
   void testMotor();
@@ -188,6 +187,7 @@ public:
   // Test that all motors are registered correctly (motor[0] is actually front left, etc),
   // as well as their directions.
   void testAllMotors();
+
 };
 
 #endif

@@ -1,13 +1,13 @@
-#include "PID.h"
+#include "PIDRb.h"
 
 // Constructor
 
-PID::PID()
+PIDRb::PIDRb()
 {
   timePassed = millis();
 }
 
-PID::PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary)
+PIDRb::PIDRb(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary)
 {
   this->useLibrary = useLibrary;
   timePassed = millis();
@@ -19,7 +19,7 @@ PID::PID(const double kp, const double ki, const double kd, const double out_min
   maxOutput = out_max;
 }
 
-PID::PID(const double kp, const double ki, const double kd)
+PIDRb::PIDRb(const double kp, const double ki, const double kd)
 {
   timePassed = millis();
   setTunings(kp, ki, kd);
@@ -27,7 +27,7 @@ PID::PID(const double kp, const double ki, const double kd)
 
 // PID Methods
 
-void PID::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
+void PIDRb::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
                        const double count_time_samples_in_one_second, const bool debug)
 {
 
@@ -79,7 +79,7 @@ void PID::computeSpeed(const double setpoint, double &input, double &output, int
   }
 }
 
-void PID::computeRotateIzq(const double desired, double current, double &output)
+void PIDRb::computeRotateIzq(const double desired, double current, double &output)
 {
   unsigned long timeDiff = millis() - timePassed;
 
@@ -113,7 +113,7 @@ void PID::computeRotateIzq(const double desired, double current, double &output)
   timePassed = millis();
 }
 
-void PID::computeRotateDer(const double desired, double current, double &output)
+void PIDRb::computeRotateDer(const double desired, double current, double &output)
 {
   unsigned long timeDiff = millis() - timePassed;
 
@@ -149,20 +149,20 @@ void PID::computeRotateDer(const double desired, double current, double &output)
 
 // Other Methods
 
-void PID::setTunings(double kp, double ki, double kd)
+void PIDRb::setTunings(double kp, double ki, double kd)
 {
   this->kp = kp;
   this->ki = ki;
   this->kd = kd;
 }
 
-void PID::reset()
+void PIDRb::reset()
 {
   errorSum = 0;
   errorPre = 0;
 }
 
-void PID::infoPID()
+void PIDRb::infoPID()
 {
   // Serial.println("PID INFORMATION");
   // Serial.print("kP = ");

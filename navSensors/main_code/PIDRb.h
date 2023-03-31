@@ -1,11 +1,10 @@
-#ifndef PID_h
-#define PID_h
+#ifndef PIDRb_h
+#define PIDRb_h
 
 #include <Arduino.h>
 #include <math.h>
-#include <PID_v1.h>
 
-class PID
+class PIDRb
 {
 private:
   double kp {0};
@@ -38,12 +37,12 @@ public:
   // @param out_max The maximum PWM supported by the motor (255).
   // @param max_error_sum The maximum error that can be accumulated by integral part.
   // @param sample_time The minimum time needed to compute speed again.
-  PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary = false);
+  PIDRb(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary = false);
   
   // Creates PID specifing the three constants and using default values for other variables.
-  PID(const double kp, const double ki, const double kd);
+  PIDRb(const double kp, const double ki, const double kd);
   
-  PID();
+  PIDRb();
 
   // PID Methods
 

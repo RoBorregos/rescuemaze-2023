@@ -81,6 +81,7 @@ void RosBridge::publish()
   unsigned long currentTime = millis();
   if ((currentTime - odom_timer) > kOdomPeriod)
   {
+    Serial.println("Iter");
     odom_timer = currentTime;
 
     // TCS sensor data

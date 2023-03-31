@@ -24,10 +24,10 @@ void setup()
 
   // Set some sensor or i2c device
   bool setTcs = false;
-  bool seti2c = false;
+  bool seti2c = true;
 
   // Set a specific test
-  bool doSpecificTest = false;
+  bool doSpecificTest = true;
 
   // General options
   bool useVLX = false;
@@ -36,7 +36,7 @@ void setup()
   setupData(setTcs, seti2c);
 
   specificTest(doSpecificTest, useVLX, setIndividualConstants);
-
+    
   ros::NodeHandle nh;
   nh.initNode();
   while (!nh.connected())
@@ -70,6 +70,7 @@ void initAll(bool useVLX, bool setIndividualConstants)
 
   static Movement movement(s, setIndividualConstants);
   robot = &movement;
+
 }
 
 void setupData(bool tcsSet, bool i2c)
@@ -102,12 +103,16 @@ void specificTest(bool test, bool useVLX, bool setIndividualConstants)
   // Do some specific test. E.g. pid test
   Serial.println("Specific test");
 
-  robot->testAllMotors(); // Test motor direction.
+  // Limit switches
+  /*
+  while (true){
+    robot->getSwitches();
+    delay(200);
+  }*/
+  //robot->testAllMotors(); // Test motor direction.
   
   moveRoutine(); // Test PID
 
-  while (true)
-    testMotor();
 
   robot->advanceXMeters(1);
 
