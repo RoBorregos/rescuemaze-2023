@@ -2,9 +2,9 @@
   <arg name="scan_topic" default="scan_filtered"/>
   <arg name="reduced_topic" default="/scan_reduced"/>
 
-  <node pkg="nav_main" type="scan_reduction.py" name="reduce_laser">
+  <node pkg="nav_main" type="scan_reduction.py" name="reduce_laser" output="screen">
    <param name="reduced_topic" value="$(arg reduced_topic)"/>
-   <param name="reduction_factor" value="4"/>
+   <param name="reduction_factor" value="2"/>
   </node>
 
   <remap from="scan" to="$(arg reduced_topic)"/>
