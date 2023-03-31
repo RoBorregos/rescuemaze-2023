@@ -47,7 +47,7 @@ class Sensors
 
   // Sensor Pins.
   int kMuxVLX = {1}; // VLX multiplexor pins
-  int kMuxTCS = 6;   // TCS multiplexor pin
+  int kMuxTCS = {0};   // TCS multiplexor pin
 
 public:
   // Constructor

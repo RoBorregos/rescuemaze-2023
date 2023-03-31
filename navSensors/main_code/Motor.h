@@ -177,5 +177,9 @@ public:
 
   // Sets PID controllers for rotation movement
   void PIDRotateTunings(double kp, double ki, double kd);
+
+  void PIDAggressiveTunings(double kp, double ki, double kd);
+  
+  void PIDConservativeTunings(double kp, double ki, double kd);
 };
 #endif

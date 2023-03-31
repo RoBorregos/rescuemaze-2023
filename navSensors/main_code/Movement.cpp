@@ -38,10 +38,20 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(120, 80, 10);
+  motor[BACK_LEFT].PIDStraightTunings(470, 0, 15);
   motor[FRONT_RIGHT].PIDStraightTunings(120, 80, 10);
   motor[FRONT_LEFT].PIDStraightTunings(120, 80, 10);
   motor[BACK_RIGHT].PIDStraightTunings(120, 80, 10);
+
+  motor[BACK_LEFT].PIDConservativeTunings(120, 80, 10);
+  motor[FRONT_RIGHT].PIDConservativeTunings(120, 80, 10);
+  motor[FRONT_LEFT].PIDConservativeTunings(120, 80, 10);
+  motor[BACK_RIGHT].PIDConservativeTunings(120, 80, 10);
+
+  motor[BACK_LEFT].PIDAggressiveTunings(470, 0, 15);
+  motor[FRONT_RIGHT].PIDAggressiveTunings(470, 0, 15);
+  motor[FRONT_LEFT].PIDAggressiveTunings(470, 0, 15);
+  motor[BACK_RIGHT].PIDAggressiveTunings(470, 0, 15);
 
   // Oscilates but arrives fast: motor[FRONT_RIGHT].PIDStraightTunings(470, 0, 15);
   // Oscilates less but arrives less fast: motor[FRONT_RIGHT].PIDStraightTunings(200, 120, 10);
@@ -163,20 +173,23 @@ void Movement::initSwitches()
 void Movement::debugLimitSwitches()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  if (val == HIGH){
+  if (val == HIGH)
+  {
     Serial.println("Switch 0 is open");
   }
-  else{
+  else
+  {
     Serial.println("Switch 0 is closed");
   }
   int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
-  if (val2 == HIGH){
+  if (val2 == HIGH)
+  {
     Serial.println("Switch 1 is open");
   }
-  else{
+  else
+  {
     Serial.println("Switch 1 is closed");
   }
-
 }
 
 // Encoder Functions
@@ -572,7 +585,6 @@ void Movement::cmdMovement(int movement_type)
     break;
   }
   digitalWrite(kDigitalPinsLEDS[0], HIGH);
-  
 }
 
 // Drop kit decider

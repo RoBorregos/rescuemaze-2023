@@ -7,9 +7,8 @@ PIDRb::PIDRb()
   timePassed = millis();
 }
 
-PIDRb::PIDRb(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary)
+PIDRb::PIDRb(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time)
 {
-  this->useLibrary = useLibrary;
   timePassed = millis();
   setTunings(kp, ki, kd);
   sampleTime = sample_time;
@@ -28,7 +27,7 @@ PIDRb::PIDRb(const double kp, const double ki, const double kd)
 // PID Methods
 
 void PIDRb::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
-                       const double count_time_samples_in_one_second, const bool debug)
+                         const double count_time_samples_in_one_second, const bool debug)
 {
 
   unsigned long timeDiff = millis() - timePassed;
@@ -48,34 +47,33 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   reset_variable = 0; // Reset encoder tics
 
-  if (!useLibrary)
+  const double error = setpoint - input; // Get error in terms of rev / s
+
+  flipMode(error);
+
+  errorSum += error * timeDiffSeconds;
+
+  const double derivative = (error - errorPre) / timeDiffSeconds;
+
+  output = error * kp + errorSum * ki + derivative * kd;
+
+  errorPre = error;
+
+  // Reduce variables to appropiate magnitudes.
+  errorSum = max(maxError * -1, min(maxError, errorSum));
+  output = max(minOutput, min(maxOutput, output));
+
+  timePassed = millis();
+
+  if (debug)
   {
-    const double error = setpoint - input; // Get error in terms of rev / s
-
-    errorSum += error * timeDiffSeconds;
-
-    const double derivative = (error - errorPre) / timeDiffSeconds;
-
-    output = error * kp + errorSum * ki + derivative * kd;
-
-    errorPre = error;
-
-    // Reduce variables to appropiate magnitudes.
-    errorSum = max(maxError * -1, min(maxError, errorSum));
-    output = max(minOutput, min(maxOutput, output));
-
-    timePassed = millis();
-
-    if (debug)
-    {
-      Serial.println("Time diff: " + String(timeDiff));
-      Serial.println("Input: " + String(input));
-      Serial.println("Error: " + String(error));
-      Serial.println("ErrorPre: " + String(errorPre));
-      Serial.println("Derivative: " + String(derivative));
-      Serial.println("ErrorSum: " + String(errorSum));
-      Serial.println("Output: " + String(output));
-    }
+    Serial.println("Time diff: " + String(timeDiff));
+    Serial.println("Input: " + String(input));
+    Serial.println("Error: " + String(error));
+    Serial.println("ErrorPre: " + String(errorPre));
+    Serial.println("Derivative: " + String(derivative));
+    Serial.println("ErrorSum: " + String(errorSum));
+    Serial.println("Output: " + String(output));
   }
 }
 
@@ -154,6 +152,32 @@ void PIDRb::setTunings(double kp, double ki, double kd)
   this->kp = kp;
   this->ki = ki;
   this->kd = kd;
+}
+
+void PIDRb::setConservative(double kp, double ki, double kd)
+{
+  this->cons_kp = kp;
+  this->cons_ki = ki;
+  this->cons_kd = kd;
+}
+
+void PIDRb::setAggressive(double kp, double ki, double kd)
+{
+  this->agr_kp = kp;
+  this->agr_ki = ki;
+  this->agr_kd = kd;
+}
+
+void PIDRb::flipMode(double error)
+{
+  if (error < 0.2)
+  {
+    setTunings(cons_kp, cons_ki, cons_kd);
+  }
+  else
+  {
+    setTunings(agr_kp, agr_ki, agr_kd);
+  }
 }
 
 void PIDRb::reset()
