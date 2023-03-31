@@ -8,7 +8,7 @@ class ScanReducer:
         self.reduction_factor = reduction_factor
         self.scan_subscriber = rospy.Subscriber('/scan', LaserScan, self.scan_callback)
         self.scan_publisher = rospy.Publisher(topic, LaserScan, queue_size=10)
-        self.samples_per_scan = rospy.get_param("~samples_per_scan", 500)
+        self.samples_per_scan = rospy.get_param("~samples_per_scan", 180)
 
     def scan_callback(self, scan_msg):
         reduced_ranges = scan_msg.ranges[::self.reduction_factor]
@@ -32,13 +32,13 @@ class ScanReducer:
 
     def filter_sample_size(self, scan_msg):
         original_samples = len(scan_msg.ranges)
+
         step = int(original_samples / self.samples_per_scan)
         new_ranges = []
         new_intensities = []
 
-        for i in range(0, original_samples, step):
-            new_ranges.append(scan_msg.ranges[i])
-            new_intensities.append(scan_msg.intensities[i])
+        new_ranges = scan_msg.ranges[::step]
+        new_intensities = scan_msg.intensities[::step]
 
         normalized_scan = LaserScan()
         normalized_scan.header = scan_msg.header
@@ -51,16 +51,17 @@ class ScanReducer:
         normalized_scan.range_max = scan_msg.range_max
         normalized_scan.ranges = new_ranges
         normalized_scan.intensities = new_intensities
-
-        self.scan_publisher.publish(normalized_scan)
+        self.scan_filter(normalized_scan)
+        #self.scan_publisher.publish(normalized_scan)
     
     scan_buffer = []
     # weights = [0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.5, 0.5, 1.0]
-    weights = [0.2, 0.3, 0.5]
+    weights = [0.2, 0.3, 1.0]
+
     def scan_filter(self, scan_msg):
         # Append the most recent scan to the buffer
         self.scan_buffer.append(scan_msg.ranges)
-
+        print("Ranges length:", len(scan_msg.ranges))
         # If the buffer is larger than 3 scans, remove the oldest scan
         if len(self.scan_buffer) > 3:
             self.scan_buffer.pop(0)

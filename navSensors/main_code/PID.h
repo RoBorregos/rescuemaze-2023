@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <math.h>
+#include <PID_v1.h>
 
 class PID
 {
@@ -10,6 +11,10 @@ private:
   double kp {0};
   double ki {0};
   double kd {0};
+
+  double kp_conservative {0};
+  double ki_conservative {0};
+  double kd_conservative {0};
 
   double errorSum {0};
   double errorPre {0};
@@ -20,6 +25,7 @@ private:
 
   unsigned long timePassed;
   unsigned long sampleTime {50};
+  bool useLibrary;
 
 public:
   // Constructors
@@ -32,7 +38,7 @@ public:
   // @param out_max The maximum PWM supported by the motor (255).
   // @param max_error_sum The maximum error that can be accumulated by integral part.
   // @param sample_time The minimum time needed to compute speed again.
-  PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time);
+  PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary = false);
   
   // Creates PID specifing the three constants and using default values for other variables.
   PID(const double kp, const double ki, const double kd);

@@ -301,7 +301,7 @@ class LocalizationGrid:
 
 		width = 500
 		height = int(500 * (self.occupancy_grid.info.height/self.occupancy_grid.info.width))
-		mapHeight = 225 # in cm
+		mapHeight = round(self.occupancy_grid.info.resolution, 3) * self.occupancy_grid.info.height * 100 # in cm
 		cell_distance = mapHeight / height
 
 		north, south, east, west = 1000, 1000, 1000, 1000

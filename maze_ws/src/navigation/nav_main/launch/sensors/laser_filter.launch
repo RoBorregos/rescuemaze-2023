@@ -1,8 +1,17 @@
 <launch>
   <arg name="scan_topic" default="scan_filtered"/>
+  <arg name="reduced_topic" default="/scan_reduced"/>
+
+  <node pkg="nav_main" type="scan_reduction.py" name="reduce_laser" output="screen">
+   <param name="reduced_topic" value="$(arg reduced_topic)"/>
+   <param name="reduction_factor" value="2"/>
+  </node>
+
+  <remap from="scan" to="$(arg reduced_topic)"/>
 
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
   <rosparam command="load" file="$(find nav_main)/launch/sensors/laser_filtering_config.yaml" />
+  
   <remap from="scan_filtered" to="$(arg scan_topic)"/>
 
   </node>

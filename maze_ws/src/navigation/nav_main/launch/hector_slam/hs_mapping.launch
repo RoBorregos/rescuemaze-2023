@@ -8,7 +8,7 @@
   <arg name="odom_frame" default="odom"/>
   <arg name="pub_map_odom_transform" default="true"/>
   <arg name="scan_subscriber_queue_size" default="15"/>
-  <arg name="scan_topic" default="scan"/>
+  <arg name="scan_topic" default="scan_reduced"/>
   <arg name="map_size" default="2048"/>
   <arg name="has_imu" default="false"/>
   <arg name="imu_topic" default="imu/data"/>
@@ -20,8 +20,8 @@
   </include>
   
   <node if="$(arg has_imu)" pkg="hector_imu_attitude_to_tf" type="imu_attitude_to_tf_node" name="imu_attitude_to_tf_node" output="screen">
-    <!--<remap from="imu_topic" to="imu" />-->
-    <remap from="imu_topic" to="$(arg imu_topic)" />
+    <remap from="imu_topic" to="imu" /> <!-- Use with simulation -->
+    <!--<remap from="imu_topic" to="$(arg imu_topic)" />--> <!--Use With physical robot-->
     <param name="base_stabilized_frame" type="string" value="$(arg base_frame)" />
     <param name="base_frame" type="string" value="$(arg base_link)" />
   </node>

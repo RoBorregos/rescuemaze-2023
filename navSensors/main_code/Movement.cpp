@@ -38,10 +38,10 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(470, 0, 15);
-  motor[FRONT_RIGHT].PIDStraightTunings(470, 0, 15);
-  motor[FRONT_LEFT].PIDStraightTunings(470, 0, 15);
-  motor[BACK_RIGHT].PIDStraightTunings(470, 0, 15);
+  motor[BACK_LEFT].PIDStraightTunings(120, 80, 10);
+  motor[FRONT_RIGHT].PIDStraightTunings(120, 80, 10);
+  motor[FRONT_LEFT].PIDStraightTunings(120, 80, 10);
+  motor[BACK_RIGHT].PIDStraightTunings(120, 80, 10);
 
   // Oscilates but arrives fast: motor[FRONT_RIGHT].PIDStraightTunings(470, 0, 15);
   // Oscilates less but arrives less fast: motor[FRONT_RIGHT].PIDStraightTunings(200, 120, 10);
@@ -686,4 +686,7 @@ void Movement::testAllMotors()
   delay(2000);
   motor[BACK_RIGHT].motorSpeedPID(0);
   delay(1000);
+
+  while (true)
+    delay(1000);
 }
