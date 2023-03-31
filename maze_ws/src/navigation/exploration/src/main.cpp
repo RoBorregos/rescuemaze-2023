@@ -293,14 +293,17 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
         {
             tile->weight = 100;
         }
-
+        else if (goalResult == 3) // Silver tile
+        {
+            calcPos(mapa.pos, key, mapa);
+            // Update checkpoint position
+            mapa.setRecovPos();
+        }
 
         calcPos(mapa.pos, key, mapa);
 
         if (!useros)
             mapa.moveMaze(key);
-        
-
 
         return tile->adjacentTiles[key];
     }
@@ -713,15 +716,12 @@ void explore(bool checkpoint, int argc, char **argv)
                 bridge->pubDebug("Checking key: " + key);
             }
 
-
             if (mapa.tile && rosDebug)
             {
                 bridge->pubDebug("Tile: " + posvectorToString(mapa.tile->pos));
                 printTile(mapa.tile);
             }
             // ROS_INFO("Checking key: %s", key.c_str());
-
-
 
             if (useros && isWall(key))
             {
