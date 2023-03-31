@@ -12,6 +12,7 @@
 #include "geometry_msgs/Quaternion.h"
 #include "tf/transform_datatypes.h"
 #include "sensor_msgs/Imu.h"
+#include "sensor_msgs/Range.h"
 
 // #include <tf2_ros/transform_broadcaster.h>
 // #include <tf2/LinearMath/Matrix3x3.h>
@@ -23,6 +24,9 @@
 // #include <nav_msgs/GetMap.h>
 // #include <nav_msgs/SetMap.h>
 // #include <nav_msgs/OccupancyGrid.h>
+
+#include <ros/callback_queue.h>
+#include <chrono>
 
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
@@ -42,6 +46,9 @@ using namespace std;
 class ROSbridge
 {
 private:
+    double NOSEUP_PITCH;
+    double NOSEDOWN_PITCH;
+
     bool debugging;
     bool debugmapgoals;
 
@@ -52,6 +59,15 @@ private:
 
     bool blueTile;
     bool blackTile;
+    bool silverTile;
+
+    bool upRamp;
+    bool downRamp;
+
+    bool obstacle;
+
+    // Timer
+    ros::Timer timer;
 
     // ros::Publisher pub;
 
@@ -59,15 +75,18 @@ private:
     ros::Subscriber tcssub;
     ros::Subscriber bnoxsub;
     // TODO: Make callback and add to constructor
-    ros::Subscriber limitswitch1;
+    ros::Subscriber limitswitchleftsub;
     ros::Subscriber localizationsub;
     ros::Subscriber centersub;
     ros::Subscriber imusub;
+    ros::Subscriber vlxsub;
 
     // Publishers
     ros::Publisher dispenserpub;
     ros::Publisher orientationpub;
     ros::Publisher debugpub;
+    // Twist Publisher
+    ros::Publisher twistpub;
 
     // Transform broadcaster
     TfBroadcaster tfb;
@@ -92,6 +111,9 @@ private:
     void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &msg);
     void localizationCallback(const geometry_msgs::Point::ConstPtr &msg);
     void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+    void vlxCallback(const sensor_msgs::Range::ConstPtr &msg);
+
+    void timerCallback(const ros::TimerEvent &event);
 
     // Action client callbacks
     void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result);
@@ -110,8 +132,8 @@ public:
     ClientScope scope;
     char tcsdata;
     float bnoxdata;
-    bool limitSwitch1;
-    bool limitSwitch2;
+    bool limitSwitchLeft;
+    bool limitSwitchRight;
 
     // Imu data
     double xImu;
@@ -122,6 +144,9 @@ public:
     double roll;
     double pitch;
     double yaw;
+
+    // VLX data
+    double distVlx;
 
     bool started;
     double northYaw;
@@ -163,14 +188,23 @@ public:
 
 ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
 {
+    NOSEUP_PITCH = -0.1;
+    NOSEDOWN_PITCH = 0.1;
+
     debugging = true;
     debugmapgoals = true;
     started = false;
     xdistCenter = 0;
     ydistCenter = 0;
     tcsdata = '0';
-    limitSwitch1 = false;
+    limitSwitchLeft = false;
+
     blueTile = false;
+    blackTile = false;
+    silverTile = false;
+    
+    upRamp = false;
+    downRamp = false;
 
     ROS_INFO("Creating ROSbridge");
     nh = n;
@@ -181,12 +215,14 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     bnoxsub = nh->subscribe("/sensor/bno/x", 1000, &ROSbridge::bnoxcallback, this);
     centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
     imusub = nh->subscribe("/imu", 10, &ROSbridge::imuCallback, this);
+    vlxsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxCallback, this);
 
     ROS_INFO("Created subscribers");
 
     dispenserpub = nh->advertise<std_msgs::String>("/dispenser", 1000);
     debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
     orientationpub = nh->advertise<std_msgs::Float64>("/ideal_orientation", 1000);
+    twistpub = nh->advertise<geometry_msgs::Twist>("/recov_vel", 1000);
 
     // // Transform broadcaster
     // transformStamped = geometry_msgs::TransformStamped();
@@ -212,8 +248,8 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
 void ROSbridge::tcscallback(const std_msgs::Char::ConstPtr &msg)
 {
     ROS_INFO("I heard: [%c]", msg->data);
-    // tcsdata = msg->data;
-    tcsdata = 'b';
+    tcsdata = msg->data;
+    // tcsdata = 'b';
 }
 
 void ROSbridge::bnoxcallback(const std_msgs::Float64::ConstPtr &msg)
@@ -302,6 +338,11 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
     }
 }
 
+void ROSbridge::vlxCallback(const sensor_msgs::Range::ConstPtr &msg)
+{
+    distVlx = msg->range;
+}
+
 void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
 {
     ROS_INFO_STREAM("done callback: Finished in state " << state.toString());
@@ -315,8 +356,28 @@ void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move
     scope.startedGoal = false;
 }
 
+// Timer callback
+void ROSbridge::timerCallback(const ros::TimerEvent &)
+{
+    // ROS_INFO("Timer callback");
+    // ROS_INFO("Timer callback: %d", scope.status);
+
+    if (!scope.resultReceived)
+    {
+
+    }
+    // if (scope.status == 3)
+    // {
+    //     ROS_INFO("Goal reached");
+    //     scope.status = 0;
+    //     scope.resultReceived = true;
+    //     scope.startedGoal = false;
+    // }
+}
+
 void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedback)
 {
+    ros::spinOnce();
 
     // ROS_INFO("Feedback x %f", feedback->base_position.pose.position.x);
     // ROS_INFO("Feedback y %f", feedback->base_position.pose.position.y);
@@ -338,23 +399,68 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
 
         blueTile = true;
     }
+    else if (tcsdata == 's')
+    {
+        if (debugging)
+            ROS_INFO("Silver tile detected");
+
+        silverTile = true;
+    }
 
     // check limit switches
-    if (limitSwitch1)
+    if (limitSwitchLeft)
     {
         ROS_INFO("Limit switch 1, recovering");
         
+        geometry_msgs::Twist moveBackTwist;
+        moveBackTwist.linear.x = -0.2; // move backward at 0.5 m/s
+        moveBackTwist.angular.z = -0.5; // turn right at 45 degrees/s (0.785 radians/s)
+
+        // Publish twist message
+        twistpub.publish(moveBackTwist);
+
+        // Wait for 1 second
+        ros::Duration(0.5).sleep();
+
+        // Stop the robot
+        moveBackTwist.linear.x = 0.0;
+        moveBackTwist.angular.z = 0.0;
+        twistpub.publish(moveBackTwist);
     }
-    if (limitSwitch2)
+    if (limitSwitchRight)
     {
-        ROS_INFO("Limit switch 2, recovering");
-        
+        ROS_INFO("Limit switch right, recovering");
+
+        geometry_msgs::Twist moveBackTwist;
+        moveBackTwist.linear.x = -0.2; // move backward at 0.5 m/s
+        moveBackTwist.angular.z = 0.5; // turn right at 45 degrees/s (0.785 radians/s)
+
+        // Publish twist message
+        twistpub.publish(moveBackTwist);
+
+        // Wait for 1 second
+        ros::Duration(0.5).sleep();
+
+        // Stop the robot
+        moveBackTwist.linear.x = 0.0;
+        moveBackTwist.angular.z = 0.0;
+        twistpub.publish(moveBackTwist);
     }
 
     // check pitch from imu
-    if (false)
+    if (!upRamp && pitch < NOSEUP_PITCH) // Found obstacle (bumper / stairs)
     {
+        if (debugging)
+            ROS_INFO("Found obstacle");
 
+        obstacle = true;
+    }
+    else if (pitch > NOSEDOWN_PITCH) // Down ramp
+    {
+        if (debugging)
+            ROS_INFO("Down ramp");
+
+        downRamp = true;
     }
 
     // scope.feedback = feedback->base_position.pose;
@@ -368,6 +474,10 @@ void ROSbridge::activeCb()
     ROS_INFO("Goal just went active");
     scope.resultReceived = false;
     scope.startedGoal = true;
+
+    // Start timer for 7 seconds to check if goal is reached
+    timer = nh->createTimer(ros::Duration(7), &ROSbridge::timerCallback, this);
+
 }
 
 // Action client functions
@@ -411,7 +521,10 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
 // Return values:
 // 0: Goal not reached, black tile
 // 1: Goal reached, white tile
-// 2: Goal reached, blue tile
+// 2: Goal reached, blue tile / obstacle
+// 3: Goal reached, silver tile
+// 4: Goal reached, down ramp
+// 5: Goal reached, up ramp
 int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
 {
     geometry_msgs::PoseStamped pose;
@@ -461,6 +574,10 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
         ros::Duration(5).sleep();
         blueTile = false;
     }
+    else if (silverTile) 
+    {
+        silverTile = false;
+    }
 
     movementClientAsync(goal);
 
@@ -494,14 +611,33 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
     }
     else if (blueTile)
     {
-        blueTile = false;
         return 2;
+    }
+    else if (obstacle)
+    {
+        obstacle = false;
+        return 2;
+    }
+    else if (silverTile)
+    {
+        return 3;
+    }
+    else if (downRamp)
+    {
+        downRamp = false;
+        return 4;
+    }
+    else if (upRamp)
+    {
+        upRamp = false;
+        return 5;
     }
     else
     {
         return 1;
     }
 }
+
 int ROSbridge::sendUnitGoal(int movement, int rDirection)
 {
     if (true)

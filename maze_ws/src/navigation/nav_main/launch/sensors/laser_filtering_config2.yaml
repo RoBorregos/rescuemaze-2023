@@ -1,0 +1,43 @@
+scan_filter_chain:
+  - name: angle_filter1
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: -0.5
+      upper_angle: -0.2
+  - name: angle_filter2
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: 0.2
+      upper_angle: 0.5
+  - name: angle_filter3
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: 1.0
+      upper_angle: 1.5
+  - name: angle_filter4
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: 2.0
+      upper_angle: 2.5
+  - name: angle_filter5
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: 2.0
+      upper_angle: 2.5
+  - name: angle_filter6
+    type: laser_filters/LaserScanAngularBoundsFilterInPlace
+    params:
+      lower_angle: 2.0
+      upper_angle: 2.5
+
+# scan_filter_chain:
+# - name: range
+#   type: laser_filters/LaserScanRangeFilter
+#   params:
+#     use_message_range_limits: false
+#     # Set lower threshold to avoid detecting robot's cables.
+#     lower_threshold: 0.1
+#     # Set upper threshold to avoid detecting outside of field when lidar gets tilted or is in ramp.
+#     upper_threshold: 1.5
+#     lower_replacement_value: -.inf
+#     upper_replacement_value: .inf

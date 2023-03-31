@@ -27,6 +27,7 @@ class ScanReducer:
         reduced_scan.range_max = scan_msg.range_max
         reduced_scan.ranges = reduced_ranges
         reduced_scan.intensities = reduced_intensities
+        # self.scan_filter(reduced_scan)
         self.filter_sample_size(scan_msg)
 
     def filter_sample_size(self, scan_msg):
