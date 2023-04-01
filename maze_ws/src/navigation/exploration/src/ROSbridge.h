@@ -4,6 +4,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int16.h>
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include "actionlib/client/simple_action_client.h"
@@ -34,6 +35,7 @@
 
 #include <nav_main/GetWalls.h>
 #include <nav_main/GetWallsDist.h>
+#include <openmv_camera/BothCameras.h>
 
 #include "TfBroadcaster.h"
 
@@ -106,6 +108,7 @@ private:
 
     ros::ServiceClient wallsClient;
     ros::ServiceClient wallsDistClient;
+    ros::ServiceClient victimsClient;
 
     // Action clients
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac;
@@ -208,7 +211,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     blueTile = false;
     blackTile = false;
     silverTile = false;
-    
+
     upRamp = false;
     downRamp = false;
 
@@ -227,7 +230,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
 
     ROS_INFO("Created subscribers");
 
-    dispenserpub = nh->advertise<std_msgs::String>("/dispenser", 1000);
+    dispenserpub = nh->advertise<std_msgs::Int16>("/dispenser", 1000);
     debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
     orientationpub = nh->advertise<std_msgs::Float64>("/ideal_orientation", 1000);
     twistpub = nh->advertise<geometry_msgs::Twist>("/recov_vel", 1000);
@@ -334,7 +337,7 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         //     westYaw = northYaw + M_PI_2 * 3;
     }
 
-    if (true)
+    if (false)
     {
         // ROS_INFO("x: %f", xImu);
         // ROS_INFO("y: %f", yImu);
@@ -455,9 +458,9 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
     if (limitSwitchLeft)
     {
         ROS_INFO("Limit switch 1, recovering");
-        
+
         geometry_msgs::Twist moveBackTwist;
-        moveBackTwist.linear.x = -0.2; // move backward at 0.5 m/s
+        moveBackTwist.linear.x = -0.2;  // move backward at 0.5 m/s
         moveBackTwist.angular.z = -0.5; // turn right at 45 degrees/s (0.785 radians/s)
 
         // Publish twist message
@@ -523,8 +526,6 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
         // publish forward twist while pitch is not close to 0
         geometry_msgs::Twist moveTwist;
         moveTwist.linear.x = 0.2; // move forward at 0.5 m/s
-
-        
     }
 
     // scope.feedback = feedback->base_position.pose;
@@ -669,7 +670,7 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
         ros::Duration(5).sleep();
         blueTile = false;
     }
-    else if (silverTile) 
+    else if (silverTile)
     {
         silverTile = false;
     }
@@ -745,7 +746,7 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
         goal.target_pose = poseMap;
 
         movementClientAsync(goal);
-        
+
         return sendMapGoalGOAT(movement, rDirection);
     }
     else if (downRamp)
@@ -1406,6 +1407,78 @@ tfbr.sendTransform(transformStamped);
 
 int ROSbridge::getVictims()
 {
+    // Normal tile, check victim
+    openmv_camera::BothCameras bothCameras;
+
+    victimsClient.call(bothCameras);
+
+    if (bothCameras.response.left_cam == "H")
+    {
+        // Drop three kits to the left
+        std_msgs::Int16 msg;
+        msg.data = -3;
+        dispenserpub.publish(msg);
+
+        ros::Duration(6).sleep();
+
+        return 3;
+    }
+    else if (bothCameras.response.right_cam == "H")
+    {
+        // Drop three kits to the right
+        std_msgs::Int16 msg;
+        msg.data = 3;
+        dispenserpub.publish(msg);
+
+        ros::Duration(6).sleep();
+
+        return 3;
+    }
+    else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
+    {
+        // Drop two kits to the left
+        std_msgs::Int16 msg;
+        msg.data = -2;
+        dispenserpub.publish(msg);
+
+        ros::Duration(4).sleep();
+
+        return 2;
+    }
+    else if (bothCameras.response.right_cam == "S")
+    {
+        // Drop two kits to the right
+        std_msgs::Int16 msg;
+        msg.data = 2;
+        dispenserpub.publish(msg);
+
+        ros::Duration(4).sleep();
+
+        return 2;
+    }
+    else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
+    {
+        // Drop one kit to the left
+        std_msgs::Int16 msg;
+        msg.data = -1;
+        dispenserpub.publish(msg);
+
+        ros::Duration(2).sleep();
+
+        return 1;
+    }
+    else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
+    {
+        // Drop one kit to the right
+        std_msgs::Int16 msg;
+        msg.data = 1;
+        dispenserpub.publish(msg);
+
+        ros::Duration(2).sleep();
+
+        return 1;
+    }
+
     return 0;
 }
 

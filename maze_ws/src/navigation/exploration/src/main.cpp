@@ -277,11 +277,11 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             goalResult = moveWest(xMaze, rDirection, mapa);
         }
 
-        if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
-        {
-            bridge->clearMap();
-            // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
-        }
+        // if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
+        // {
+        //     bridge->clearMap();
+        //     // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
+        // }
 
         // Change tile properties based on goal result
         if (goalResult == 0) // Black tile
@@ -371,12 +371,21 @@ bool isRamp(string key, Map &mapa)
     return false;
 }
 
+int checkVictims() // use ros
+{
+    return bridge->getVictims();
+}
+
 // Sigue las instrucciones del stack y regresa el tile al que se movio
 Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 {
     while (!path.empty())
     {
         tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa);
+        
+        if (tile->visited == 0)
+            tile->victim = checkVictims();
+
         // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
         // ROS_INFO("Move to the: %s", path.top().c_str());
         bridge->pubDebug("Move to the: " + path.top());
@@ -384,11 +393,6 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
     }
 
     return tile;
-}
-
-int checkVictims() // use ros
-{
-    return bridge->getVictims();
 }
 
 int checkVictims(Map &mapa)

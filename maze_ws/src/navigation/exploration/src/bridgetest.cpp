@@ -1,5 +1,6 @@
 #include "ROSbridge.h"
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "bridgetest");
@@ -9,8 +10,21 @@ int main(int argc, char **argv)
 
     while (ros::ok() && !bridge.started)
     {
+        // clear maps
         ros::spinOnce();
+
+        ROS_INFO("Clearing map");
+        bridge.clearMap();
+
+        ros::Duration(3).sleep();
     }
+    // define service server
+    // ros::ServiceServer service = n->advertiseService("clearMap", &ROSbridge::getWalls,);
+
+    // while (ros::ok() && !bridge.started)
+    // {
+    //     ros::spinOnce();
+    // }
 
     // int dir = 0;
     // bridge.publishIdealOrientation(dir);
