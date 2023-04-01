@@ -8,16 +8,16 @@ int main(int argc, char **argv)
 
     ROSbridge bridge(n);
 
-    while (ros::ok() && !bridge.started)
-    {
-        // clear maps
-        ros::spinOnce();
+    // while (ros::ok() && !bridge.startedImu)
+    // {
+    //     // clear maps
+    //     ros::spinOnce();
 
-        ROS_INFO("Clearing map");
-        bridge.clearMap();
+    //     // ROS_INFO("Clearing map");
+    //     // bridge.clearMap();
 
-        ros::Duration(3).sleep();
-    }
+    //     // ros::Duration(3).sleep();
+    // }
     // define service server
     // ros::ServiceServer service = n->advertiseService("clearMap", &ROSbridge::getWalls,);
 

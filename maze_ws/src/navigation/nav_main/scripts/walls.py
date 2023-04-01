@@ -9,6 +9,7 @@
 import rospy
 from sensor_msgs.msg import LaserScan
 from nav_main.srv import GetWalls, GetWallsResponse, GetWallsDist, GetWallsDistResponse
+from std_msgs.msg import Bool
 
 debug = False
 
@@ -93,6 +94,29 @@ def scan_callback(scan_msg_in):
     global scan_msg
     scan_msg = scan_msg_in
 
+    # Publish if there is a wall in the back
+    ranges = scan_msg.ranges
+
+    # Define the indices corresponding to north, east, south, and west directions
+    # This assumes len(ranges) >= 360. The indices of directions change according to lidar orientation
+
+    east_idx = len(ranges) // 4 # Back
+
+    # Get distance to nearest wall in each direction
+    back_dist = ranges[east_idx] # Back of the robot
+
+    # Substract distance from lidar to robot's wall (get distance from robot's footprint to walls)
+    back_dist -= 0.1
+    
+    if True:
+        rospy.loginfo("Back: " + str (back_dist))
+
+    # Publish if there is a wall in the back
+    if back_dist < 0.2:
+        pub.publish(True)
+    else:
+        pub.publish(False)
+
 if __name__ == '__main__':
     # Initialize the node
     rospy.init_node('get_walls')
@@ -111,6 +135,11 @@ if __name__ == '__main__':
 
     # Second service that returns the distance to the walls
     s2 = rospy.Service('get_walls_dist', GetWallsDist, detect_walls_dist)  
+
+    # Topic to publish if there is a wall in the back
+    pub = rospy.Publisher('back_wall', Bool, queue_size=10)
+
+    
 
     # Spin the node to keep it alive
     rospy.spin()

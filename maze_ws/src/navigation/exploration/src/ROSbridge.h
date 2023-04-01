@@ -87,12 +87,19 @@ private:
     ros::Subscriber imusub;
     ros::Subscriber vlxsub;
 
+    ros::Subscriber jetsonresultsub;
+    ros::Subscriber startsub;
+
     // Publishers
     ros::Publisher dispenserpub;
     ros::Publisher orientationpub;
     ros::Publisher debugpub;
     // Twist Publisher
     ros::Publisher twistpub;
+    ros::Publisher pitchpub;
+    ros::Publisher yawpub;
+
+    ros::Publisher unitmovementpub;
 
     // Transform broadcaster
     TfBroadcaster tfb;
@@ -121,7 +128,11 @@ private:
     void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
     void vlxCallback(const sensor_msgs::Range::ConstPtr &msg);
 
+    void jetsonResultCallback(const std_msgs::Int16::ConstPtr &msg);
+
     void timerCallback(const ros::TimerEvent &event);
+
+    void startCallback(const std_msgs::Int16::ConstPtr &msg);
 
     // Action client callbacks
     void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result);
@@ -131,6 +142,7 @@ private:
     // Action client functions
     void movementClientAsync(move_base_msgs::MoveBaseGoal goal);
     void sendGoal(geometry_msgs::Pose pose);
+    int sendGoalJetson(int movement, int rDirection);
 
     void cancelGoal();
 
@@ -157,7 +169,7 @@ public:
     double distVlx;
     double distLidar;
 
-    bool started;
+    bool startedImu;
     double northYaw;
     double eastYaw;
     double southYaw;
@@ -167,6 +179,8 @@ public:
 
     double xdistCenter;
     double ydistCenter;
+
+    bool startAlgorithm;
 
     ROSbridge(ros::NodeHandle *n);
 
@@ -202,7 +216,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
 
     debugging = true;
     debugmapgoals = true;
-    started = false;
+    startedImu = false;
     xdistCenter = 0;
     ydistCenter = 0;
     tcsdata = '0';
@@ -217,6 +231,8 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
 
     restartGoal = false;
 
+    startAlgorithm = false;
+
     ROS_INFO("Creating ROSbridge");
     nh = n;
 
@@ -225,8 +241,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     tcssub = nh->subscribe("/sensor/tcs", 1000, &ROSbridge::tcscallback, this);
     bnoxsub = nh->subscribe("/sensor/bno/x", 1000, &ROSbridge::bnoxcallback, this);
     centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
-    imusub = nh->subscribe("/imu", 10, &ROSbridge::imuCallback, this);
+    imusub = nh->subscribe("/imu/data", 10, &ROSbridge::imuCallback, this);
     vlxsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxCallback, this);
+    jetsonresultsub = nh->subscribe("/control_feedback", 10, &ROSbridge::jetsonResultCallback, this);
+    startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
 
     ROS_INFO("Created subscribers");
 
@@ -234,6 +252,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
     orientationpub = nh->advertise<std_msgs::Float64>("/ideal_orientation", 1000);
     twistpub = nh->advertise<geometry_msgs::Twist>("/recov_vel", 1000);
+    pitchpub = nh->advertise<std_msgs::Float64>("/pitch", 1000);
+    yawpub = nh->advertise<std_msgs::Float64>("/yaw", 1000);
+
+    unitmovementpub = nh->advertise<std_msgs::Int16>("/unit_movement", 1000);
 
     // // Transform broadcaster
     // transformStamped = geometry_msgs::TransformStamped();
@@ -250,7 +272,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     ROS_INFO("Created service clients");
 
     // tfb.run();
-    ROS_INFO("Started transform broadcaster");
+    // ROS_INFO("Started transform broadcaster");
 
     // tfl.waitForTransform("base_link", "perfect_position", ros::Time(0), ros::Duration(10.0));
 }
@@ -296,9 +318,9 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
     tf::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
 
-    if (!started)
+    if (!startedImu)
     {
-        started = true;
+        startedImu = true;
         northYaw = yaw;
 
         tfb.setTransformYaw(yaw);
@@ -353,6 +375,20 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
 void ROSbridge::vlxCallback(const sensor_msgs::Range::ConstPtr &msg)
 {
     distVlx = msg->range;
+}
+
+void ROSbridge::jetsonResultCallback(const std_msgs::Int16::ConstPtr &msg)
+{
+    ROS_INFO("Jetson result: %d", msg->data);
+    scope.result = msg->data;
+    scope.resultReceived = true;
+    scope.startedGoal = false;
+}
+
+void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
+{
+    ROS_INFO("Start callback: %d", msg->data);
+    startAlgorithm = msg->data;
 }
 
 // Lidar callback
@@ -580,6 +616,157 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
 
     // goal.target_pose = poseStamped;
     movementClientAsync(goal);
+}
+
+// 1: forward
+// 2: left
+// 3: right
+// 4: forward (ramp)
+// 5: backward
+
+// Return values:
+// 0: Goal not reached, black tile
+// 1: Goal reached, white tile
+// 2: Goal reached, blue tile / obstacle
+// 3: Goal reached, silver tile
+// 4: Goal reached, down ramp
+// 5: Goal reached, up ramp
+int ROSbridge::sendGoalJetson(int movement, int rDirection)
+{
+    ros::spinOnce();
+
+    // Call get_walls_dist service
+    nav_main::GetWallsDist walls;
+
+    wallsClient.call(walls);
+
+    distLidar = walls.response.front;
+
+    std_msgs::Int16 movementmsg;
+    if (movement == 0)
+    {
+        ROS_INFO("Forward");
+        movementmsg.data = 1;
+    }
+    if (movement == 1)
+    {
+        ROS_INFO("Turn right");
+        movementmsg.data = 3;
+    }
+    if (movement == 3)
+    {
+        ROS_INFO("Turn left");
+        movementmsg.data = 2;
+    }
+    if (movement == 4)
+    {
+        ROS_INFO("Forward (ramp)");
+        movementmsg.data = 4;
+    }
+    if (movement == 5)
+    {
+        ROS_INFO("Backward");
+        movementmsg.data = 5;
+    }
+
+    unitmovementpub.publish(movementmsg);
+    scope.startedGoal = true;
+    scope.resultReceived = false;
+
+    // wait for message from jetson (jetsonresultsub)
+    while (!scope.resultReceived)
+    {
+        ros::spinOnce();
+
+        // check color
+        if (tcsdata == 'N' && !blackTile)
+        {
+            if (debugging)
+                ROS_INFO("Black tile, Cancelling goal");
+
+            blackTile = true;
+            // ac.cancelGoal();
+        }
+        else if (tcsdata == 'A')
+        {
+            if (debugging)
+                ROS_INFO("Blue tile detected");
+
+            blueTile = true;
+        }
+        else if (tcsdata == 'S' || tcsdata == 'M')
+        {
+            if (debugging)
+                ROS_INFO("Silver tile detected");
+
+            silverTile = true;
+        }
+
+        // check pitch from imu
+
+        if (!upRamp && pitch < NOSEUP_PITCH) // Found obstacle (bumper / stairs)
+        {
+            if (debugging)
+                ROS_INFO("Found obstacle");
+
+            obstacle = true;
+        }
+        else if (pitch > NOSEDOWN_PITCH) // Down ramp
+        {
+            if (debugging)
+                ROS_INFO("Down ramp");
+
+            downRamp = true;
+
+            // ac.cancelGoal();
+        }
+        // check if there's ramp and imu is close to 0
+        else if (upRamp && pitch > NOSEUP_PITCH && pitch < NOSEDOWN_PITCH)
+        {
+            if (debugging)
+                ROS_INFO("Up ramp");
+
+            upRamp = true;
+        }
+    }
+
+    if (blackTile)
+    {
+        blackTile = false;
+        return 0;
+    }
+    else if (blueTile)
+    {
+        ros::Duration(5).sleep();
+        blueTile = false;
+        return 2;
+    }
+    else if (silverTile)
+    {
+        silverTile = false;
+        return 3;
+    }
+    else if (obstacle)
+    {
+        obstacle = false;
+        return 2;
+    }
+    else if (downRamp)
+    {
+        downRamp = false;
+        return 4;
+    }
+    else if (upRamp)
+    {
+        upRamp = false;
+        return 5;
+    }
+    else
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 // Return values:

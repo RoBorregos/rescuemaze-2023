@@ -201,7 +201,7 @@ void calcPos(vector<int> &pos, string key, Map &mapa)
     if (!useros)
         rampDir = mapa.rampDirection(key);
     else
-        rampDir = -1;
+        rampDir = mapa.tile->rampa;
 
     if (key == "north")
     {
@@ -298,6 +298,22 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             calcPos(mapa.pos, key, mapa);
             // Update checkpoint position
             mapa.setRecovPos();
+
+            return tile->adjacentTiles[key];
+        }
+        else if (goalResult == 4) // down ramp
+        {
+            tile->rampa = rDirection + 2 % 4;
+            tile->weight = 100;
+            tile->adjacentTiles[key]->rampa = rDirection;
+            tile->adjacentTiles[key]->weight = 100; 
+        }
+        else if (goalResult == 5) // up ramp
+        {
+            tile->rampa = rDirection;
+            tile->weight = 100;
+            tile->adjacentTiles[key]->rampa = rDirection + 2 % 4;
+            tile->adjacentTiles[key]->weight = 100;
         }
 
         calcPos(mapa.pos, key, mapa);
@@ -666,7 +682,7 @@ void explore(bool checkpoint, int argc, char **argv)
         ROS_INFO("Checkpoint");
 
         // {
-        std::ifstream ifs("./checkpoint.txt");
+        std::ifstream ifs("~/coding/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
         boost::archive::text_iarchive ia(ifs);
         ia >> mapa;
 
@@ -796,7 +812,7 @@ void explore(bool checkpoint, int argc, char **argv)
         }
 
         {
-            std::ofstream ofs("./checkpoint.txt");
+            std::ofstream ofs("~/coding/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
             boost::archive::text_oarchive oa(ofs);
             oa << mapa;
 
@@ -831,12 +847,12 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
         printTile(mapa.tile);
 
-        if (mapa.tile->victim != 0)
-        {
-            // ROS_INFO("Victim found");
-            bridge->sendKit();
-            mapa.tile->victim = 0;
-        }
+        // if (mapa.tile->victim != 0)
+        // {
+        //     // ROS_INFO("Victim found");
+        //     bridge->sendKit();
+        //     mapa.tile->victim = 0;
+        // }
 
         if (mapSimDebug)
             mapa.printMaze(rDirection);
@@ -869,7 +885,14 @@ int main(int argc, char **argv)
 
     bridge->pubDebug("Starting main algorithm");
 
-    ros::Duration(1.5).sleep();
+    // ros::Duration(1.5).sleep();
+
+    while (bridge->startAlgorithm != 1)
+    {
+        ros::spinOnce();
+
+        ros::Duration(0.1).sleep();
+    }
 
     try
     {
