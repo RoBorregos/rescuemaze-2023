@@ -42,7 +42,7 @@
     
     <!-- Map size / start point -->
     <!-- Reduced from 0.08 to avoid walls detected thicker -->
-    <param name="map_resolution" value="0.02"/> 
+    <param name="map_resolution" value="0.08"/> 
     <param name="map_size" value="$(arg map_size)"/>
     <param name="map_start_x" value="0.5"/>
     <param name="map_start_y" value="0.5" />
@@ -55,7 +55,7 @@
     <!-- Decreased to 10cm  -->
     <param name="map_update_distance_thresh" value="0.1"/>
     <!-- Decreased to 40°  -->
-    <param name="map_update_angle_thresh" value="0.7" />
+    <param name="map_update_angle_thresh" value="0.1" />
     <param name="laser_z_min_value" value = "-1.0" />
     <param name="laser_z_max_value" value = "1.0" />
 

@@ -2,7 +2,7 @@
 
 <launch>
     <!-- Start options -->
-    <arg name="using_simulation" default="False"/>
+    <arg name="using_simulation" default="true"/>
     <arg name="use_gui" default="false"/>
     <arg name="open_rviz" default="true"/>
     <arg name="port" default="/dev/ttyACM1"/>
