@@ -405,12 +405,14 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
   motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
 }
 
-void Movement::updateStraightPID(int RPMs)
+// A possitive errorD means that the robot must increase the speed of the right wheels.
+void Movement::updateStraightPID(int RPMs, double errorD)
 {
-  motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-  motor[BACK_LEFT].motorSpeedPID(RPMs);
-  motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-  motor[BACK_RIGHT].motorSpeedPID(RPMs);
+  // Use angle error to update target speeds.
+  motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
+  motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
+  motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -.105));
+  motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
 }
 
 void Movement::advanceXMeters(double x)
@@ -420,10 +422,13 @@ void Movement::advanceXMeters(double x)
 
   int counter = 0;
 
+  double initAngle = bno->getAngleX();
+
   while (dist < target)
   {
     counter++;
-    updateStraightPID(kMovementRPMs);
+    updateStraightPID(kMovementRPMs, errorD);
+    errorD = initAngle - bno->getAngleX;
     if (counter == 20)
     {
       dist = meanDistanceTraveled();
@@ -454,6 +459,39 @@ void Movement::turnDecider(double current_angle, double desired_angle)
       girarIzquierda();
     else
       girarDerecha();
+  }
+}
+
+// Go to targetAngle following specified direction.
+void goToAngle(double targetAngle, bool turnRight)
+{
+  double currentAngle = robot->getAngleX();
+
+  if (turnRight)
+  {
+    girarDerecha();
+    while (fueraRango(targetAngle, currentAngle))
+    {
+      currentAngle = robot->getAngleX();
+      motor[FRONT_LEFT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[BACK_LEFT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[FRONT_RIGHT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[BACK_RIGHT].motorRotateIzqPID(desired_angle, current_angle);
+    }
+    stop();
+  }
+  else
+  {
+    girarIzquierda();
+    while (fueraRango(targetAngle, currentAngle))
+    {
+      currentAngle = robot->getAngleX();
+      motor[FRONT_LEFT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[BACK_LEFT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[FRONT_RIGHT].motorRotateIzqPID(desired_angle, current_angle);
+      motor[BACK_RIGHT].motorRotateIzqPID(desired_angle, current_angle);
+    }
+    stop();
   }
 }
 
@@ -617,20 +655,22 @@ void Movement::dropDecider(int ros_sign_callback)
 
   double time = millis();
 
-  while (ros_sign_callback > 0){
+  while (ros_sign_callback > 0)
+  {
     dispenser.rightDrop();
     ros_sign_callback--;
   }
 
-  while (ros_sign_callback < 0){
+  while (ros_sign_callback < 0)
+  {
     dispenser.leftDrop();
     ros_sign_callback++;
   }
-  
+
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
     delay(0.1);
-  
+
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 

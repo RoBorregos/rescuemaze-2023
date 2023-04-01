@@ -25,17 +25,13 @@ class Sensors
 
   // TCS constants
   static constexpr int kTCSPrecision = 10;                         // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 7;                        // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"obBwrgbn"}; // List of color initials
+  static constexpr uint8_t colorAmount = 2;                        // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"AN"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
   static constexpr uint8_t colors[colorAmount][3] = {
-      {137, 78, 58},
+      {127, 127, 0},
       {64, 85, 128},
-      {85, 85, 85},
-      {73, 132, 73},
-      {110, 70, 108},
-      {155, 111, 57},
-      {220, 156, 150}};
+      };
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
@@ -46,6 +42,7 @@ class Sensors
   TCS tcs;
 
   // Sensor Pins.
+  // Front, right, left
   int kMuxVLX = {1}; // VLX multiplexor pins
   int kMuxTCS = {0};   // TCS multiplexor pin
 

@@ -155,9 +155,11 @@ public:
   // Sets motors state to turn left.
   void girarIzquierda();
 
+  void goToAngle(int targetAngle, bool turnRight);
+
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
-  void updateStraightPID(int RPMs);
+  void updateStraightPID(int RPMs, double errorD);
 
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
