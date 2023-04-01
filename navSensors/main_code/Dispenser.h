@@ -18,16 +18,13 @@ private:
 
   // Single Dispenser
 
-  static constexpr int kInitAngle = 0;
-  static constexpr int kDropAngle = 180;
+  static constexpr int kLeftMovement = 0;
+  static constexpr int kStopMovement = 90;
+  static constexpr int kRightMovement = 180;
 
-  // Decider dispenser
+  static constexpr int rightDelay = 20; 
+  static constexpr int leftDelay = 20;
 
-  static constexpr int kMidAngle = 90;
-  static constexpr int kRightAngle = 0;  // To be determined
-  static constexpr int kLeftAngle = 179; // To be determined
-
-  static constexpr int kTime2Drop = 20; // Time needed for servo to drop kit
 public:
   // Constructor
 
@@ -39,12 +36,6 @@ public:
   void initServo();
 
   // Dispenser Functions
-
-  // Restarts the dispenser to the initial position
-  void restart();
-
-  // Drops the kit (non-decider dispenser)
-  void kitDrop();
 
   // Drops the kit (decider dispenser) to the right
   void rightDrop();
