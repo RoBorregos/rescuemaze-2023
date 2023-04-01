@@ -1,198 +1,385 @@
-#ifndef Movement_h
-#define Movement_h
+// Usar bno y vlx para robot.
+// Tmb poner el dispense
 
-#include <Arduino.h>
+// https://prod.liveshare.vsengsaas.visualstudio.com/join?AB1AC08928A0F68DBD97A45B571C4353E54F
 
-#include <ros.h>
-#include <std_msgs/String.h>
-#include <math.h>
-#include "Motor.h"
-#include "Kinematics.h"
-#include "Dispenser.h"
-#include "BNO.h"
+#include "Movement.h"
 #include "Sensors.h"
+#include "Motor.h"
+#include "MotorID.h"
+#include "MUX2C.h"
+#include "BNO.h"
 
-// Motor Ids
-#define FRONT_LEFT 0
-#define BACK_LEFT 1
-#define FRONT_RIGHT 2
-#define BACK_RIGHT 3
+// Macros for vlx
+#define front_vlx 0
+#define right_vlx 1
+#define left_vlx 2
 
-// Movement comands
-#define ROBOT_FORWARD 1
-#define ROBOT_TURN_RIGHT 2
-#define ROBOT_TURN_LEFT 3
-#define ROBOT_RAMP 4
+Movement *robot = nullptr;
+Sensors *s = nullptr;
+MUX2C mux;
+BNO bno; // X is yaw, Y is pitch, and Z is roll.
 
-class Movement
+double distancefront;
+double distanceright;
+double distanceleft;
+
+int rDirection = 0;
+
+double yaw;
+
+double northYaw;
+double southYaw;
+double eastYaw;
+double westYaw;
+
+double pitch;
+
+bool frontBlack = false;
+bool rightBlack = false;
+bool leftBlack = false;
+
+char color = 'B';
+
+// Setup de todos los sensores. Set pins en Sensors.h
+void setup()
 {
-private:
-  // ROS node.
-  ros::NodeHandle *nh;
-  // Servo dispenser
-  Dispenser dispenser;
-  // BNO sensors
-  BNO *bno;
-  // Sensors
-  Sensors *sensors;
+  Serial.begin(57600);
 
-  // Servo
-  static constexpr uint8_t kServoPin = 7; // TODO: check pin
+  // Set some sensor or i2c device
+  bool setTcs = false;
+  bool seti2c = false;
+  bool setVLX = false;
+  bool setBNO = true;
+  bool testMotors = false;
 
-  // Leds
-  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
+  bno.init();
 
-  // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
+  initAll(&bno, true, true);
+  setupData(setTcs, seti2c, setVLX, setBNO, testMotors);
 
-  // Motor.
-  static constexpr int kMotorCount = 4;
+  northYaw = 0;
+  southYaw = 180;
+  eastYaw = 90;
+  westYaw = 270;
+}
+void exploreDFS()
+{
+  // Explore the maze
 
-  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {34, 35};
-  static constexpr uint8_t kAnalogPinFrontLeftMotor = 10;
-  static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {3, 49}; // A,B
+  // Check distance to the front
+  distancefront = getFrontDistance();
+  distanceright = getRightDistance();
+  distanceleft = getLeftDistance();
 
-  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {32, 33};
-  static constexpr uint8_t kAnalogPinBackLeftMotor = 12;
-  static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {18, 47};
+  if (distancefront > 0.15)
+  {
+    // Go forward
+    if (!forward())
+    {
+      return;
+    }
+    checkBlue();
+    exploreDFS();
+    backward();
+  }
+  else if (distanceleft > 0.15)
+  {
+    // Turn left
+    turnLeft();
+    if (!forward())
+    {
+      return;
+    }
+    checkBlue();
+    exploreDFS();
+    backward();
+    turnRight();
+  }
+  else if (distanceright > 0.15)
+  {
+    // Turn right
+    turnRight();
+    if (!forward())
+    {
+      return;
+    }
+    checkBlue();
+    exploreDFS();
+    backward();
+    turnLeft();
+  }
+}
 
-  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {37, 36};
-  static constexpr uint8_t kAnalogPinFrontRightMotor = 11;
-  static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {2, 48};
+void loop()
+{
+  // Get distance to the front
+  exploreDFS();
+}
 
-  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
-  static constexpr uint8_t kAnalogPinBackRightMotor = 13;
-  static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
+void loop_()
+{
+  // Follow right wall
+  while (true) //(distancefront > 0.15 && color != 'N' && distanceright < 0.15)
+  {
+    // Check distance and color
+    distancefront = getFrontDistance();
+    // distanceright = s->getVLXInfo(1);
+    // distanceleft = s->getVLXInfo(2);
 
-  // Velocity maximum.
-  static constexpr double kFrWheelsDist = 0.145;
-  static constexpr double kLrWheelsDist = 0.18;
-  static constexpr double kWheelDiameter = 0.07;
-  static constexpr double kRPM = 240;
-  static constexpr double kRPS = kRPM / 60;
-  static constexpr double kMaxVelocity = kRPS * (M_PI * kWheelDiameter);
+    color = s->getTCSInfo();
 
-  static constexpr double kLinearXMaxVelocity = kMaxVelocity;
-  static constexpr double kLinearYMaxVelocity = kMaxVelocity;
-  static constexpr double kAngularZMaxVelocity = min(kMaxVelocity / kFrWheelsDist, kMaxVelocity / kLrWheelsDist);
-  static constexpr uint8_t kPwmBits = 8;
+    // Check limit switches
+    if (robot->rightLimitSwitch())
+    {
+      // Go back and turn left
+      robot->advanceXMeters(-0.03);
+      robot->goToAngle(dirToAngle[rDirection], false);
+    }
+    else if (robot->leftLimitSwitch())
+    {
+      // Go back and turn right
+      robot->advanceXMeters(-0.03);
+      robot->goToAngle(dirToAngle[rDirection], true);
+    }
+    else if (false) //(color == 'A') // Blue tile
+    {
+      // Go forward and wait 5 seconds
+      robot->advanceXMeters(0.1);
+      delay(5000);
+    }
+    else if (false) //(color == 'N')
+    {
+      // Go backward
+      robot->advanceXMeters(-0.1);
 
-  // PID
-  static constexpr bool kUsingPID = true;
-  static constexpr double kPStraightFR = 7; // 60
-  static constexpr double kIStraightFR = 3; // 55
-  static constexpr double kDStraightFR = 2; // 40
+      frontBlack = true;
+    }
 
-  // Kinematics.
-  Kinematics kinematics;
+    // Check distance
+    turnRight();
+    distanceright = s->getVLXInfo(0);
+    if (distanceright > 0.05)
+    {
+      if (false) //(distanceleft < 0.15)
+      {
+        turnRight();
+        robot->advanceXMeters(-0.1);
+        robot->advanceXMeters(0.1);
+      }
+      // Turn right
+      // turnRight();
 
-  // Cmd movement constants
-  static constexpr int kMovementRPMs = 60;
-  static constexpr double kMaxAngle = 359.0;
-  static constexpr double kMinAngle = 0.0;
+      if (frontBlack)
+      {
+        frontBlack = false;
+        leftBlack = true;
+      }
+    }
+    else
+    {
+      turnLeft();
+    }
+    if (distancefront < 0.03 || frontBlack)
+    {
+      // Turn left
+      turnLeft();
 
-public:
-  // Motor Array.
-  Motor motor[4]; // Public to allow access in encoder.ino.
+      frontBlack = false;
+      rightBlack = true;
+    }
 
-  // Constructors
+    // Go forward
+    robot->advanceXMeters(0.1);
+  }
+}
 
-  // Using ROS and BNO with arduino
-  Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individualConstants = false);
+int dirToAngle(int rdirection)
+{
+  switch (rdirection)
+  {
+  case 0:
+    return 0;
+    break;
 
-  // Using ROS, with external use of BNO.
-  Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants = false);
+  case 1:
+    return 90;
+    break;
 
-  // Using only Arduino.
-  Movement(BNO *bno, Sensors *sensors, bool individualConstants = false);
+  case 2:
+    return 180;
+    break;
 
-  // Using only Arduino without bno
-  Movement(Sensors *sensors, bool individualConstants = false);
+  case 3:
+    return 270;
+    break;
 
-  // Initialize objects in common of constructors.
-  initMovement(bool individualConstants = false);
+  default:
+    break;
+  }
+}
 
-  // Initialization
+int getTurnDirection(int turn)
+{
+  if (turn) // right
+  {
+    if (rDirection == 3)
+    {
+      return 0;
+    }
+    else
+    {
+      return rDirection + 1;
+    }
+  }
+  else // left
+  {
+    if (rDirection == 0)
+    {
+      return 3;
+    }
+    else
+    {
+      return rDirection - 1;
+    }
+  }
 
-  // Initializes motors, leds, servo, limit switches, and kinematics.
-  void initRobot();
+  return -1;
+}
 
-  // Sets the values of the PID for each motor.
-  void setIndividualPID();
+double getFrontDistance()
+{
+  return s->getVLXInfo(0); // Get front distance
+}
 
-  // Sets pins for all motors.
-  void setMotors();
+double getLeftDistance()
+{
+  turnLeft();
+  double distance = s->getVLXInfo(0); // Get front distance
+  turnRight();
 
-  // Initializes indicator leds.
-  void initLeds();
+  return distance;
+}
 
-  // Initializes limit switches.
-  void initSwitches();
+double getRightDistance()
+{
+  return s->getVLXInfo(1); // Get front distance
+}
 
-  // Encoder Methods
-  // @return The motor's mean distance traveled.
-  double meanDistanceTraveled();
+void checkBlue()
+{
+  // Check if the tile is blue
+  if (s->getTCSInfo() == 'A')
+  {
+    // wait 5 seconds
+    delay(5000);
+  }
+}
 
-  // Resets all encoders counts
-  void resetEncoders();
+int forward()
+{
+  for (int i = 0; i < 10; i++)
+  {
+    robot->advanceXMeters(0.03);
+    if (s->getTCSInfo() == 'N')
+    {
+      // Go back the distance traveled
+      robot->advanceXMeters(-0.03 * i);
 
-  // Modifies pointer with encoder counts for all motors
-  void getEncoderCounts(int *delta_encoder_counts);
+      return 0;
+    }
+  }
 
-  // Prints all encoder tics in serial monitor.
-  void encoderTics();
+  return 1;
+}
 
-  // Movement Methods
-  // Comand Velocity, using kinematics.
-  void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
+void backward()
+{
+  robot->advanceXMeters(-0.3);
+}
 
-  // Comand Movement, using PID and static velocity
-  void cmdMovement(int movement_type);
+void turnLeft()
+{
+  // Turn left
+  robot->goToAngle(dirToAngle[getTurnDirection(0)], false);
 
-  // Sets motors state to turn right.
-  void girarDerecha();
+  if (rDirection == 0)
+  {
+    rDirection = 3;
+  }
+  else
+  {
+    rDirection--;
+  }
+}
 
-  // Sets motors state to turn left.
-  void girarIzquierda();
+void turnRight()
+{
+  // Turn right
+  robot->goToAngle(dirToAngle[getTurnDirection(1)], true);
 
-  void goToAngle(int targetAngle, bool turnRight);
+  if (rDirection == 3)
+  {
+    rDirection = 0;
+  }
+  else
+  {
+    rDirection++;
+  }
+}
 
-  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
-  // @param RPMs The target speed in RPMs.
-  void updateStraightPID(int RPMs, double errorD);
+// Inicializar todos los sensores.
+void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
+{
+  static Sensors sensors(bno, useVLX);
+  s = &sensors;
 
-  // Calls straight PID method for all motors, each with its specific target RMPs.
-  // @param rpm Kinematic object with target rpms per wheel.
-  void updatePIDKinematics(Kinematics::output rpm);
+  static Movement movement(bno, s, setIndividualConstants);
+  robot = &movement;
+}
 
-  // Moves the robot forward the specified distance.
-  // @param x Distance in meters.
-  void advanceXMeters(double x);
+// Funciones de apoyo
 
-  // Decides how to turn depinding on the current and desired angles
-  void turnDecider(double current_angle, double desired_angle);
+// Funcion que ayuda para calibrar sensores, encontrar idc.
+void setupData(bool tcsSet, bool i2c, bool setVLX, bool setBNO, bool testMotors)
+{
 
-  // Uses turn decider but with a delta angle
-  void girarDeltaAngulo(double delta_theta);
+  if (i2c)
+    mux.findI2C();
 
-  void stop();
+  if (tcsSet)
+  {
+    while (true)
+    {
+      s->rgbTCS();
+      // Serial.println(sensors.getTCSInfo());
+      if (setVLX)
+      {
+        Serial.println(s->getVLXInfo(0));
+      }
+    }
+  }
 
-  // Other Methods
-  // Gets sign which refers to where should a kit be dropped
-  void dropDecider(int ros_sign_callback);
-  
-  int rightLimitSwitch();
-  int leftLimitSwitch();
+  if (setVLX)
+  {
+    while (true)
+    {
+      Serial.println(s->getVLXInfo(0));
+    }
+  }
 
-  void debugLimitSwitches();
+  if (setBNO)
+  {
+    while (true)
+    {
+      bno.anglesInfo();
+    }
+  }
 
-  // For specific tests on specific motors.
-  void testMotor();
+  if (testMotors)
+    robot->testAllMotors();
 
-  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
-  // as well as their directions.
-  void testAllMotors();
-
-};
-
-#endif
+  if (i2c)
+    while (true)
+      delay(100);
+}

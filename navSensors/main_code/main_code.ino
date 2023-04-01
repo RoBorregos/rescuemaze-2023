@@ -11,9 +11,12 @@
 #include "BNO.h"
 
 // Macros for vlx
-#define front_vlx 0
-#define right_vlx 1
-#define left_vlx 2
+#define front_vlx 1
+#define right_vlx 7
+#define left_vlx 0
+
+#define useleftvlx true
+#define userightvlx false
 
 Movement *robot = nullptr;
 Sensors *s = nullptr;
@@ -199,19 +202,19 @@ int dirToAngle(int rdirection)
   switch (rdirection)
   {
   case 0:
-    0;
+    return 0;
     break;
 
   case 1:
-    90;
+    return 90;
     break;
 
   case 2:
-    180;
+    return 180;
     break;
 
   case 3:
-    270;
+    return 270;
     break;
 
   default:
@@ -249,21 +252,35 @@ int getTurnDirection(int turn)
 
 double getFrontDistance()
 {
-  return s->getVLXInfo(0); // Get front distance
+  return s->getVLXInfo(front_vlx); // Get front distance
 }
 
 double getLeftDistance()
 {
-  turnLeft();
-  double distance = s->getVLXInfo(0); // Get front distance
-  turnRight();
+  if (useleftvlx)
+    return s->getVLXInfo(left_vlx); // Get front distance
+  else
+  {
+    turnLeft();
+    double distance = s->getVLXInfo(0); // Get front distance
+    turnRight();
+  }
 
   return distance;
 }
 
 double getRightDistance()
 {
-  return s->getVLXInfo(1); // Get front distance
+  if (userightvlx)
+    return s->getVLXInfo(right_vlx); // Get front distance
+  else
+  {
+    turnRight();
+    double distance = s->getVLXInfo(0); // Get front distance
+    turnLeft();
+  }
+
+  return distance;
 }
 
 void checkBlue()
@@ -288,6 +305,16 @@ int forward()
 
       return 0;
     }
+    // Check pitch from imu
+    else if (s->getAngleY() > 10 || s->getAngleY() < -10)
+    {
+      while (s->getAngleY() > 10 || s->getAngleY() < -10)
+      {
+        robot->advanceXMeters(0.02);
+      }
+
+      return 0;
+    }
   }
 
   return 1;
@@ -296,6 +323,12 @@ int forward()
 void backward()
 {
   robot->advanceXMeters(-0.3);
+
+  // Check pitch from imu
+  while (s->getAngleY() > 10 || s->getAngleY() < -10)
+  {
+    robot->advanceXMeters(-0.02);
+  }
 }
 
 void turnLeft()

@@ -27,8 +27,11 @@ void Sensors::initSensors()
 {
   if (usingVLX)
   {
-    vlx.setMux(kMuxVLX);
-    vlx.init(); // VLX init
+    for (int i = 0; i < kMuxVLX; i++)
+    {
+      vlx[i].setMux(kMuxPins[i]);
+      vlx[i].init();
+    }
   }
 
   // TCS init
@@ -69,7 +72,7 @@ float Sensors::getVLXInfo(int posVLX)
     return -1;
   }
 
-  return vlx.getDistance();
+  return vlx[posVLX].getDistance();
 }
 
 float Sensors::getQuatX()
