@@ -21,37 +21,20 @@ void Dispenser::initServo()
 
 // Dispenser Functions
 
-void Dispenser::restart()
-{
-  dispenser.write(kMidAngle);
-}
-
-void Dispenser::kitDrop()
-{
-  for (int current_angle = 0; current_angle < kDropAngle; current_angle += 10)
-  {
-    dispenser.write(current_angle);
-    delay(kTime2Drop);
-  }
-  dispenser.write(kInitAngle);
-}
-
 void Dispenser::rightDrop()
 {
-  for (int current_angle = 0; current_angle < kRightAngle; current_angle += 10)
-  {
-    dispenser.write(current_angle);
-    delay(kTime2Drop);
-  }
-  restart();
+  dispenser.write(kRightMovement);
+  delay(rightDelay);
+  dispenser.write(kLeftMovement);
+  delay(leftDelay);
+  dispenser.write(kStopMovement);
 }
 
 void Dispenser::leftDrop()
 {
-  for (int current_angle = 0; current_angle < kLeftAngle; current_angle += 10)
-  {
-    dispenser.write(current_angle);
-    delay(kTime2Drop);
-  }
-  restart();
+  dispenser.write(kLeftMovement);
+  delay(leftDelay);
+  dispenser.write(kRightMovement);
+  delay(rightDelay);
+  dispenser.write(kStopMovement);
 }

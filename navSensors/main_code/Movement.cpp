@@ -614,17 +614,25 @@ void Movement::cmdMovement(int movement_type)
 // Gets sign which refers to where should a kit be dropped
 void Movement::dropDecider(int ros_sign_callback)
 {
-  digitalWrite(kDigitalPinsLEDS[1], LOW);
-  switch (ros_sign_callback)
-  {
-  case right:
-    dispenser.rightDrop();
-    break;
-  case left:
-    dispenser.leftDrop();
-    break;
-  }
   digitalWrite(kDigitalPinsLEDS[1], HIGH);
+
+  double time = millis();
+
+  while (ros_sign_callback > 0){
+    dispenser.rightDrop();
+    ros_sign_callback--;
+  }
+
+  while (ros_sign_callback < 0){
+    dispenser.leftDrop();
+    ros_sign_callback++;
+  }
+  
+  // Wait for 5 seconds to turn off led.
+  while (((millis() - time) / 1000.0) < 5)
+    delay(0.1);
+  
+  digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
 // Limit switches checker
