@@ -1,3 +1,5 @@
+<!-- Use this file with only with jetson -->
+
 <launch>
     <!-- Start options -->
     <arg name="using_simulation" default="false"/>
@@ -6,14 +8,16 @@
     <arg name="portArduino" default="/dev/port1"/>
     <arg name="portLidar" default="/dev/port0"/>
     <arg name="node_start_delay" default="0.0"/>
-    <arg name="has_imu" default="false"/>
+    <arg name="has_imu" default="true"/>
 
     <arg name="dist_to_walls" default="false"/>
     <arg name="debug_localization_grid" default="false"/>
+    <arg name="scan_topic" default="scan_filtered"/>
     
     <!-- Launch sensors-->
     <include unless="$(arg using_simulation)" file="$(find nav_main)/launch/sensors/sensors_bringup.launch">
         <arg name="port" value="$(arg portLidar)"/>
+        <arg name="scan_topic" value="$(arg scan_topic)"/>
     </include>
 
     <!-- Launch HS mapping -->
@@ -23,10 +27,17 @@
         <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
     </include>
 
+    <!-- Launch cmd_vel remap node -->
+    <node name="twists_combined" pkg="nav_main" type="mux_cmd_vel.py" respawn="true" output="screen"/>
+    <remap from="/cmd_vel" to="/cmd_vel/move_base"/> <!-- Remap to topic subscribed by twists_combined -->
+
     <!-- Launch move base -->
     <include file="$(find nav_main)/launch/move_base.launch">
         <arg name="node_start_delay" value="$(eval arg('node_start_delay') * arg('using_simulation'))"/>
     </include>
+
+    <!-- End remap for arduino and other nodes -->
+    <remap from="/cmd_vel/move_base" to="/cmd_vel"/>
 
     <!-- Launch localization of centers node -->
     <node name="localization_grid" pkg="nav_main" type="localizationGrid.py" respawn="true" output="screen">

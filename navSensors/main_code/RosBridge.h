@@ -9,7 +9,6 @@
 #include <sensor_msgs/Range.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int16.h>
-#include <std_msgs/Float64.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
