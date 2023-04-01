@@ -13,7 +13,7 @@
 class BNO
 {
 private:
-  Adafruit_BNO055 bno = Adafruit_BNO055(55, BNO_ADDR);
+  Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28, &Wire);
   sensors_event_t angVelocityData, linearAccelData;
   imu::Quaternion quat;
 

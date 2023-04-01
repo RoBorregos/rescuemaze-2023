@@ -10,13 +10,21 @@
 #include "MUX2C.h"
 #include "BNO.h"
 
+// Macros for vlx
+#define front_vlx 1
+#define right_vlx 7
+#define left_vlx 0
+
 Movement *robot = nullptr;
 Sensors *s = nullptr;
 MUX2C mux;
+BNO bno; // X is yaw, Y is pitch, and Z is roll.
 
 double distancefront;
 double distanceright;
 double distanceleft;
+
+int rDirection = 0;
 
 double yaw;
 
@@ -24,6 +32,8 @@ double northYaw;
 double southYaw;
 double eastYaw;
 double westYaw;
+
+double pitch;
 
 bool frontBlack = false;
 bool rightBlack = false;
@@ -40,16 +50,19 @@ void setup()
   bool setTcs = false;
   bool seti2c = false;
   bool setVLX = false;
-  bool setBNO = false;
-  bool testMotors = false
+  bool setBNO = true;
+  bool testMotors = false;
 
-  initAll(bno, true, true);
+  bno.init(); 
 
+  
+  initAll(&bno, true, true);
+  
+  while (true){
+    s->printInfo(true, true, true);
+  }
+  
   setupData(setTcs, seti2c, setVLX, setBNO, testMotors);
-
-  bno.init();
-
-  northYaw = bno.getAngleZ();
 
   // East
   if (northYaw > -90)
@@ -69,38 +82,80 @@ void setup()
   else
     westYaw = northYaw + 90;
 }
+void exploreDFS()
+{
+  // Explore the maze
+
+  // Check distance to the front
+  distancefront = s->getVLXInfo(0);
+  distanceright = s->getVLXInfo(1);
+  distanceleft = s->getVLXInfo(2);
+
+  if (distancefront > 0.15)
+  {
+    // Go forward
+    forward();
+    exploreDFS();
+    backward();
+  }
+  else if (distanceleft > 0.15)
+  {
+    // Turn left
+    turnLeft();
+    forward();
+    exploreDFS();
+    backward();
+    turnRight();
+  }
+  else if (distanceright > 0.15)
+  {
+    // Turn right
+    turnRight();
+    forward();
+    exploreDFS();
+    backward();
+    turnLeft();
+  }
+}
 
 void loop()
 {
+  // Get distance to the front
+  exploreDFS();
+}
+
+void loop_()
+{
   // Follow right wall
-  while (distancefront > 0.15 && color != 'N' && distanceright < 0.15)
+  while (true)//(distancefront > 0.15 && color != 'N' && distanceright < 0.15)
   {
     // Check distance and color
-    distancefront = sensors->getVLXInfo();
-    distanceright = sensors->getVLXInfo();
+    distancefront = s->getVLXInfo(0);
+    // distanceright = s->getVLXInfo(1);
+    // distanceleft = s->getVLXInfo(2);
 
-    color = sensors->getTCSInfo();
+    color = s->getTCSInfo();
 
     // Check limit switches
-    if (robot->rightLimitSwitch)
+    if (robot->rightLimitSwitch())
     {
       // Go back and turn left
-      robot->advanceXMeters(-0.03)
-          robot->girarDeltaAngulo(10)
+      robot->advanceXMeters(-0.03);
+      robot->girarDeltaAngulo(10);
     }
-    else if (robot->leftLimitSwitch)
+    else if (robot->leftLimitSwitch())
     {
       // Go back and turn right
-      robot->advanceXMeters(-0.03)
-          robot->girarDeltaAngulo(-10)
+      robot->advanceXMeters(-0.03);
+      robot->girarDeltaAngulo(-10);
     }
-    else if (color == 'A') // Blue tile
+    else if (false)//(color == 'A') // Blue tile
     {
       // Go forward and wait 5 seconds
       robot->advanceXMeters(0.1);
       delay(5000);
     }
-    else if (color == 'N')
+    else if (false)//(color == 'N')
     {
       // Go backward
       robot->advanceXMeters(-0.1);
@@ -109,10 +164,18 @@ void loop()
     }
 
     // Check distance
-    if (distanceright > 0.15)
+    turnRight();
+    distanceright = s->getVLXInfo(0);
+    if (distanceright > 0.05)
     {
+      if (false)//(distanceleft < 0.15)
+      {
+        turnRight();
+        robot->advanceXMeters(-0.1);
+        robot->advanceXMeters(0.1);
+      }
       // Turn right
-      robot->girarDeltaAngulo(90);
+      // turnRight();
 
       if (frontBlack)
       {
@@ -120,10 +183,14 @@ void loop()
         leftBlack = true;
       }
     }
-    else if (distancefront < 0.10 || frontBlack)
+    else 
+    {
+      turnLeft();
+    }
+    if (distancefront < 0.03 || frontBlack)
     {
       // Turn left
-      robot->girarDeltaAngulo(-90);
+      turnLeft();
 
       frontBlack = false;
       rightBlack = true;
@@ -131,6 +198,46 @@ void loop()
 
     // Go forward
     robot->advanceXMeters(0.1);
+  }
+}
+
+void forward()
+{
+  robot->advanceXMeters(0.3);
+}
+
+void backward()
+{
+  robot->advanceXMeters(-0.3);
+}
+
+void turnLeft()
+{
+  // Turn left
+  robot->girarDeltaAngulo(-90);
+
+  if (rDirection == 0)
+  {
+    rDirection = 3;
+  }
+  else
+  {
+    rDirection--;
+  }
+}
+
+void turnRight()
+{
+  // Turn right
+  robot->girarDeltaAngulo(90);
+
+  if (rDirection == 3)
+  {
+    rDirection = 0;
+  }
+  else
+  {
+    rDirection++;
   }
 }
 
@@ -161,7 +268,7 @@ void setupData(bool tcsSet, bool i2c, bool setVLX, bool setBNO, bool testMotors)
       // Serial.println(sensors.getTCSInfo());
       if (setVLX)
       {
-        Serial.println(s->getVLXInfo(0));
+        //Serial.println(s->getVLXInfo(2));
       }
     }
   }
@@ -170,7 +277,8 @@ void setupData(bool tcsSet, bool i2c, bool setVLX, bool setBNO, bool testMotors)
   {
     while (true)
     {
-      Serial.println(s->getVLXInfo(0));
+      
+      Serial.println(s->getVLXInfo(1));
     }
   }
 
@@ -178,7 +286,7 @@ void setupData(bool tcsSet, bool i2c, bool setVLX, bool setBNO, bool testMotors)
   {
     while (true)
     {
-      bno->anglesInfo();
+      bno.anglesInfo();
     }
   }
 
@@ -189,3 +297,4 @@ void setupData(bool tcsSet, bool i2c, bool setVLX, bool setBNO, bool testMotors)
     while (true)
       delay(100);
 }
+

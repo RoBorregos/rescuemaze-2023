@@ -42,12 +42,17 @@ class Sensors
 
   // Sensors.
   BNO *bno;
-  VLX vlx;
+  VLX vlx[3];
   TCS tcs;
 
+  int kMuxVLX = 3;
   // Sensor Pins.
-  int kMuxVLX = {1}; // VLX multiplexor pins
-  int kMuxTCS = {0};   // TCS multiplexor pin
+
+  // Front is in pin 1.
+  // Left is in pin 0.
+  // Right is in pin 7.
+  int kMuxPins[3] = {1,7,0}; // VLX multiplexor pins
+  int kMuxTCS = {2};   // TCS multiplexor pin
 
 public:
   // Constructor

@@ -25,10 +25,19 @@ Sensors::Sensors(BNO *bno, bool usingVLX) : bno(bno)
 
 void Sensors::initSensors()
 {
+
   if (usingVLX)
   {
-    vlx.setMux(kMuxVLX);
-    vlx.init(); // VLX init
+    for (int i = 0; i < kMuxVLX; i++)
+    {
+      vlx[i].setMux(kMuxPins[i]);
+    }
+
+    // VLX init
+    for (int i = 0; i < kMuxVLX; i++)
+    {
+      vlx[i].init();
+    }
   }
 
   // TCS init
@@ -49,8 +58,13 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
 
   if (vlx && usingVLX)
   {
-    Serial.print("VLX sensor: ");
-    Serial.println(float(getVLXInfo(0)), 4);
+    for (int i = 0; i < kMuxVLX; i++)
+    {
+      Serial.print("VLX sensor ");
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.println(float(getVLXInfo(i)), 4);
+    }
   }
 
   if (tcs)
@@ -69,7 +83,7 @@ float Sensors::getVLXInfo(int posVLX)
     return -1;
   }
 
-  return vlx.getDistance();
+  return vlx[posVLX].getDistance();
 }
 
 float Sensors::getQuatX()
@@ -162,7 +176,8 @@ void Sensors::bnoPrint()
   bno->anglesInfo();
 }
 
-void Sensors::rgbTCS(){
+void Sensors::rgbTCS()
+{
   tcs.printRGB();
 }
 
