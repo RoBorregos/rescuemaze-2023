@@ -53,6 +53,8 @@ class RosBridge{
 
     void publishLimitSwitches();
 
+    void publishInitRobot();
+
     Movement *robot;
     Sensors *sensors;
 
@@ -73,6 +75,8 @@ class RosBridge{
     ros::Publisher tcs_sensor_publisher;
     ros::Publisher limit_switch_right_publisher; // Right limit switch
     ros::Publisher limit_switch_left_publisher; // Left limit switch
+    ros::Publisher init_robot_publisher; // Left limit switch
+
     ros::Publisher test_publisher;
 
     // Messages
@@ -81,6 +85,7 @@ class RosBridge{
     std_msgs::String testT;
     std_msgs::Int16 limit_switch_right_msgs; // Right limit switch
     std_msgs::Int16 limit_switch_left_msgs; // Right limit switch
+    std_msgs::Int16 init_robot_msg; // Send signal for robot initialization
 
     static constexpr uint8_t kOdomPeriod = 40;
 

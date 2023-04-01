@@ -84,8 +84,8 @@ void setupData(bool tcsSet, bool i2c, bool setVLX)
     static Sensors sensors(setVLX);
     while (true)
     {
-      sensors.rgbTCS();
-      // Serial.println(sensors.getTCSInfo());
+      //sensors.rgbTCS();
+      Serial.println(sensors.getTCSInfo());
       if (setVLX)
       {
        Serial.println(sensors.getVLXInfo(0)); 

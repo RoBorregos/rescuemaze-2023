@@ -10,7 +10,8 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
                                                                                vlx_sensor_publisher_front("/sensor/vlx/front", &vlx_sensor_msgs_front),
                                                                                tcs_sensor_publisher("/sensor/tcs", &tcs_sensor_msgs),
                                                                                limit_switch_right_publisher("/limit_switch/right", &limit_switch_right_msgs),
-                                                                               limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs)
+                                                                               limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs),
+                                                                               init_robot_publisher("/robot_init", &init_robot_msg)
 {
 
   // Node Handle
@@ -23,6 +24,7 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
   nh->advertise(tcs_sensor_publisher);
   nh->advertise(limit_switch_right_publisher);
   nh->advertise(limit_switch_left_publisher);
+  nh->advertise(init_robot_publisher);
   nh->negotiateTopics();
 
   // Timers
@@ -41,6 +43,7 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
   tcs_sensor_msgs.data = 'w';
   limit_switch_right_msgs.data = 0;
   limit_switch_left_msgs.data = 0;
+  init_robot_msg.data = 0;
 }
 
 // Dispenser subscriber
@@ -125,12 +128,26 @@ void RosBridge::publish()
     
     publishVLX();
     publishLimitSwitches();
+    publishInitRobot();
   }
+}
+
+// Publish init robot
+void RosBridge::publishInitRobot()
+{
+  int val = digitalRead(22);
+  if (val == HIGH){
+    init_robot_msg.data = 1;
+  } else {
+    init_robot_msg.data = 0;
+  }
+  init_robot_publisher.publish(&init_robot_msg);
 }
 
 // Run
 void RosBridge::run()
 {
+
   while (1)
   {
     watchdog();
