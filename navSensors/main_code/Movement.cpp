@@ -38,10 +38,20 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(120, 80, 10);
+  motor[BACK_LEFT].PIDStraightTunings(470, 0, 15);
   motor[FRONT_RIGHT].PIDStraightTunings(120, 80, 10);
   motor[FRONT_LEFT].PIDStraightTunings(120, 80, 10);
   motor[BACK_RIGHT].PIDStraightTunings(120, 80, 10);
+
+  motor[BACK_LEFT].PIDConservativeTunings(120, 80, 10);
+  motor[FRONT_RIGHT].PIDConservativeTunings(120, 80, 10);
+  motor[FRONT_LEFT].PIDConservativeTunings(120, 80, 10);
+  motor[BACK_RIGHT].PIDConservativeTunings(120, 80, 10);
+
+  motor[BACK_LEFT].PIDAggressiveTunings(470, 0, 15);
+  motor[FRONT_RIGHT].PIDAggressiveTunings(470, 0, 15);
+  motor[FRONT_LEFT].PIDAggressiveTunings(470, 0, 15);
+  motor[BACK_RIGHT].PIDAggressiveTunings(470, 0, 15);
 
   // Oscilates but arrives fast: motor[FRONT_RIGHT].PIDStraightTunings(470, 0, 15);
   // Oscilates less but arrives less fast: motor[FRONT_RIGHT].PIDStraightTunings(200, 120, 10);
@@ -145,6 +155,7 @@ void Movement::initRobot()
   dispenser.initServo();
 
   initLeds();
+  initSwitches();
 }
 
 void Movement::initLeds()
@@ -157,6 +168,50 @@ void Movement::initSwitches()
 {
   pinMode(kDigitalPinsLimitSwitch[0], INPUT);
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
+}
+
+int Movement::leftLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+  if (val == HIGH)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+int Movement::rightLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[1]);
+  if (val == HIGH)
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+void Movement::debugLimitSwitches()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+  if (val == HIGH)
+  {
+    Serial.println("Switch 0 is open");
+  }
+  else
+  {
+    Serial.println("Switch 0 is closed");
+  }
+  int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
+  if (val2 == HIGH)
+  {
+    Serial.println("Switch 1 is open");
+  }
+  else
+  {
+    Serial.println("Switch 1 is closed");
+  }
 }
 
 // Encoder Functions
@@ -552,7 +607,6 @@ void Movement::cmdMovement(int movement_type)
     break;
   }
   digitalWrite(kDigitalPinsLEDS[0], HIGH);
-  checkLimitSwitches();
 }
 
 // Drop kit decider
@@ -574,47 +628,6 @@ void Movement::dropDecider(int ros_sign_callback)
 }
 
 // Limit switches checker
-
-void Movement::checkLimitSwitches()
-{
-  bool limitSwitchRight = true;
-  bool limitSwitchLeft = true;
-
-  while (limitSwitchLeft == true || limitSwitchRight == true)
-  {
-    limitSwitchRight = digitalRead(kDigitalPinsLimitSwitch[0]);
-    limitSwitchLeft = digitalRead(kDigitalPinsLimitSwitch[1]);
-    if (limitSwitchLeft == true && limitSwitchRight == true)
-    {
-      while (meanDistanceTraveled() < 0.1)
-      {
-        updateStraightPID(-kMovementRPMs);
-      }
-      stop();
-      resetEncoders();
-      if (limitSwitchLeft == true)
-      {
-        while (meanDistanceTraveled() * 2 < 0.1)
-        {
-          motor[FRONT_LEFT].motorSpeedPID(kMovementRPMs);
-          motor[BACK_LEFT].motorSpeedPID(kMovementRPMs);
-        }
-        stop();
-        resetEncoders();
-      }
-      else if (limitSwitchRight == true)
-      {
-        while (meanDistanceTraveled() * 2 < 0.1)
-        {
-          motor[FRONT_RIGHT].motorSpeedPID(kMovementRPMs);
-          motor[BACK_RIGHT].motorSpeedPID(kMovementRPMs);
-        }
-        stop();
-        resetEncoders();
-      }
-    }
-  }
-}
 
 void Movement::testMotor()
 {

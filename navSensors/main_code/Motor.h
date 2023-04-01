@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include "MotorID.h"
-#include "PID.h"
+#include "PIDRb.h"
 
 // Describes the state of a specific motor.
 enum class MotorState
@@ -63,14 +63,14 @@ private:
 
   // PID controllers for straight movement. Manual calibration
 
-  PID pidStraight;
+  PIDRb pidStraight;
   static constexpr double kPStraight = 13; // 13; // 60
   static constexpr double kIStraight = 6;  // 6;  // 55
   static constexpr double kDStraight = 2;  // 2;  // 40
 
   // PID controllers for rotations (used only in Movement::cmdMovement).
 
-  PID pidRotate;
+  PIDRb pidRotate;
   static constexpr double kPRotate = 1.25; // 0.5
   static constexpr double kIRotate = 0;
   static constexpr double kDRotate = 0;
@@ -177,5 +177,9 @@ public:
 
   // Sets PID controllers for rotation movement
   void PIDRotateTunings(double kp, double ki, double kd);
+
+  void PIDAggressiveTunings(double kp, double ki, double kd);
+  
+  void PIDConservativeTunings(double kp, double ki, double kd);
 };
 #endif

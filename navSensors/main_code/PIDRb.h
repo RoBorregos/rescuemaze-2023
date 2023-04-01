@@ -1,31 +1,37 @@
-#ifndef PID_h
-#define PID_h
+#ifndef PIDRb_h
+#define PIDRb_h
 
 #include <Arduino.h>
 #include <math.h>
-#include <PID_v1.h>
 
-class PID
+class PIDRb
 {
 private:
-  double kp {0};
-  double ki {0};
-  double kd {0};
+  double kp{0};
+  double ki{0};
+  double kd{0};
 
-  double kp_conservative {0};
-  double ki_conservative {0};
-  double kd_conservative {0};
+  double kp_conservative{0};
+  double ki_conservative{0};
+  double kd_conservative{0};
 
-  double errorSum {0};
-  double errorPre {0};
+  double cons_kp{0};
+  double cons_ki{0};
+  double cons_kd{0};
 
-  double maxError {2000};
-  double minOutput {30};
-  double maxOutput {255};
+  double agr_kp{0};
+  double agr_ki{0};
+  double agr_kd{0};
+
+  double errorSum{0};
+  double errorPre{0};
+
+  double maxError{2000};
+  double minOutput{30};
+  double maxOutput{255};
 
   unsigned long timePassed;
-  unsigned long sampleTime {50};
-  bool useLibrary;
+  unsigned long sampleTime{50};
 
 public:
   // Constructors
@@ -38,12 +44,12 @@ public:
   // @param out_max The maximum PWM supported by the motor (255).
   // @param max_error_sum The maximum error that can be accumulated by integral part.
   // @param sample_time The minimum time needed to compute speed again.
-  PID(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time, const double useLibrary = false);
-  
+  PIDRb(const double kp, const double ki, const double kd, const double out_min, const double out_max, const double max_error_sum, const long sample_time);
+
   // Creates PID specifing the three constants and using default values for other variables.
-  PID(const double kp, const double ki, const double kd);
-  
-  PID();
+  PIDRb(const double kp, const double ki, const double kd);
+
+  PIDRb();
 
   // PID Methods
 
@@ -74,6 +80,12 @@ public:
 
   // Sets the tunings of the PID controller
   void setTunings(double kp, double ki, double kd);
+
+  // Sets the tunings of the PID controller
+  void setConservative(double kp, double ki, double kd);
+  void setAggressive(double kp, double ki, double kd);
+
+  void flipMode(double error);
 
   // Resets pid tics
   void reset();

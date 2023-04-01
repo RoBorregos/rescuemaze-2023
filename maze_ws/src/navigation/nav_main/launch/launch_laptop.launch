@@ -1,3 +1,4 @@
+<!-- Use this file to run everything from laptop, simulating as if the jetson was being used -->
 <launch>
     <!-- Start options -->
     <arg name="using_simulation" default="false"/>

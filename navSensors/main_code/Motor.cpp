@@ -210,7 +210,7 @@ void Motor::motorSpeedPID(double target_speed, bool debug)
     motorBackward();
     break;
   }
-    
+
   pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
   setPWM(tmp_pwm);
 }
@@ -290,4 +290,14 @@ void Motor::PIDStraightTunings(double kp, double ki, double kd)
 void Motor::PIDRotateTunings(double kp, double ki, double kd)
 {
   pidRotate.setTunings(kp, ki, kd);
+}
+
+void Motor::PIDConservativeTunings(double kp, double ki, double kd)
+{
+  pidStraight.setConservative(kp, ki, kd);
+}
+
+void Motor::PIDAggressiveTunings(double kp, double ki, double kd)
+{
+  pidStraight.setAggressive(kp, ki, kd);
 }

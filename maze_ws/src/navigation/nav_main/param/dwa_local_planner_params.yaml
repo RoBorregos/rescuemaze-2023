@@ -7,23 +7,23 @@ DWAPlannerROS:
   robot_radius: 0.1  # 10 cm
 
 # Robot Configuration Parameters
-  max_vel_x: 0.88
-  min_vel_x: -0.88
+  max_vel_x: 0.6
+  min_vel_x: -0.6
   max_vel_trans:  0.45
   min_vel_trans:  0.045
 
   max_vel_y: 0.0
   min_vel_y: 0.0
 
-  max_vel_theta: 6.8
-  min_vel_theta: 5
+  max_vel_theta: 4
+  min_vel_theta: 3
 
   acc_lim_trans: 8
   acc_lim_x: 8
   acc_lim_y: 0.0
   acc_lim_th: 8.0
 
-  min_in_place_vel_theta: 0.7
+  min_in_place_vel_theta: 0.3
 
   scaling_speed: 0.30
   max_scaling_factor: 0.2

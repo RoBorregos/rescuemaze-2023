@@ -9,7 +9,6 @@
 #include <sensor_msgs/Range.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int16.h>
-#include <std_msgs/Float64.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
@@ -52,6 +51,8 @@ class RosBridge{
 
     void publishVLX();
 
+    void publishLimitSwitches();
+
     Movement *robot;
     Sensors *sensors;
 
@@ -70,14 +71,16 @@ class RosBridge{
     // Publishers
     ros::Publisher vlx_sensor_publisher_front;
     ros::Publisher tcs_sensor_publisher;
+    ros::Publisher limit_switch_right_publisher; // Right limit switch
+    ros::Publisher limit_switch_left_publisher; // Left limit switch
     ros::Publisher test_publisher;
 
     // Messages
     sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensor
-    
-
     std_msgs::Char tcs_sensor_msgs;          // Color sensor
     std_msgs::String testT;
+    std_msgs::Int16 limit_switch_right_msgs; // Right limit switch
+    std_msgs::Int16 limit_switch_left_msgs; // Right limit switch
 
     static constexpr uint8_t kOdomPeriod = 40;
 
