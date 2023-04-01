@@ -174,6 +174,7 @@ if __name__ == '__main__':
     global debug, debug_image
     debug = False
     debug_image = False
+    direction = "Left or right"
 
     # Get parameters
     if rospy.has_param(name + "debug"):
@@ -189,12 +190,15 @@ if __name__ == '__main__':
         working_dir = rospy.get_param(name + "working_dir")
         os.chdir(working_dir)
 
+    if rospy.has_param(name + "direction"):
+        direction = rospy.get_param(name + "direction")
+
     if (debug): portInformation()
 
     initRPC(port)
 
     # Start the service
-    s = rospy.Service('openmv_camera', CameraDetection, detect_any)
+    s = rospy.Service('openmv_camera_' + direction, CameraDetection, detect_any)
 
     # Spin the node to keep it alive
     rospy.spin()

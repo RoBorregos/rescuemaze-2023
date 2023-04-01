@@ -57,6 +57,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   CameraDetection.srv
+  BothCameras.srv
 )
 
 ## Generate actions in the 'action' folder
