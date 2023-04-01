@@ -186,7 +186,3 @@ void Sensors::checkTCS()
   tcs.printColorMatrix();
   tcs.printColorList();
 }
-
-void Sensors::getLimitSwitches(int &right, int &left){
-  
-}

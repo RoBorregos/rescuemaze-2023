@@ -4,6 +4,8 @@
 #include <Servo.h>
 #include <Arduino.h>
 
+#define right 1
+#define left -1
 
 // Class used to control kit dispensers.
 

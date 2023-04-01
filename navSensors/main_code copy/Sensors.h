@@ -54,8 +54,6 @@ class Sensors
   int kMuxPins[3] = {1,7,0}; // VLX multiplexor pins
   int kMuxTCS = {2};   // TCS multiplexor pin
 
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
-
 public:
   // Constructor
 
@@ -137,8 +135,6 @@ public:
 
   // Make general checks to ensure TCS is working correctly.
   void checkTCS();
-
-  void getLimitSwitches(int &right, int &left);
 };
 
 #endif
