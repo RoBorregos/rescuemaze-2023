@@ -130,7 +130,7 @@ bool fueraRango(int current_angle, int desired_angle)
   }
   else
   {
-
+    // Esta dentro del rango
     if (current_angle > (desired_angle - 5) && current_angle < (desired_angle + 5))
     {
       return false;
@@ -468,6 +468,7 @@ void Movement::girarDeltaAngulo(double delta_theta)
   double current_angle = 0;
   double desired_angle = 0;
 
+  // Girar a la derecha
   if (delta_theta > 0)
   {
     current_angle = bno->getAngleX();
@@ -475,8 +476,6 @@ void Movement::girarDeltaAngulo(double delta_theta)
     constrainAngle(desired_angle, kMinAngle, kMaxAngle);
     while (fueraRango(current_angle, desired_angle))
     {
-      turnDecider(current_angle, desired_angle);
-
       motor[FRONT_LEFT].motorRotateDerPID(desired_angle, current_angle);
       motor[BACK_LEFT].motorRotateDerPID(desired_angle, current_angle);
       motor[FRONT_RIGHT].motorRotateDerPID(desired_angle, current_angle);
@@ -486,13 +485,13 @@ void Movement::girarDeltaAngulo(double delta_theta)
     stop();
     resetEncoders();
   }
+  // Girar a la izquierda
   else if (delta_theta < 0)
   {
     desired_angle = current_angle + delta_theta;
     constrainAngle(desired_angle, kMinAngle, kMaxAngle);
     while (fueraRango(current_angle, desired_angle))
     {
-      turnDecider(current_angle, desired_angle);
 
       motor[FRONT_LEFT].motorRotateIzqPID(desired_angle, current_angle);
       motor[BACK_LEFT].motorRotateIzqPID(desired_angle, current_angle);
