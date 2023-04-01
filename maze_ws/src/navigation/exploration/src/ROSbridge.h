@@ -13,6 +13,7 @@
 #include "tf/transform_datatypes.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/Range.h"
+#include "sensor_msgs/LaserScan.h"
 
 // #include <tf2_ros/transform_broadcaster.h>
 // #include <tf2/LinearMath/Matrix3x3.h>
@@ -32,6 +33,7 @@
 #include <std_srvs/Trigger.h>
 
 #include <nav_main/GetWalls.h>
+#include <nav_main/GetWallsDist.h>
 
 #include "TfBroadcaster.h"
 
@@ -65,6 +67,8 @@ private:
     bool downRamp;
 
     bool obstacle;
+
+    bool restartGoal;
 
     // Timer
     ros::Timer timer;
@@ -101,6 +105,7 @@ private:
     ros::ServiceClient hsMapReset;
 
     ros::ServiceClient wallsClient;
+    ros::ServiceClient wallsDistClient;
 
     // Action clients
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac;
@@ -147,6 +152,7 @@ public:
 
     // VLX data
     double distVlx;
+    double distLidar;
 
     bool started;
     double northYaw;
@@ -206,6 +212,8 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     upRamp = false;
     downRamp = false;
 
+    restartGoal = false;
+
     ROS_INFO("Creating ROSbridge");
     nh = n;
 
@@ -234,6 +242,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     hsMapReset = nh->serviceClient<std_srvs::Trigger>("/reset_map");
 
     wallsClient = nh->serviceClient<nav_main::GetWalls>("/get_walls");
+    wallsDistClient = nh->serviceClient<nav_main::GetWallsDist>("/get_walls_dist");
 
     ROS_INFO("Created service clients");
 
@@ -343,6 +352,16 @@ void ROSbridge::vlxCallback(const sensor_msgs::Range::ConstPtr &msg)
     distVlx = msg->range;
 }
 
+// Lidar callback
+// void ROSbridge::lidarCallback(const sensor_msgs::LaserScan::ConstPtr &msg)
+// {
+//     // ROS_INFO("Lidar callback");
+//     // ROS_INFO("Lidar callback: %d", scope.status);
+
+//     // Set distLidar to the distance to the front
+//     distLidar = msg->ranges[0];
+// }
+
 void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
 {
     ROS_INFO_STREAM("done callback: Finished in state " << state.toString());
@@ -362,9 +381,16 @@ void ROSbridge::timerCallback(const ros::TimerEvent &)
     // ROS_INFO("Timer callback");
     // ROS_INFO("Timer callback: %d", scope.status);
 
+    // Check if goal is reached
     if (!scope.resultReceived)
     {
+        if (!scope.resultReceived)
+        {
+            // Cancel and restart goal
+            restartGoal = true;
 
+            ac.cancelGoal();
+        }
     }
     // if (scope.status == 3)
     // {
@@ -408,6 +434,24 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
     }
 
     // check limit switches
+    if (limitSwitchLeft && limitSwitchRight)
+    {
+        // Go back
+        geometry_msgs::Twist moveBackTwist;
+        moveBackTwist.linear.x = -0.2; // move backward at 0.5 m/s
+        moveBackTwist.angular.z = 0.0; // turn right at 45 degrees/s (0.785 radians/s)
+
+        // Publish twist message
+        twistpub.publish(moveBackTwist);
+
+        // Wait for 1 second
+        ros::Duration(0.5).sleep();
+
+        // Stop the robot
+        moveBackTwist.linear.x = 0.0;
+        moveBackTwist.angular.z = 0.0;
+        twistpub.publish(moveBackTwist);
+    }
     if (limitSwitchLeft)
     {
         ROS_INFO("Limit switch 1, recovering");
@@ -448,6 +492,7 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
     }
 
     // check pitch from imu
+
     if (!upRamp && pitch < NOSEUP_PITCH) // Found obstacle (bumper / stairs)
     {
         if (debugging)
@@ -461,6 +506,25 @@ void ROSbridge::feedbackCb(const move_base_msgs::MoveBaseFeedbackConstPtr &feedb
             ROS_INFO("Down ramp");
 
         downRamp = true;
+
+        ac.cancelGoal();
+    }
+    // check if there's ramp and imu is close to 0
+    else if (upRamp && pitch > NOSEUP_PITCH && pitch < NOSEDOWN_PITCH)
+    {
+        if (debugging)
+            ROS_INFO("Up ramp");
+
+        upRamp = true;
+    }
+
+    if (upRamp || downRamp)
+    {
+        // publish forward twist while pitch is not close to 0
+        geometry_msgs::Twist moveTwist;
+        moveTwist.linear.x = 0.2; // move forward at 0.5 m/s
+
+        
     }
 
     // scope.feedback = feedback->base_position.pose;
@@ -476,8 +540,7 @@ void ROSbridge::activeCb()
     scope.startedGoal = true;
 
     // Start timer for 7 seconds to check if goal is reached
-    timer = nh->createTimer(ros::Duration(7), &ROSbridge::timerCallback, this);
-
+    timer = nh->createTimer(ros::Duration(7), &ROSbridge::timerCallback, this, true);
 }
 
 // Action client functions
@@ -527,6 +590,14 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
 // 5: Goal reached, up ramp
 int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
 {
+    // Call get_walls_dist service
+    nav_main::GetWallsDist walls;
+
+    wallsClient.call(walls);
+
+    // Get the distance from the lidar
+    distLidar = walls.response.front;
+
     geometry_msgs::PoseStamped pose;
     pose.header.stamp = ros::Time::now();
     pose.header.frame_id = "perfect_position";
@@ -541,6 +612,30 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
         pose.pose.orientation.y = 0;
         pose.pose.orientation.z = 0;
         pose.pose.orientation.w = 1;
+
+        // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
+        if (distLidar < 0.3 && distLidar - distVlx < 0.1 && distLidar - distVlx > 0.05)
+        {
+            ROS_INFO("Up ramp");
+            // upRamp = true;
+
+            // Publish twist message
+            geometry_msgs::Twist moveTwist;
+            moveTwist.linear.x = 0.2; // move forward at 0.5 m/s
+
+            while (pitch > 0.05 || pitch < -0.05)
+            {
+                twistpub.publish(moveTwist);
+
+                ros::spinOnce();
+            }
+
+            // Stop publishing twist message
+            moveTwist.linear.x = 0;
+            twistpub.publish(moveTwist);
+
+            return 5;
+        }
     }
     if (movement == 1) // Turn right
     {
@@ -622,9 +717,58 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
     {
         return 3;
     }
+    else if (restartGoal)
+    {
+        restartGoal = false;
+
+        // Restart maps
+        clearMap();
+
+        // Send goal to 0,0 to go to the center of the tile
+        geometry_msgs::PoseStamped pose;
+        pose.header.stamp = ros::Time::now();
+        pose.header.frame_id = "perfect_position";
+        pose.pose.position.x = 0;
+        pose.pose.position.y = 0;
+        pose.pose.position.z = 0;
+        pose.pose.orientation.x = 0;
+        pose.pose.orientation.y = 0;
+        pose.pose.orientation.z = 0;
+        pose.pose.orientation.w = 1;
+
+        // Transform pose to map frame
+        geometry_msgs::PoseStamped poseMap;
+        tfl.waitForTransform("map", "perfect_position", ros::Time(0), ros::Duration(1.0));
+        tfl.transformPose("map", ros::Time(0), pose, "perfect_position", poseMap);
+
+        move_base_msgs::MoveBaseGoal goal;
+        goal.target_pose = poseMap;
+
+        movementClientAsync(goal);
+        
+        return sendMapGoalGOAT(movement, rDirection);
+    }
     else if (downRamp)
     {
+        geometry_msgs::Twist moveTwist;
+        moveTwist.linear.x = -0.2; // move forward at 0.5 m/s
+
+        while (pitch > 0.1 || pitch < -0.1)
+        {
+            ros::spinOnce();
+
+            twistpub.publish(moveTwist);
+        }
+
+        // Stop publishing twist message
+        moveTwist.linear.x = 0;
+        twistpub.publish(moveTwist);
+
         downRamp = false;
+
+        // Reset maps
+        clearMap();
+
         return 4;
     }
     else if (upRamp)
