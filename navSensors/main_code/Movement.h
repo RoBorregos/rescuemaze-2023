@@ -178,9 +178,6 @@ public:
   // Comand Velocity, using kinematics.
   void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
 
-  // Comand Movement, using PID and static velocity
-  void cmdMovement(int movement_type);
-
   // Sets motors state to turn right.
   void girarDerecha();
 
@@ -221,8 +218,6 @@ public:
   // Decides how to turn depinding on the current and desired angles
   void turnDecider(double current_angle, double desired_angle);
 
-  // Uses turn decider but with a delta angle
-  void girarDeltaAngulo(double delta_theta);
 
   void stop();
 
