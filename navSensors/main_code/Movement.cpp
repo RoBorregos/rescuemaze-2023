@@ -43,10 +43,10 @@ void Movement::setIndividualPID()
   motor[FRONT_LEFT].PIDStraightTunings(120, 80, 10);
   motor[BACK_RIGHT].PIDStraightTunings(120, 80, 10);
 
-  motor[BACK_LEFT].PIDConservativeTunings(120, 80, 10);
-  motor[FRONT_RIGHT].PIDConservativeTunings(120, 80, 10);
-  motor[FRONT_LEFT].PIDConservativeTunings(120, 80, 10);
-  motor[BACK_RIGHT].PIDConservativeTunings(120, 80, 10);
+  motor[BACK_LEFT].PIDConservativeTunings(40, 80, 10);
+  motor[FRONT_RIGHT].PIDConservativeTunings(40, 80, 10);
+  motor[FRONT_LEFT].PIDConservativeTunings(40, 80, 10);
+  motor[BACK_RIGHT].PIDConservativeTunings(40, 80, 10);
 
   motor[BACK_LEFT].PIDAggressiveTunings(470, 0, 15);
   motor[FRONT_RIGHT].PIDAggressiveTunings(470, 0, 15);
@@ -405,19 +405,49 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
   motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
 }
 
-// A possitive errorD means that the robot must increase the speed of the right wheels.
+// Adjust to go to specific turn.
+void Movement::turnPID(int RPMs, int errorD)
+{
+  Serial.println(errorD);
+  RPMs *= 1.0/10;
+  
+  // Use angle error to update target speeds.
+  if (errorD > -359 && errorD > -180){
+    
+    motor[FRONT_LEFT].motorSpeedPID((RPMs * (errorD * 1.05)), false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));    
+  } else {
+    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));        
+  }
+}
+
 void Movement::updateStraightPID(int RPMs, int errorD)
 {
+  Serial.println(errorD);
+  
   // Use angle error to update target speeds.
-  motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-  motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-  motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-  motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
+  if (errorD > -359 && errorD > -180){
+    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));    
+  } else {
+    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));        
+  }
 }
 
 // A possitive errorD means that the robot must increase the speed of the right wheels.
 void Movement::updateStraightPID(int RPMs)
 {
+  
   // Use angle error to update target speeds.
   motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
   motor[BACK_LEFT].motorSpeedPID(RPMs, false);

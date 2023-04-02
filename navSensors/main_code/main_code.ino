@@ -55,20 +55,29 @@ void setup()
 
   bno.init(); 
 
-  initAll(&bno, true, true);  
+  initAll(&bno, true, true);
+  /*  
   while (true){
     s->printInfo(true, true, true);
-  }
-  
+  }*/
+
 }
 
 void loop()
 {
-    while (true)//(distancefront > 0.15 && color != 'N' && distanceright < 0.15)
-  {
-    forward();
-    turnRight();    
+  int errorD = 90 - bno.getAngleX();
+if (errorD <= 0 && errorD > -5) {
+    Serial.println("Angulo correecto");
+  } else {
+    test();
   }
+  
+}
+
+void test(){
+  double angle = 90;
+  double angleNew = bno.getAngleX();
+  robot->turnPID(90, angle - angleNew);
 }
 
 void forward()

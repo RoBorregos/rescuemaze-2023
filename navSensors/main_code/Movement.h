@@ -116,6 +116,7 @@ public:
 
   // Initializes motors, leds, servo, limit switches, and kinematics.
   void initRobot();
+  void turnPID(int RPMs, int errorD);
 
   // Sets the values of the PID for each motor.
   void setIndividualPID();
