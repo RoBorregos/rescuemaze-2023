@@ -208,10 +208,10 @@ public:
   Direction whereToGo(double &current_angle, const double target_angle);
 
   // Moves the robot forward the specified distance.
-  // @param x Distance in meters.
-  void advanceXMeters(double x, double rAngle);
+  // @param x Distance in meters
 
-  void advanceXMetersNoAngle(double x, bool useVlx=false);
+  void advanceXMeters(double x, double rAngle, bool useVlx=false);
+
 
   int getDistanceToCenter();
 
