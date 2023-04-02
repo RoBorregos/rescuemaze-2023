@@ -72,9 +72,10 @@ int newAngle = 0;
 
 void loop()
 {
+  //checkLimitSwitches();
   // backward(1);
   // delay (1000);
-  // exploreFollowerWall();
+  exploreFollowerWall();
   //robot->goToAngle(90, true);
   //robot->advanceXMeters(0.3, dirToAngle(rDirection));  
   
@@ -120,7 +121,7 @@ void exploreFollowerWall()
 
     if (distanceright > 0.15)
     {
-      // forward(3);
+      forward(3);
       turnRight();
       forwardTile();  
     }
@@ -319,20 +320,22 @@ void forward(int times)
   {
     robot->advanceXMeters(0.01, dirToAngle(rDirection));
     
-    checkLimitSwitches();
+    if (checkLimitSwitches())
+      break;
   }
 }
 
 void forwardTile()
 {
-  double curDistance = getFrontDistance();
-  double targetDistance = curDistance + 0.3;
+  forward(18);
+  // double curDistance = getFrontDistance();
+  // double targetDistance = curDistance + 0.3;
 
-  while (curDistance < targetDistance)
-  {
-    forward(1);
-    curDistance = getFrontDistance();
-  }
+  // while (curDistance < targetDistance)
+  // {
+  //   forward(1);
+  //   curDistance = getFrontDistance();
+  // }
 }
 
 void backward(int times)
@@ -342,9 +345,15 @@ void backward(int times)
 
 void turnLeft()
 {
+  // Check if there's a wall to the right
+  bool wallRight = (getRightDistance() < 0.15);
+  
   // Turn left
   robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
 
+  if (wallRight)
+    backward(10);
+   
   if (rDirection == 0)
   {
     rDirection = 3;
@@ -357,6 +366,9 @@ void turnLeft()
 
 void turnRight()
 {
+  // Check if there's a wall 
+  bool wallLeft = (getLeftDistance() < 0.15);
+  
   // Turn right
   robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
 
@@ -368,6 +380,23 @@ void turnRight()
   {
     rDirection++;
   }
+}
+
+void relativeTurn(double angle, bool goRight)
+{
+  double curAngle = s->getAngleX();
+  double goAngle = curAngle + angle;
+  
+  if (angle + curAngle > 360)
+  {
+    goAngle -= 360;
+  }
+  else if (angle + curAngle < 0)
+  {
+    goAngle += 360;
+  }
+  
+  robot->goToAngle(goAngle, goRight);
 }
 
 char checkColors()
@@ -384,87 +413,97 @@ char checkColors()
   }
 }
 
-void checkLimitSwitches()
+int checkLimitSwitches()
 {
   if (robot->leftLimitSwitch() && robot->rightLimitSwitch())
   {
     backward(2);
+
+    return 1;
   }
   else if (robot->leftLimitSwitch())
   {
     backward(2);
-    robot->girarDeltaAngulo(10);
-    if (northYaw < 359)
-    {
-      northYaw += 0;
-    }
-    else
-    {
-      northYaw = 0;
-    } 
-    if (eastYaw < 359)
-    {
-      eastYaw += 0;
-    }
-    else
-    {
-      eastYaw = 0;
-    }
-    if (southYaw < 359)
-    {
-      southYaw += 0;
-    }
-    else
-    {
-      southYaw = 0;
-    }
-    if (westYaw < 359)
-    {
-      westYaw += 0;
-    }
-    else
-    {
-      westYaw = 0;
-    }
+    relativeTurn(20, true);
+    robot->advanceXMetersNoAngle(2);
+
+    return 1;
+
+//    if (northYaw < 359)
+//    {
+//      northYaw += 0;
+//    }
+//    else
+//    {
+//      northYaw = 0;
+//    } 
+//    if (eastYaw < 359)
+//    {
+//      eastYaw += 0;
+//    }
+//    else
+//    {
+//      eastYaw = 0;
+//    }
+//    if (southYaw < 359)
+//    {
+//      southYaw += 0;
+//    }
+//    else
+//    {
+//      southYaw = 0;
+//    }
+//    if (westYaw < 359)
+//    {
+//      westYaw += 0;
+//    }
+//    else
+//    {
+//      westYaw = 0;
+//    }
   }
   else if (robot->rightLimitSwitch())
   {
     backward(2);
-    robot->girarDeltaAngulo(-10);
-    if (northYaw > 0)
-    {
-      northYaw -= 0;
-    }
-    else
-    {
-      northYaw = 359;
-    } 
-    if (eastYaw > 0)
-    {
-      eastYaw -= 0;
-    }
-    else
-    {
-      eastYaw = 359;
-    }
-    if (southYaw > 0)
-    {
-      southYaw -= 0;
-    }
-    else
-    {
-      southYaw = 359;
-    }
-    if (westYaw > 0)
-    {
-      westYaw -= 0;
-    }
-    else
-    {
-      westYaw = 359;
-    }
+    relativeTurn(-20, false);
+    forward(2);
+
+    return 1;
+//    if (northYaw > 0)
+//    {
+//      northYaw -= 0;
+//    }
+//    else
+//    {
+//      northYaw = 359;
+//    } 
+//    if (eastYaw > 0)
+//    {
+//      eastYaw -= 0;
+//    }
+//    else
+//    {
+//      eastYaw = 359;
+//    }
+//    if (southYaw > 0)
+//    {
+//      southYaw -= 0;
+//    }
+//    else
+//    {
+//      southYaw = 359;
+//    }
+//    if (westYaw > 0)
+//    {
+//      westYaw -= 0;
+//    }
+//    else
+//    {
+//      westYaw = 359;
+//    }
   }
 
+  return 0;
 }
 
 // Inicializar todos los sensores.

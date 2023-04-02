@@ -595,7 +595,7 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
   resetEncoders();
 }
 
-void Movement::advanceXMetersNoAngle(double x, double rAngle, bool useVlx)
+void Movement::advanceXMetersNoAngle(double x, bool useVlx)
 {
   double dist = 0;
   if (useVlx)
@@ -618,15 +618,6 @@ void Movement::advanceXMetersNoAngle(double x, double rAngle, bool useVlx)
 
       bool turnRight = false;
 
-      double diff = bno->getAngleX() - rAngle;
-      if (diff > 0 && diff < 180)
-      {
-        turnRight = false;
-      }
-      else
-      {
-        turnRight = true;
-      }
       // Get dist reading after correcting angle.
       if (useVlx)
       {
