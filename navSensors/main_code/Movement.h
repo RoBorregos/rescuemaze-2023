@@ -212,7 +212,9 @@ public:
 
   // Moves the robot forward the specified distance.
   // @param x Distance in meters.
-  void advanceXMeters(double x, double rAngle, double=false);
+  void advanceXMeters(double x, double rAngle, bool useVlx=false);
+
+  void advanceXMetersNoAngle(double x, double rAngle, bool useVlx=false);
 
   int getDistanceToCenter();
 

@@ -540,7 +540,7 @@ void Movement::updateStraightPID(int RPMs)
   motor[BACK_RIGHT].motorSpeedPID(RPMs);
 }
 
-void Movement::advanceXMeters(double x, double rAngle, double useVlx)
+void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
 {
   double dist = 0;
   if (useVlx)
@@ -595,6 +595,59 @@ void Movement::advanceXMeters(double x, double rAngle, double useVlx)
   resetEncoders();
 }
 
+void Movement::advanceXMetersNoAngle(double x, double rAngle, bool useVlx)
+{
+  double dist = 0;
+  if (useVlx)
+  {
+    dist = sensors->getVLXInfo(vlx_front);
+  }
+  else
+  {
+    dist = meanDistanceTraveled(); // Use encoders
+  }
+  double initial = dist;
+  double target = dist + x;
+
+  if (x > 0)
+  {
+    while (dist < target)
+    {
+      updateStraightPID(kMovementRPMs);
+      Serial.println("Distancia recorrida: " + String(dist - initial));
+
+      bool turnRight = false;
+
+      double diff = bno->getAngleX() - rAngle;
+      if (diff > 0 && diff < 180)
+      {
+        turnRight = false;
+      }
+      else
+      {
+        turnRight = true;
+      }
+      // Get dist reading after correcting angle.
+      if (useVlx)
+      {
+        dist = sensors->getVLXInfo(vlx_front);
+      }
+      else
+      {
+        dist = meanDistanceTraveled();
+      }
+    }
+  }
+  else
+  {
+    updateStraightPID(-kMovementRPMs);
+    delay(100);
+  }
+
+  stop();
+  resetEncoders();
+}
+
 int Movement::getDistanceToCenter(){
   double dist = 0;
   dist = sensors->getVLXInfo(vlx_front);
@@ -627,7 +680,6 @@ void Movement::turnDecider(double current_angle, double desired_angle)
 
 void Movement::goToAngle(int targetAngle, bool turnRight)
 {
-
   double current_angle = bno->getAngleX();
 
   while (abs(current_angle - targetAngle) > 5)
