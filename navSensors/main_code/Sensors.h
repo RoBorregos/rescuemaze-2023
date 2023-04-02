@@ -14,7 +14,6 @@
 #define vlx_front 0
 #define vlx_back 3
 
-
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
 {
@@ -25,18 +24,13 @@ class Sensors
   static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount; // Total sensors data count
 
   // TCS constants
-  static constexpr int kTCSPrecision = 10;                         // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 7;                        // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"obBwrgbn"}; // List of color initials
+  static constexpr int kTCSPrecision = 10;                   // Precision for matching color values.
+  static constexpr uint8_t colorAmount = 2;                  // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"NA"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
   static constexpr uint8_t colors[colorAmount][3] = {
       {137, 78, 58},
-      {64, 85, 128},
-      {85, 85, 85},
-      {73, 132, 73},
-      {110, 70, 108},
-      {155, 111, 57},
-      {220, 156, 150}};
+      {64, 85, 128}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
@@ -52,8 +46,8 @@ class Sensors
   // Front is in pin 1.
   // Left is in pin 0.
   // Right is in pin 7.
-  int kMuxPins[3] = {1,7,0}; // VLX multiplexor pins
-  int kMuxTCS = {2};   // TCS multiplexor pin
+  int kMuxPins[3] = {1, 7, 0}; // VLX multiplexor pins
+  int kMuxTCS = {2};           // TCS multiplexor pin
 
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
