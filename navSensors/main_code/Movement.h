@@ -24,6 +24,16 @@
 #define ROBOT_TURN_LEFT 3
 #define ROBOT_RAMP 4
 
+#define vlx_right 1
+#define vlx_left 2
+#define vlx_front 0
+#define vlx_back 3
+
+enum class Direction{
+    left = 1,
+    right = 2 
+};
+
 class Movement
 {
 private:
@@ -83,13 +93,34 @@ private:
   static constexpr double kIStraightFR = 3; // 55
   static constexpr double kDStraightFR = 2; // 40
 
+  PIDRb pid_straight_;
+  double straight_output_ = 0;
+  int target_angle_ = 0;
+  static constexpr uint8_t kPidMovementTimeSample = 100;
+  static constexpr uint16_t kPidMaxErrorSum = 3000;
+  static constexpr double kOutputMinLimitPidStraight = -0.175;
+  static constexpr double kOutputMaxLimitPidStraight = 0.175;
+  static constexpr double kPPidStraight = 0.0008;
+  static constexpr double kIPidStraight = 0.00015;
+  static constexpr double kDPidStraight = 0.0002;
+  static constexpr double kOutputMinLimitPidRotation = -0.18;
+  static constexpr double kOutputMaxLimitPidRotation = 0.18;
+  static constexpr double kOutputAdjustment = -0.075;
+  static constexpr double kPidRotationTolerance = 1;
+  static constexpr double kPPidRotation = 0.00050;
+  static constexpr double kIPidRotation = 0.00110;
+
+
   // Kinematics.
   Kinematics kinematics;
 
+  PIDRb pid_straight;
+
   // Cmd movement constants
-  static constexpr int kMovementRPMs = 60;
-  static constexpr double kMaxAngle = 359.0;
-  static constexpr double kMinAngle = 0.0;
+  static constexpr int kMovementRPMs = 80;
+  static constexpr int kMaxAngle = 360;
+  static constexpr uint16_t kInterAngle = 180;
+  static constexpr int kMinAngle = 0.0;
 
 public:
   // Motor Array.
@@ -166,13 +197,24 @@ public:
 
   void updateStraightPID(int RPMs);
 
+  void Movement::updateStraightPID2(int RPMs, int errorD);
+
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
   void updatePIDKinematics(Kinematics::output rpm);
 
+  void pidLinearMovement();
+
+  void velocityAdjustment(const int adjustment);
+
+  Direction whereToGo(double &current_angle);
+  Direction whereToGo(double &current_angle, const double target_angle);
+
   // Moves the robot forward the specified distance.
   // @param x Distance in meters.
-  void advanceXMeters(double x);
+  void advanceXMeters(double x, double rAngle, double=false);
+
+  int getDistanceToCenter();
 
   // Decides how to turn depinding on the current and desired angles
   void turnDecider(double current_angle, double desired_angle);

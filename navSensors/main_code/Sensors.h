@@ -9,10 +9,11 @@
 
 // SENSOR DATA
 
-#define vlx_right 0
-#define vlx_left 1
-#define vlx_front 2
+#define vlx_right 1
+#define vlx_left 2
+#define vlx_front 0
 #define vlx_back 3
+
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors

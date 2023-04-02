@@ -161,6 +161,34 @@ void PIDRb::setConservative(double kp, double ki, double kd)
   this->cons_kd = kd;
 }
 
+void PIDRb::compute(const double error, double &output, const byte flag) {
+  if(millis()-timePassed < sampleTime) {
+      return;
+  }
+
+  if(errorPre * error <= 0) {
+    errorPre = 0;
+    errorSum = 0;
+  }
+  if(flag == 0) {
+    if(abs(error) <= 2) {
+      errorPre = 0;
+      errorSum = 0;
+    }
+  }
+  
+  output = error * kp + errorSum * ki + (error - errorPre) * kd;
+  errorPre = error;
+  errorSum += error;
+  
+  
+  errorSum = max(maxError * -1, min(maxError, errorSum));
+  output = max(minOutput, min(maxOutput, output));
+  
+  timePassed = millis();
+
+}
+
 void PIDRb::setAggressive(double kp, double ki, double kd)
 {
   this->agr_kp = kp;

@@ -49,6 +49,7 @@ private:
   static constexpr double kMaxPWM = 255;
   static constexpr double kPwmDeadZone = 0;
   static constexpr double kMinPwmForMovement = 0;
+  double velocity_adjustment_ = 0;
 
   // PID Data.
 
@@ -130,6 +131,8 @@ public:
 
   // Updates encoder tics
   void deltaEncoderTics(int delta);
+
+  void setVelocityAdjustment(const double velocity_adjustment);
 
   // Unit Conversion
 

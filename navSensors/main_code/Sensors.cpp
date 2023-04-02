@@ -60,11 +60,12 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
   {
     for (int i = 0; i < kMuxVLX; i++)
     {
-      Serial.print("VLX sensor ");
+      Serial.print(" VLX sensor ");
       Serial.print(i + 1);
       Serial.print(": ");
-      Serial.println(float(getVLXInfo(i)), 4);
+      Serial.print(float(getVLXInfo(i)), 4);
     }
+    Serial.println();
   }
 
   if (tcs)

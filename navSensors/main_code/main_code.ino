@@ -11,9 +11,12 @@
 #include "BNO.h"
 
 // Macros for vlx
-#define front_vlx 1
-#define right_vlx 7
-#define left_vlx 0
+#define front_vlx 0
+#define right_vlx 1
+#define left_vlx 2
+
+#define useleftvlx true
+#define userightvlx true
 
 Movement *robot = nullptr;
 Sensors *s = nullptr;
@@ -28,10 +31,10 @@ int rDirection = 0;
 
 double yaw;
 
-double northYaw;
-double southYaw;
-double eastYaw;
-double westYaw;
+double northYaw = 0;
+double southYaw = 180;
+double eastYaw = 90;
+double westYaw = 270;
 
 double pitch;
 
@@ -59,15 +62,21 @@ void setup()
   /*
   while (true){
     s->printInfo(true, true, true);
-  }*/
+  }
+  */
+
+  // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
 int newAngle = 0;
 
 void loop()
 {
-  robot->goToAngle(90, true);
-  delay(10000);
+  // backward(1);
+  // delay (1000);
+  // exploreFollowerWall();
+  //robot->goToAngle(90, true);
+  //robot->advanceXMeters(0.3, dirToAngle(rDirection));  
   
   //girosIzquierda();
   //delay(1000);
@@ -77,6 +86,83 @@ void loop()
 
   robot->girarDeltaAngulo(-90);
   delay(1000);*/
+
+  // while (true){
+  //   s->printInfo(false, true, false);
+  // }
+  
+  // robot->advanceXMeters(0.3, 90);
+  // delay(200);
+
+  // delay(100);
+}
+
+void exploreFollowerWall()
+{
+  // forward();
+  // delay(500);
+  // while (true)
+  // {
+  //   distancefront = getFrontDistance();
+
+  //   while (distancefront > 0.09)
+  //   {
+  //     forward();
+  //     distancefront = getFrontDistance();
+  //   }
+  // }
+  while (true)
+  {
+      
+    distancefront = getFrontDistance();
+    distanceright = getRightDistance();
+    distanceleft = getLeftDistance();
+
+    if (distanceright > 0.15)
+    {
+      // forward(3);
+      turnRight();
+      forwardTile();  
+    }
+    else if (distancefront < 0.08)
+    {
+      turnLeft();
+    }
+    // else if (distancefront < 0.07)
+    // {
+    //   turnLeft();
+    // }
+    else 
+    {
+      forward(1);
+    }
+  }
+}
+
+void testGiros(){
+  robot->goToAngle(90, true);
+  delay(1000);
+
+  robot->goToAngle(180, true);
+  delay(1000);
+
+  robot->goToAngle(270, true);
+  delay(1000);
+
+  robot->goToAngle(360, true);
+  delay(1000);
+
+  robot->goToAngle(270, false);
+  delay(1000);
+
+  robot->goToAngle(180, false);
+  delay(1000);
+
+  robot->goToAngle(90, false);
+  delay(1000);
+
+  robot->goToAngle(0, false);
+  delay(1000);  
 }
 
 void girosIzquierda()
@@ -126,19 +212,19 @@ int dirToAngle(int rdirection)
   switch (rdirection)
   {
   case 0:
-    return 0;
+    return northYaw;
     break;
 
   case 1:
-    return 90;
+    return eastYaw;
     break;
 
   case 2:
-    return 180;
+    return southYaw;
     break;
 
   case 3:
-    return 270;
+    return westYaw;
     break;
 
   default:
@@ -175,6 +261,43 @@ int getTurnDirection(int turn)
   return -1;
 }
 
+double getFrontDistance()
+{
+  return s->getVLXInfo(front_vlx); // Get front distance
+}
+
+double getLeftDistance()
+{
+  if (useleftvlx)
+    return s->getVLXInfo(left_vlx); // Get front distance
+  else
+  {
+    turnLeft();
+    double distance = s->getVLXInfo(0); // Get front distance
+    turnRight();
+
+    return distance;
+  }
+
+  return 0;
+}
+
+double getRightDistance()
+{
+  if (userightvlx)
+    return s->getVLXInfo(right_vlx); // Get front distance
+  else
+  {
+    turnRight();
+    double distance = s->getVLXInfo(0); // Get front distance
+    turnLeft();
+
+    return distance;
+  }
+
+  return 0;
+}
+
 void giroAbajo()
 {
   int errorD = 180 - bno.getAngleX();
@@ -189,20 +312,38 @@ void giroAbajo()
     robot->turnPID(90, angle - angleNew, 1);
   }
 }
-void forward()
+
+void forward(int times)
 {
-  robot->advanceXMeters(0.3);
+  for (int i = 0; i < times; i++)
+  {
+    robot->advanceXMeters(0.01, dirToAngle(rDirection));
+    
+    checkLimitSwitches();
+  }
 }
 
-void backward()
+void forwardTile()
 {
-  robot->advanceXMeters(-0.3);
+  double curDistance = getFrontDistance();
+  double targetDistance = curDistance + 0.3;
+
+  while (curDistance < targetDistance)
+  {
+    forward(1);
+    curDistance = getFrontDistance();
+  }
+}
+
+void backward(int times)
+{
+  robot->advanceXMeters(-0.01 * times, dirToAngle(rDirection));
 }
 
 void turnLeft()
 {
   // Turn left
-  robot->girarDeltaAngulo(-90);
+  robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
 
   if (rDirection == 0)
   {
@@ -217,7 +358,7 @@ void turnLeft()
 void turnRight()
 {
   // Turn right
-  robot->girarDeltaAngulo(90);
+  robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
 
   if (rDirection == 3)
   {
@@ -227,6 +368,103 @@ void turnRight()
   {
     rDirection++;
   }
+}
+
+char checkColors()
+{
+  char color = s->getTCSInfo();
+  
+  if (color == 'N')
+  {
+    backward(3);
+  }
+  else if (color == 'A')
+  {
+    delay(5000);
+  }
+}
+
+void checkLimitSwitches()
+{
+  if (robot->leftLimitSwitch() && robot->rightLimitSwitch())
+  {
+    backward(2);
+  }
+  else if (robot->leftLimitSwitch())
+  {
+    backward(2);
+    robot->girarDeltaAngulo(10);
+    if (northYaw < 359)
+    {
+      northYaw += 0;
+    }
+    else
+    {
+      northYaw = 0;
+    } 
+    if (eastYaw < 359)
+    {
+      eastYaw += 0;
+    }
+    else
+    {
+      eastYaw = 0;
+    }
+    if (southYaw < 359)
+    {
+      southYaw += 0;
+    }
+    else
+    {
+      southYaw = 0;
+    }
+    if (westYaw < 359)
+    {
+      westYaw += 0;
+    }
+    else
+    {
+      westYaw = 0;
+    }
+  }
+  else if (robot->rightLimitSwitch())
+  {
+    backward(2);
+    robot->girarDeltaAngulo(-10);
+    if (northYaw > 0)
+    {
+      northYaw -= 0;
+    }
+    else
+    {
+      northYaw = 359;
+    } 
+    if (eastYaw > 0)
+    {
+      eastYaw -= 0;
+    }
+    else
+    {
+      eastYaw = 359;
+    }
+    if (southYaw > 0)
+    {
+      southYaw -= 0;
+    }
+    else
+    {
+      southYaw = 359;
+    }
+    if (westYaw > 0)
+    {
+      westYaw -= 0;
+    }
+    else
+    {
+      westYaw = 359;
+    }
+  }
+
 }
 
 // Inicializar todos los sensores.
