@@ -540,25 +540,41 @@ void Movement::updateStraightPID(int RPMs)
   motor[BACK_RIGHT].motorSpeedPID(RPMs);
 }
 
-void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
+void Movement::advanceXMeters(double x, double rAngle)
 {
-  double dist = 0;
-  if (useVlx)
-  {
-    dist = sensors->getVLXInfo(vlx_front);
-  }
-  else
-  {
-    dist = meanDistanceTraveled(); // Use encoders
-  }
+  double dist = sensors->getVLXInfo(vlx_front);
   double initial = dist;
-  double target = dist + x;
+  double target = dist - x;
 
   if (x > 0)
   {
-    while (dist < target)
+    while (dist > target)
     {
       updateStraightPID(kMovementRPMs);
+      Serial.println("Distancia recorrida: " + String(initial - dist));
+
+      bool turnRight = false;
+
+      double diff = bno->getAngleX() - rAngle;
+      if (diff > 0 && diff < 180)
+      {
+        turnRight = false;
+      }
+      else
+      {
+        turnRight = true;
+      }
+
+      goToAngle(rAngle, turnRight);
+      // Get dist reading after correcting angle.
+      dist = sensors->getVLXInfo(vlx_front);
+    }
+  }
+  else
+  {
+    while (dist < target)
+    {
+      updateStraightPID(-kMovementRPMs);
       Serial.println("Distancia recorrida: " + String(dist - initial));
 
       bool turnRight = false;
@@ -575,20 +591,8 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
 
       goToAngle(rAngle, turnRight);
       // Get dist reading after correcting angle.
-      if (useVlx)
-      {
-        dist = sensors->getVLXInfo(vlx_front);
-      }
-      else
-      {
-        dist = meanDistanceTraveled();
-      }
+      dist = sensors->getVLXInfo(vlx_front);
     }
-  }
-  else
-  {
-    updateStraightPID(-kMovementRPMs);
-    delay(100);
   }
 
   stop();
@@ -639,11 +643,11 @@ void Movement::advanceXMetersNoAngle(double x, bool useVlx)
   resetEncoders();
 }
 
-int Movement::getDistanceToCenter(){
+int Movement::getDistanceToCenter()
+{
   double dist = 0;
   dist = sensors->getVLXInfo(vlx_front);
-  return ((int) dist % 30) - 0.062; // Dist of vlx to wall
-  
+  return ((int)dist % 30) - 0.062; // Dist of vlx to wall
 }
 
 void Movement::turnDecider(double current_angle, double desired_angle)
