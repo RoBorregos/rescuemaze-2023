@@ -53,33 +53,72 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
-  bno.init(); 
+  bno.init();
 
   initAll(&bno, true, true);
-  /*  
+  /*
   while (true){
     s->printInfo(true, true, true);
   }*/
-
 }
 
 void loop()
 {
-  int errorD = 90 - bno.getAngleX();
-if (errorD <= 0 && errorD > -5) {
-    Serial.println("Angulo correecto");
-  } else {
-    test();
+  girosDerecha();
+  delay(1000);
+  giroAbajo();
+  delay(1000);
+}
+
+void girosIzquierda()
+{
+  while (true)
+  {
+    int errorD = (bno.getAngleX());
+    Serial.println(errorD);
+    if (errorD > -190 && errorD < -175)
+    {
+      robot->stop();
+      break;
+    }
+    else
+    {
+      double angle = 90;
+      double angleNew = bno.getAngleX();
+      robot->turnPID(90, (angle - angleNew), -1);
+    }
   }
-  
 }
 
-void test(){
-  double angle = 90;
-  double angleNew = bno.getAngleX();
-  robot->turnPID(90, angle - angleNew);
+void girosDerecha()
+{
+  int errorD = 90 - bno.getAngleX();
+  if (errorD <= 0 && errorD > -5)
+  {
+    Serial.println("Angulo correecto");
+  }
+  else
+  {
+    double angle = 90;
+    double angleNew = bno.getAngleX();
+    robot->turnPID(90, angle - angleNew, 1);
+  }
 }
 
+void giroAbajo()
+{
+  int errorD = 180 - bno.getAngleX();
+  if (errorD <= 0 && errorD > -5)
+  {
+    Serial.println("Angulo correecto");
+  }
+  else
+  {
+    double angle = 90;
+    double angleNew = bno.getAngleX();
+    robot->turnPID(90, angle - angleNew, 1);
+  }
+}
 void forward()
 {
   robot->advanceXMeters(0.3);

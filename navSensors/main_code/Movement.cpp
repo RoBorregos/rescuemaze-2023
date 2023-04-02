@@ -406,10 +406,13 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 }
 
 // Adjust to go to specific turn.
-void Movement::turnPID(int RPMs, int errorD)
+void Movement::turnPID(int RPMs, int errorD, int sign)
 {
-  Serial.println(errorD);
+  //Serial.println(errorD);
   RPMs *= 1.0/10;
+
+  if (sign == -1)
+    RPMs *= -1;
   
   // Use angle error to update target speeds.
   if (errorD > -359 && errorD > -180){
