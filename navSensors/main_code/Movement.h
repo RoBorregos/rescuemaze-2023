@@ -158,6 +158,8 @@ public:
 
   void goToAngle(int targetAngle, bool turnRight);
 
+  void updateRotatePID(int RPMs, bool right);
+
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
   void updateStraightPID(int RPMs, int errorD);

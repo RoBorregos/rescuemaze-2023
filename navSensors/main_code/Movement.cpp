@@ -382,18 +382,18 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 void Movement::girarIzquierda()
 {
-  motor[FRONT_LEFT].motorForward();
-  motor[BACK_LEFT].motorForward();
-  motor[FRONT_RIGHT].motorBackward();
-  motor[BACK_RIGHT].motorBackward();
-}
-
-void Movement::girarDerecha()
-{
   motor[FRONT_LEFT].motorBackward();
   motor[BACK_LEFT].motorBackward();
   motor[FRONT_RIGHT].motorForward();
   motor[BACK_RIGHT].motorForward();
+}
+
+void Movement::girarDerecha()
+{
+  motor[FRONT_LEFT].motorForward();
+  motor[BACK_LEFT].motorForward();
+  motor[FRONT_RIGHT].motorBackward();
+  motor[BACK_RIGHT].motorBackward();
 }
 
 void Movement::updatePIDKinematics(Kinematics::output rpm)
@@ -408,49 +408,55 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 // Adjust to go to specific turn.
 void Movement::turnPID(int RPMs, int errorD, int sign)
 {
-  //Serial.println(errorD);
-  RPMs *= 1.0/10;
+  // Serial.println(errorD);
+  RPMs *= 1.0 / 10;
 
   if (sign == -1)
     RPMs *= -1;
-  
+
   // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180){
-    
+  if (errorD > -359 && errorD > -180)
+  {
+
     motor[FRONT_LEFT].motorSpeedPID((RPMs * (errorD * 1.05)), false);
     motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
     motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));    
-  } else {
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
+  }
+  else
+  {
     motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
     motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
     motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));        
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
   }
 }
 
 void Movement::updateStraightPID(int RPMs, int errorD)
 {
   Serial.println(errorD);
-  
+
   // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180){
+  if (errorD > -359 && errorD > -180)
+  {
     motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
     motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
     motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));    
-  } else {
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
+  }
+  else
+  {
     motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
     motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
     motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));        
+    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
   }
 }
 
 // A possitive errorD means that the robot must increase the speed of the right wheels.
 void Movement::updateStraightPID(int RPMs)
 {
-  
+
   // Use angle error to update target speeds.
   motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
   motor[BACK_LEFT].motorSpeedPID(RPMs, false);
@@ -472,7 +478,7 @@ void Movement::advanceXMeters(double x)
     counter++;
     int errorD = initAngle - bno->getAngleX();
     updateStraightPID(kMovementRPMs, errorD);
-    
+
     if (counter == 20)
     {
       dist = meanDistanceTraveled();
@@ -506,7 +512,44 @@ void Movement::turnDecider(double current_angle, double desired_angle)
   }
 }
 
+void Movement::goToAngle(int targetAngle, bool turnRight)
+{
 
+  double current_angle = bno->getAngleX();
+
+  while (abs(current_angle - targetAngle) > 5)
+  {
+
+    updateRotatePID(targetAngle, turnRight);
+
+    current_angle = bno->getAngleX();
+    Serial.print("Current angle: ");
+    Serial.println(current_angle);
+  }
+
+  stop();
+}
+
+void Movement::updateRotatePID(int targetAngle, bool right)
+{
+  double current_angle = bno->getAngleX();
+  if (right)
+  {
+    girarDerecha();
+    motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);
+    motor[BACK_LEFT].motorRotateDerPID(targetAngle, current_angle);
+    motor[FRONT_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+    motor[BACK_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+  }
+  else
+  {
+    girarIzquierda();
+    motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+    motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+    motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+  }
+}
 
 void Movement::girarDeltaAngulo(double delta_theta)
 {

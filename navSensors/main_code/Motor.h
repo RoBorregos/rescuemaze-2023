@@ -71,9 +71,9 @@ private:
   // PID controllers for rotations (used only in Movement::cmdMovement).
 
   PIDRb pidRotate;
-  static constexpr double kPRotate = 1.25; // 0.5
-  static constexpr double kIRotate = 0;
-  static constexpr double kDRotate = 0;
+  static constexpr double kPRotate = 10; // 0.5
+  static constexpr double kIRotate = 5;
+  static constexpr double kDRotate = 5;
 
 public:
   // Constructors

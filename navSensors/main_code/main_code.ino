@@ -62,23 +62,34 @@ void setup()
   }*/
 }
 
+int newAngle = 0;
+
 void loop()
 {
-  girosDerecha();
+  robot->goToAngle(90, true);
+  delay(10000);
+  
+  //girosIzquierda();
+  //delay(1000);
+  /*
+  girosIzquierda();
   delay(1000);
-  giroAbajo();
-  delay(1000);
+
+  robot->girarDeltaAngulo(-90);
+  delay(1000);*/
 }
 
 void girosIzquierda()
 {
   while (true)
   {
-    int errorD = (bno.getAngleX());
+    int errorD = bno.getAngleX();
+    int errorFiltrado = errorD + newAngle;
     Serial.println(errorD);
-    if (errorD > -190 && errorD < -175)
+    if (errorFiltrado > 265 && errorFiltrado < 270)
     {
       robot->stop();
+      newAngle -= 90;
       break;
     }
     else
@@ -92,17 +103,76 @@ void girosIzquierda()
 
 void girosDerecha()
 {
-  int errorD = 90 - bno.getAngleX();
-  if (errorD <= 0 && errorD > -5)
+  while (true)
   {
-    Serial.println("Angulo correecto");
+    int errorD = 90 - bno.getAngleX() + newAngle;
+    if (errorD <= 0 && errorD > -5)
+    {
+      Serial.println("Angulo correecto");
+      newAngle += 90;
+    }
+    else
+    {
+      double angle = 90;
+      double angleNew = bno.getAngleX();
+      robot->turnPID(90, angle - angleNew, 1);
+    }
   }
-  else
+}
+
+// Maps rdirecion to angle
+int dirToAngle(int rdirection)
+{
+  switch (rdirection)
   {
-    double angle = 90;
-    double angleNew = bno.getAngleX();
-    robot->turnPID(90, angle - angleNew, 1);
+  case 0:
+    return 0;
+    break;
+
+  case 1:
+    return 90;
+    break;
+
+  case 2:
+    return 180;
+    break;
+
+  case 3:
+    return 270;
+    break;
+
+  default:
+    break;
   }
+}
+
+// Returns new rdirection given turn sign.
+int getTurnDirection(int turn)
+{
+  if (turn) // right
+  {
+    if (rDirection == 3)
+    {
+      return 0;
+    }
+    else
+    {
+      return rDirection + 1;
+    }
+  }
+  else // left
+  {
+    if (rDirection == 0)
+    {
+      return 3;
+    }
+    else
+    {
+      return rDirection - 1;
+    }
+  }
+
+  return -1;
 }
 
 void giroAbajo()
