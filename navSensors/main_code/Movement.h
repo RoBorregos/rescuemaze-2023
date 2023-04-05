@@ -211,7 +211,8 @@ public:
   // @param x Distance in meters
 
   void advanceXMeters(double x, double rAngle, bool useVlx=false);
-
+  
+  void advanceXMetersNoAngle(double x, bool useVlx=false);
 
   int getDistanceToCenter();
 

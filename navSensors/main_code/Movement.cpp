@@ -559,7 +559,7 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
     while (dist < target)
     {
       updateStraightPID(kMovementRPMs);
-      Serial.println("Distancia recorrida: " + String(dist - initial));
+      //Serial.println("Distancia recorrida: " + String(dist - initial));
 
       bool turnRight = false;
 
@@ -613,7 +613,7 @@ void Movement::advanceXMetersNoAngle(double x, bool useVlx)
     while (dist < target)
     {
       updateStraightPID(kMovementRPMs);
-      Serial.println("Distancia recorrida: " + String(dist - initial));
+      //Serial.println("Distancia recorrida: " + String(dist - initial));
 
       bool turnRight = false;
 
@@ -678,8 +678,8 @@ void Movement::goToAngle(int targetAngle, bool turnRight)
     updateRotatePID(targetAngle, turnRight);
 
     current_angle = bno->getAngleX();
-    Serial.print("Current angle: ");
-    Serial.println(current_angle);
+    //Serial.print("Current angle: ");
+    //Serial.println(current_angle);
   }
 
   stop();
