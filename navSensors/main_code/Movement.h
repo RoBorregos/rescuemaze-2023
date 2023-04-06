@@ -36,6 +36,9 @@ enum class Direction{
 
 class Movement
 {
+
+  // Give GeneralChecks full access.
+  friend class GeneralChecks;
 private:
   // ROS node.
   ros::NodeHandle *nh;
@@ -211,7 +214,7 @@ public:
   // @param x Distance in meters
 
   void advanceXMeters(double x, double rAngle, bool useVlx=false);
-  void advanceXMetersNoAngle(double x, bool rAngle);
+  void advanceXMetersNoAngle(double x, bool useVlx=false);
 
   int getDistanceToCenter();
 
@@ -232,11 +235,6 @@ public:
 
   // For specific tests on specific motors.
   void testMotor();
-
-  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
-  // as well as their directions.
-  void testAllMotors();
-
 };
 
 #endif

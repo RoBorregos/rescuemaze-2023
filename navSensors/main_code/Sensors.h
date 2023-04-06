@@ -51,17 +51,22 @@ class Sensors
 
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
+  friend class GeneralChecks;
+
 public:
+
+  String vlxNames[3] = {"Front", "Left", "Right"};
+
   // Constructor
 
   // Constuctor for using sensors with BNO connected to arduino.
   // @param *bno pointer to BNO object.
   // @param usingVLX if true, vlx will be initialized.
-  Sensors(BNO *bno, bool usignVLX = true);
+  Sensors(BNO *bno, bool usingVLX = true);
 
   // Constuctor for using sensors with external BNO.
   // @param usingVLX if true, vlx will be initialized.
-  Sensors(bool usignVLX = true);
+  Sensors(bool usingVLX = true);
 
   // Initialization
 
