@@ -45,7 +45,7 @@ def detect_walls(req):
     
     if debug:
         rospy.loginfo("Front: " + str (front_dist))
-        rospy.loginfo("Back: " + str (back_dist))
+        # rospy.loginfo("Back: " + str (back_dist))
         rospy.loginfo("Left: " + str (left_dist))
         rospy.loginfo("Right: " + str (right_dist))
 
@@ -80,7 +80,7 @@ def detect_walls_dist(req):
     right_dist -= 0.1
     front_dist -= 0.1
     
-    if True:
+    if False:
         rospy.loginfo("Front: " + str (front_dist))
         rospy.loginfo("Back: " + str (back_dist))
         rospy.loginfo("Left: " + str (left_dist))
@@ -108,7 +108,7 @@ def scan_callback(scan_msg_in):
     # Substract distance from lidar to robot's wall (get distance from robot's footprint to walls)
     back_dist -= 0.1
     
-    if True:
+    if False:
         rospy.loginfo("Back: " + str (back_dist))
 
     # Publish if there is a wall in the back

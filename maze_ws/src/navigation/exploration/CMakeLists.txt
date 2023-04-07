@@ -18,6 +18,7 @@ tf
 geometry_msgs
 tf2_ros
 tf2
+sensor_msgs
 # map_server
   # message_runtime
 )

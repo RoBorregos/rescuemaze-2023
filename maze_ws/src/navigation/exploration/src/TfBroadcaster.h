@@ -106,12 +106,12 @@ void TfBroadcaster::publishTransform()
 
     pose.pose.orientation = tf::createQuaternionMsgFromYaw(idealOrientation);
     // Log yaw displacement
-    ROS_INFO("Yaw displacement: %f", idealOrientation);
+    // ROS_INFO("Yaw displacement: %f", idealOrientation);
     // Log quaternion to roll pitch yaw.
     tf::Quaternion q(pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
     tf::Matrix3x3 m(q);
     m.getRPY(roll, pitch, yaw);
-    ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", roll, pitch, yaw);
+    // ROS_INFO("Roll: %f, Pitch: %f, Yaw: %f", roll, pitch, yaw);
     
     listener_.transformPose("/base_link", ros::Time(0), pose, "/map", pose);
 

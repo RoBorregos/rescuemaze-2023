@@ -61,7 +61,7 @@ class ScanReducer:
     def scan_filter(self, scan_msg):
         # Append the most recent scan to the buffer
         self.scan_buffer.append(scan_msg.ranges)
-        print("Ranges length:", len(scan_msg.ranges))
+        # print("Ranges length:", len(scan_msg.ranges))
         # If the buffer is larger than 3 scans, remove the oldest scan
         if len(self.scan_buffer) > 3:
             self.scan_buffer.pop(0)
