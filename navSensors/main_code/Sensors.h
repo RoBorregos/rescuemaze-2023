@@ -49,12 +49,12 @@ class Sensors
   int kMuxPins[3] = {1, 7, 0}; // VLX multiplexor pins
   int kMuxTCS = {2};           // TCS multiplexor pin
 
+  // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
   friend class GeneralChecks;
 
 public:
-
   String vlxNames[3] = {"Front", "Left", "Right"};
 
   // Constructor
@@ -72,7 +72,17 @@ public:
 
   void initSensors();
 
+  void initSwitches();
+
   // Sensor Methods
+
+  // Limit switches
+
+  void debugLimitSwitches();
+  int rightLimitSwitch();
+  int leftLimitSwitch();
+
+  void getLimitSwitches(int &right, int &left);
 
   // BNO data
 
@@ -128,7 +138,7 @@ public:
   // @param bno True to display bno angles.
   // @param vlx True to print vlx distances.
   // @param tcs True to print detected color.
-  void printInfo(bool bno = true, bool vlx = true, bool tcs = true);
+  void printInfo(bool bno = true, bool vlx = true, bool tcs = true, bool limitSwitches = true);
 
   // Returns BNO angles through reference variables.
   void bnoAngles(float &x, float &y, float &z);
@@ -137,8 +147,6 @@ public:
 
   // Make general checks to ensure TCS is working correctly.
   void checkTCS();
-
-  void getLimitSwitches(int &right, int &left);
 };
 
 #endif

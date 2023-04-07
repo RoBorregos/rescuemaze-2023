@@ -85,6 +85,19 @@ void GeneralChecks::checkSensorData()
             Serial.println(robot->sensors->getTCSInfo());
             delay(100);
         }
+
+        Serial.println("Limit switches:\n");
+
+        int right = 0, left = 0;
+        for (int i = 0; i < 20; i++)
+        {
+            robot->sensors->getLimitSwitches(right, left);
+            Serial.print("Right: ");
+            Serial.print(right);
+            Serial.print(", Left: ");
+            Serial.println(left);
+            delay(100);
+        }
     }
 }
 

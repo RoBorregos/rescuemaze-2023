@@ -55,9 +55,6 @@ private:
   // Leds
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
 
-  // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
-
   // Motor.
   static constexpr int kMotorCount = 4;
 
@@ -148,7 +145,7 @@ public:
 
   // Initialization
 
-  // Initializes motors, leds, servo, limit switches, and kinematics.
+  // Initializes motors, servo and kinematics.
   void initRobot();
   void turnPID(int RPMs, int errorD, int sign);
 
@@ -160,9 +157,6 @@ public:
 
   // Initializes indicator leds.
   void initLeds();
-
-  // Initializes limit switches.
-  void initSwitches();
 
   // Encoder Methods
   // @return The motor's mean distance traveled.
@@ -228,11 +222,6 @@ public:
   // Gets sign which refers to where should a kit be dropped
   void dropDecider(int ros_sign_callback);
   
-  int rightLimitSwitch();
-  int leftLimitSwitch();
-
-  void debugLimitSwitches();
-
   // For specific tests on specific motors.
   void testMotor();
 };

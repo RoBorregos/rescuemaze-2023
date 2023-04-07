@@ -415,13 +415,13 @@ char checkColors()
 
 int checkLimitSwitches()
 {
-  if (robot->leftLimitSwitch() && robot->rightLimitSwitch())
+  if (s->leftLimitSwitch() && s->rightLimitSwitch())
   {
     backward(2);
 
     return 1;
   }
-  else if (robot->leftLimitSwitch())
+  else if (s->leftLimitSwitch())
   {
     backward(2);
     relativeTurn(20, true);
@@ -462,7 +462,7 @@ int checkLimitSwitches()
 //      westYaw = 0;
 //    }
   }
-  else if (robot->rightLimitSwitch())
+  else if (s->rightLimitSwitch())
   {
     backward(2);
     relativeTurn(-20, false);

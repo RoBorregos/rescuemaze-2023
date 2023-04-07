@@ -155,7 +155,6 @@ void Movement::initRobot()
   dispenser.initServo();
 
   initLeds();
-  initSwitches();
 }
 
 void Movement::initLeds()
@@ -164,55 +163,6 @@ void Movement::initLeds()
   pinMode(kDigitalPinsLEDS[1], OUTPUT);
 }
 
-void Movement::initSwitches()
-{
-  pinMode(kDigitalPinsLimitSwitch[0], INPUT);
-  pinMode(kDigitalPinsLimitSwitch[1], INPUT);
-}
-
-int Movement::leftLimitSwitch()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  if (val == HIGH)
-  {
-    return 1;
-  }
-
-  return 0;
-}
-
-int Movement::rightLimitSwitch()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[1]);
-  if (val == HIGH)
-  {
-    return 1;
-  }
-
-  return 0;
-}
-
-void Movement::debugLimitSwitches()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  if (val == HIGH)
-  {
-    Serial.println("Switch 0 is open");
-  }
-  else
-  {
-    Serial.println("Switch 0 is closed");
-  }
-  int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
-  if (val2 == HIGH)
-  {
-    Serial.println("Switch 1 is open");
-  }
-  else
-  {
-    Serial.println("Switch 1 is closed");
-  }
-}
 
 // Encoder Functions
 
@@ -734,7 +684,6 @@ void Movement::dropDecider(int ros_sign_callback)
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
-// Limit switches checker
 
 void Movement::testMotor()
 {
