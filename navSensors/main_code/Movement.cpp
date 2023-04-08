@@ -155,7 +155,6 @@ void Movement::initRobot()
   dispenser.initServo();
 
   initLeds();
-  initSwitches();
 }
 
 void Movement::initLeds()
@@ -164,55 +163,6 @@ void Movement::initLeds()
   pinMode(kDigitalPinsLEDS[1], OUTPUT);
 }
 
-void Movement::initSwitches()
-{
-  pinMode(kDigitalPinsLimitSwitch[0], INPUT);
-  pinMode(kDigitalPinsLimitSwitch[1], INPUT);
-}
-
-int Movement::leftLimitSwitch()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  if (val == HIGH)
-  {
-    return 1;
-  }
-
-  return 0;
-}
-
-int Movement::rightLimitSwitch()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[1]);
-  if (val == HIGH)
-  {
-    return 1;
-  }
-
-  return 0;
-}
-
-void Movement::debugLimitSwitches()
-{
-  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  if (val == HIGH)
-  {
-    Serial.println("Switch 0 is open");
-  }
-  else
-  {
-    Serial.println("Switch 0 is closed");
-  }
-  int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
-  if (val2 == HIGH)
-  {
-    Serial.println("Switch 1 is open");
-  }
-  else
-  {
-    Serial.println("Switch 1 is closed");
-  }
-}
 
 // Encoder Functions
 
@@ -475,26 +425,6 @@ void Movement::velocityAdjustment(const int adjustment)
       (motor[FRONT_RIGHT].getCurrentState() == MotorState::Backward) ? adjustment * -1 : adjustment);
 }
 
-void Movement::updateStraightPID2(int RPMs, int errorD)
-{
-  Serial.println(errorD);
-
-  // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180)
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-  }
-  else
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-  }
-}
 
 Direction Movement::whereToGo(double &current_angle)
 {
@@ -715,17 +645,7 @@ void Movement::dropDecider(int ros_sign_callback)
 
   double time = millis();
 
-  while (ros_sign_callback > 0)
-  {
-    dispenser.rightDrop();
-    ros_sign_callback--;
-  }
-
-  while (ros_sign_callback < 0)
-  {
-    dispenser.leftDrop();
-    ros_sign_callback++;
-  }
+ dispenser.dropNKits(ros_sign_callback);
 
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
@@ -734,7 +654,6 @@ void Movement::dropDecider(int ros_sign_callback)
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
-// Limit switches checker
 
 void Movement::testMotor()
 {
@@ -752,61 +671,4 @@ void Movement::testMotor()
     Serial.print("Curr target: ");
     Serial.println(m->getTargetSpeed());
   }
-}
-
-void Movement::testAllMotors()
-{
-  Serial.println("Testing all motors");
-  delay(1000);
-
-  Serial.println("FRONT RIGHT - Forward");
-  motor[FRONT_RIGHT].motorSpeedPID(90);
-  delay(2000);
-  motor[FRONT_RIGHT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("FRONT RIGHT - Backwards");
-  motor[FRONT_RIGHT].motorSpeedPID(-90);
-  delay(2000);
-  motor[FRONT_RIGHT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("FRONT LEFT - Forward");
-  motor[FRONT_LEFT].motorSpeedPID(90);
-  delay(2000);
-  motor[FRONT_LEFT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("FRONT LEFT - Backwards");
-  motor[FRONT_LEFT].motorSpeedPID(-90);
-  delay(2000);
-  motor[FRONT_LEFT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("BACK LEFT - Forward");
-  motor[BACK_LEFT].motorSpeedPID(90);
-  delay(2000);
-  motor[BACK_LEFT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("BACK LEFT - Backwards");
-  motor[BACK_LEFT].motorSpeedPID(-90);
-  delay(2000);
-  motor[BACK_LEFT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("BACK RIGHT - Forward");
-  motor[BACK_RIGHT].motorSpeedPID(90);
-  delay(2000);
-  motor[BACK_RIGHT].motorSpeedPID(0);
-  delay(1000);
-
-  Serial.println("BACK RIGHT - Backwards");
-  motor[BACK_RIGHT].motorSpeedPID(-90);
-  delay(2000);
-  motor[BACK_RIGHT].motorSpeedPID(0);
-  delay(1000);
-
-  while (true)
-    delay(1000);
 }

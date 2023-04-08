@@ -147,6 +147,67 @@ char TCS::getColorWithPrecision()
   return 'u';
 }
 
+char TCS::getColorKReps(int reps)
+{
+  char start = getColorWithPrecision();
+  
+  if (start == 'u')
+    return start;
+
+  // Confirm that the initial color received is stable.
+  for (int i = 0; i < reps; i++)
+  {
+    char current = getColorWithPrecision();
+    if (current != start)
+      return 'u';
+  }
+
+  return start;
+}
+
+char TCS::getColorMode(int sampleSize, double certainity)
+{
+  int repetitions[colorAmount];
+
+  for (int i = 0; i < colorAmount; i++)
+  {
+    repetitions[i] = 0;
+  }
+
+  for (int i = 0; i < sampleSize; i++)
+  {
+    char detection = getColorWithPrecision();
+    for (int j = 0; j < colorAmount; j++)
+    {
+      if (colorList[j] == detection)
+      {
+        repetitions[j]++;
+        break;
+      }
+    }
+  }
+
+  // Count the number of unknowns vs the number of mode.
+
+  int mode = 0, unknown = sampleSize;
+
+  for (int i = 0; i < colorAmount; i++)
+  {
+    if (repetitions[mode] < repetitions[i])
+      mode = i;
+
+    unknown -= repetitions[i];
+  }
+
+  double probability = repetitions[mode] / (double) sampleSize;
+
+  if (repetitions[mode] > unknown && probability > certainity){
+    return colorList[mode];
+  }
+
+  return 'u';
+}
+
 void TCS::printColorMatrix()
 {
   if (colors == nullptr)
@@ -173,7 +234,7 @@ void TCS::printColorList()
   }
 
   Serial.println("Printing color list:");
-  
+
   for (uint8_t i = 0; i < colorAmount; i++)
   {
     Serial.print(colorList[i]);

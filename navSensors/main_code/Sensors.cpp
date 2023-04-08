@@ -46,12 +46,14 @@ void Sensors::initSensors()
   Wire.begin();
   tcs.init(colors, colorAmount, colorList);
 
+  initSwitches();
+
   // BNO init (Not needed, because initialized before sending pointer)
 }
 
 // Sensor Methods
 
-void Sensors::printInfo(bool bno, bool vlx, bool tcs)
+void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 {
   if (bno && usingBNO)
     this->bno->anglesInfo();
@@ -74,6 +76,9 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs)
     this->tcs.printRGB();
     this->tcs.printColor();
   }
+
+  if (limitSwitches)
+    debugLimitSwitches();
 }
 
 float Sensors::getVLXInfo(int posVLX)
@@ -188,6 +193,50 @@ void Sensors::checkTCS()
   tcs.printColorList();
 }
 
-void Sensors::getLimitSwitches(int &right, int &left){
-  
+void Sensors::getLimitSwitches(int &right, int &left)
+{
+  right = rightLimitSwitch();
+  left = leftLimitSwitch();
+}
+
+int Sensors::leftLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+
+  return val == HIGH;
+}
+
+int Sensors::rightLimitSwitch()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[1]);
+
+  return val == HIGH;
+}
+
+void Sensors::debugLimitSwitches()
+{
+  int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+  if (val == HIGH)
+  {
+    Serial.println("Switch 0 is open");
+  }
+  else
+  {
+    Serial.println("Switch 0 is closed");
+  }
+  int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
+  if (val2 == HIGH)
+  {
+    Serial.println("Switch 1 is open");
+  }
+  else
+  {
+    Serial.println("Switch 1 is closed");
+  }
+}
+
+void Sensors::initSwitches()
+{
+  pinMode(kDigitalPinsLimitSwitch[0], INPUT);
+  pinMode(kDigitalPinsLimitSwitch[1], INPUT);
 }

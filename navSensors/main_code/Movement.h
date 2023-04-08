@@ -36,6 +36,9 @@ enum class Direction{
 
 class Movement
 {
+
+  // Give GeneralChecks full access.
+  friend class GeneralChecks;
 private:
   // ROS node.
   ros::NodeHandle *nh;
@@ -51,9 +54,6 @@ private:
 
   // Leds
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
-
-  // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
   // Motor.
   static constexpr int kMotorCount = 4;
@@ -145,7 +145,7 @@ public:
 
   // Initialization
 
-  // Initializes motors, leds, servo, limit switches, and kinematics.
+  // Initializes motors, servo and kinematics.
   void initRobot();
   void turnPID(int RPMs, int errorD, int sign);
 
@@ -157,9 +157,6 @@ public:
 
   // Initializes indicator leds.
   void initLeds();
-
-  // Initializes limit switches.
-  void initSwitches();
 
   // Encoder Methods
   // @return The motor's mean distance traveled.
@@ -194,8 +191,6 @@ public:
 
   void updateStraightPID(int RPMs);
 
-  void Movement::updateStraightPID2(int RPMs, int errorD);
-
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
   void updatePIDKinematics(Kinematics::output rpm);
@@ -211,7 +206,6 @@ public:
   // @param x Distance in meters
 
   void advanceXMeters(double x, double rAngle, bool useVlx=false);
-  
   void advanceXMetersNoAngle(double x, bool useVlx=false);
 
   int getDistanceToCenter();
@@ -226,18 +220,8 @@ public:
   // Gets sign which refers to where should a kit be dropped
   void dropDecider(int ros_sign_callback);
   
-  int rightLimitSwitch();
-  int leftLimitSwitch();
-
-  void debugLimitSwitches();
-
   // For specific tests on specific motors.
   void testMotor();
-
-  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
-  // as well as their directions.
-  void testAllMotors();
-
 };
 
 #endif
