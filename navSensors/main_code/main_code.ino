@@ -9,6 +9,7 @@
 #include "MotorID.h"
 #include "MUX2C.h"
 #include "BNO.h"
+#include "GeneralChecks.h"
 
 // Macros for vlx
 #define front_vlx 0
@@ -59,6 +60,12 @@ void setup()
   bno.init();
 
   initAll(&bno, true, true);
+
+  GeneralChecks checks(robot);
+  checks.checkWheelDirections();
+  
+  end(); 
+
   /*
   while (true){
     s->printInfo(true, true, true);
@@ -66,6 +73,26 @@ void setup()
   */
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
+}
+
+void end(){
+  while (true)
+    delay(1000);
+}
+
+void pastSetup(){
+ Serial.begin(57600);
+
+  bno.init();
+
+  initAll(&bno, true, true);
+  /*
+  while (true){
+    s->printInfo(true, true, true);
+  }
+  */
+
+  // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.  
 }
 
 int newAngle = 0;

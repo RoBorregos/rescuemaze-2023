@@ -21,7 +21,7 @@ public:
     void calibrateSensors();
 
     // Check that VLX, TCS, and BNO are working correctly.
-    void checkSensorData();
+    void checkSensorData(int iterations=50);
 
     // Test that all motors are registered correctly (motor[0] is actually front left, etc),
     // as well as their directions.

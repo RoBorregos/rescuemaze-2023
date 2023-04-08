@@ -48,20 +48,20 @@ void GeneralChecks::calibrateSensors()
     while (1)
     {
         // Only print TCS info for calibration.
-        s.printInfo(false, false, true);
+        s.printInfo(false, false, true, false);
         delay(200);
     }
 }
 
-void GeneralChecks::checkSensorData()
+void GeneralChecks::checkSensorData(int iterations)
 {
     // If information is being published to ROS, simply echo individual topics.
     if (!publishRos)
     {
         Serial.println("BNO information: ");
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < iterations; i++)
         {
-            robot->sensors->printInfo(true, false, false);
+            robot->sensors->printInfo(true, false, false, false);
             delay(100);
         }
 
@@ -69,19 +69,20 @@ void GeneralChecks::checkSensorData()
 
         for (int i = 0; i < robot->sensors->kMuxVLX; i++)
         {
-            Serial.print(robot->sensors->vlxNames[i]);
-            Serial.println(" vlx:");
-            for (int j = 0; j < 10; j++)
+            
+            for (int j = 0; j < iterations; j++)
             {
-                robot->sensors->getVLXInfo(i);
+                Serial.print(robot->sensors->vlxNames[i]);
+                Serial.print(" vlx: ");
+                Serial.println(robot->sensors->getVLXInfo(i));
                 delay(100);
             }
         }
 
-        Serial.println("TCS information: \n");
-        for (int i = 0; i < 10; i++)
+        Serial.println("\n\nTCS information: \n");
+        for (int i = 0; i < iterations; i++)
         {
-            Serial.print("Character: ");
+            Serial.print("Color: ");
             Serial.println(robot->sensors->getTCSInfo());
             delay(100);
         }
@@ -89,15 +90,17 @@ void GeneralChecks::checkSensorData()
         Serial.println("Limit switches:\n");
 
         int right = 0, left = 0;
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < iterations; i++)
         {
             robot->sensors->getLimitSwitches(right, left);
-            Serial.print("Right: ");
+            Serial.print("Right Limit switch: ");
             Serial.print(right);
-            Serial.print(", Left: ");
+            Serial.print(", Left Limit switch: ");
             Serial.println(left);
             delay(100);
         }
+
+        Serial.println("Finished checking sensors.");
     }
 }
 

@@ -44,9 +44,9 @@ class Sensors
   // Sensor Pins.
 
   // Front is in pin 1.
+  // Right is in pin 6.
   // Left is in pin 0.
-  // Right is in pin 7.
-  int kMuxPins[3] = {1, 7, 0}; // VLX multiplexor pins
+  int kMuxPins[3] = {1, 6, 0}; // VLX multiplexor pins
   int kMuxTCS = {2};           // TCS multiplexor pin
 
   // Limit Switches
@@ -55,7 +55,7 @@ class Sensors
   friend class GeneralChecks;
 
 public:
-  String vlxNames[3] = {"Front", "Left", "Right"};
+  String vlxNames[3] = {"Front", "Right", "Left"};
 
   // Constructor
 
