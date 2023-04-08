@@ -24,13 +24,17 @@ class Sensors
   static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount; // Total sensors data count
 
   // TCS constants
-  static constexpr int kTCSPrecision = 10;                   // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 2;                  // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"NA"}; // List of color initials
+  static constexpr int kTCSPrecision = 3
+;                   // Precision for matching color values.
+  static constexpr uint8_t colorAmount = 5;                  // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"NAAAA"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
   static constexpr uint8_t colors[colorAmount][3] = {
-      {137, 78, 58},
-      {64, 85, 128}};
+      {85, 85, 85},
+      {46, 92, 106},
+      {64, 106, 106},
+      {62, 106, 106},
+      {46, 92, 115}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
@@ -46,6 +50,7 @@ class Sensors
   // Front is in pin 1.
   // Right is in pin 6.
   // Left is in pin 0.
+  
   int kMuxPins[3] = {1, 6, 0}; // VLX multiplexor pins
   int kMuxTCS = {2};           // TCS multiplexor pin
 

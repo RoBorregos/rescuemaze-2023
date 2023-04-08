@@ -125,20 +125,45 @@ void loop()
   // delay(100);
 }
 
+void exploreDFS()
+{
+  distancefront = getFrontDistance();
+  distanceright = getRightDistance();
+  distanceleft = getLeftDistance();
+
+  if (distancefront > 0.15)
+  {
+    if (forwardTile())
+    {
+      exploreDFS();
+      backwardTile();
+    }
+  }
+  if (distanceright > 0.15)
+  {
+    turnRight();
+    if (forwardTile())
+    {
+      exploreDFS();
+      backwardTile();
+    }
+
+    turnLeft();
+  }
+  if (distanceleft > 0.15)
+  {
+    turnLeft();
+    if (forwardTile())
+    {
+      exploreDFS();
+      backwardTile();
+    }
+    turnRight();
+  }
+}
+
 void exploreFollowerWall()
 {
-  // forward();
-  // delay(500);
-  // while (true)
-  // {
-  //   distancefront = getFrontDistance();
-
-  //   while (distancefront > 0.09)
-  //   {
-  //     forward();
-  //     distancefront = getFrontDistance();
-  //   }
-  // }
   while (true)
   {
       
@@ -347,27 +372,60 @@ void forward(int times)
   {
     robot->advanceXMeters(0.01, dirToAngle(rDirection));
     
+    checkRamp();
+
     if (checkLimitSwitches())
       break;
   }
 }
 
-void forwardTile()
+void forward()
 {
-  forward(18);
-  // double curDistance = getFrontDistance();
-  // double targetDistance = curDistance + 0.3;
+  robot->advanceXMeters(0.01, dirToAngle(rDirection));
+}
 
-  // while (curDistance < targetDistance)
-  // {
-  //   forward(1);
-  //   curDistance = getFrontDistance();
-  // }
+int forwardTile()
+{
+  // forward(18);
+  double curDistance = getFrontDistance();
+  double targetDistance = curDistance - 0.3;
+
+  while (curDistance < targetDistance)
+  {
+    checkRamp();
+    if (checkColors() == 'N')
+    {
+      return 0;
+    }
+    checkLimitSwitches();
+
+    forward();
+    curDistance = getFrontDistance();
+  }
+
+  return 1;
 }
 
 void backward(int times)
 {
   robot->advanceXMeters(-0.01 * times, dirToAngle(rDirection));
+}
+
+void backward()
+{
+  robot->advanceXMeters(-0.01, dirToAngle(rDirection));
+}
+
+void backwardTile()
+{
+  double curDistance = getFrontDistance();
+  double targetDistance = curDistance + 0.3;
+
+  while (curDistance > targetDistance)
+  {
+    backward();
+    curDistance = getFrontDistance();
+  }
 }
 
 void turnLeft()
@@ -437,6 +495,24 @@ char checkColors()
   else if (color == 'A')
   {
     delay(5000);
+  }
+
+  return color;
+}
+
+void checkRamp()
+{
+  // Check pitch from imu
+  pitch = s->getAngleY();
+
+  // Check if pitch is greater than 10 degrees
+  if (pitch > 15)
+  {
+    while (pitch > 15)
+    {
+      pitch = s->getAngleY();
+      robot->advanceXMeters(0.10, dirToAngle(rDirection));
+    }
   }
 }
 

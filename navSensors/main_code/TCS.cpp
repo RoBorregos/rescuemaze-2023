@@ -128,7 +128,18 @@ char TCS::getColorWithPrecision()
   {
     if (inRange(red, colors[i][0]) && inRange(green, colors[i][1]) && inRange(blue, colors[i][2]))
     {
-      return colorList[i];
+      // Ver si borrar
+      if (colorList[i] == 'N'){
+        if (colors[i][0] == colors[i][1] && colors[i][0] == colors[i][2])
+          return colorList[i];
+         else
+          continue;
+        } else {
+          return colorList[i];
+          }
+          
+       // Ver si borrar.
+      // return colorList[i];
     }
   }
 
