@@ -40,6 +40,8 @@ public:
 
   // Drops the kit (decider dispenser) to the left
   void leftDrop();
+
+  void dropNKits(int kits);
 };
 
 #endif

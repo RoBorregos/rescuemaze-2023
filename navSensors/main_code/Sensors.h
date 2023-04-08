@@ -50,7 +50,7 @@ class Sensors
   int kMuxTCS = {2};           // TCS multiplexor pin
 
   // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
+  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches
 
   friend class GeneralChecks;
 

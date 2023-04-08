@@ -38,3 +38,20 @@ void Dispenser::leftDrop()
   delay(rightDelay);
   dispenser.write(kStopMovement);
 }
+
+// Gets sign which refers to where should a kit be dropped
+void Dispenser::dropNKits(int kits)
+{
+
+  while (kits > 0)
+  {
+    rightDrop();
+    kits--;
+  }
+
+  while (kits < 0)
+  {
+    leftDrop();
+    kits++;
+  }
+}

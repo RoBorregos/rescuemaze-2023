@@ -191,8 +191,6 @@ public:
 
   void updateStraightPID(int RPMs);
 
-  void Movement::updateStraightPID2(int RPMs, int errorD);
-
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
   void updatePIDKinematics(Kinematics::output rpm);

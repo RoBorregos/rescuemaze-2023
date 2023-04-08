@@ -425,26 +425,6 @@ void Movement::velocityAdjustment(const int adjustment)
       (motor[FRONT_RIGHT].getCurrentState() == MotorState::Backward) ? adjustment * -1 : adjustment);
 }
 
-void Movement::updateStraightPID2(int RPMs, int errorD)
-{
-  Serial.println(errorD);
-
-  // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180)
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-  }
-  else
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-  }
-}
 
 Direction Movement::whereToGo(double &current_angle)
 {
@@ -665,17 +645,7 @@ void Movement::dropDecider(int ros_sign_callback)
 
   double time = millis();
 
-  while (ros_sign_callback > 0)
-  {
-    dispenser.rightDrop();
-    ros_sign_callback--;
-  }
-
-  while (ros_sign_callback < 0)
-  {
-    dispenser.leftDrop();
-    ros_sign_callback++;
-  }
+ dispenser.dropNKits(ros_sign_callback);
 
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
