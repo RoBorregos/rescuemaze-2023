@@ -167,7 +167,7 @@ void Movement::initLeds()
 
 double Movement::meanDistanceTraveled()
 {
-  double sum_encoder_distance = 0;
+  double sum_encoder_distance = 0.0;
   for (int i = 0; i < kMotorCount; i++)
   {
     sum_encoder_distance += this->motor[i].getDistanceTraveled();
@@ -329,6 +329,79 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
   }
 }
 
+int Movement::cmdMovement(const int action, const int option)
+{
+  switch (action)
+  {
+  case 1:
+    // Move forward 1 unit. TODO: add option of navigating with vlx distance.
+    if (option == 1)
+    {
+      advanceXMeters(0.3, true);
+    }
+    else
+    {
+      advanceXMeters(0.3, false);
+    }
+    return 1;
+    break;
+
+  case 2:
+    // Left turn
+    rDirection = getTurnDirection(0);
+    goToAngle(dirToAngle(rDirection));
+    return 1;
+    break;
+
+  case 3:
+    // Right turn
+    rDirection = getTurnDirection(1);
+    goToAngle(dirToAngle(rDirection));
+
+    return 1;
+    break;
+
+  case 4:
+    // Move back 1 unit
+    if (option == 1)
+    {
+      advanceXMeters(-0.3, true);
+    }
+    else
+    {
+      advanceXMeters(-0.3, false);
+    }
+    return 1;
+    break;
+  case 5:
+    // Rearrange in tile. Use VLX and BNO.
+    goToAngle(getTurnDirection(rDirection)); // Rearrange orientation
+    advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
+    return 1;
+    break;
+
+  case 6:
+    // Traverse ramp
+    traverseRamp();
+    return 1;
+    break;
+
+  case 7:
+    // Drop n kits
+    dropDecider(option);
+    return 1;
+    break;
+
+  case 8:
+    // Update angle reference.
+    return 1;
+    break;
+
+  default:
+    break;
+  }
+}
+
 void Movement::girarIzquierda()
 {
   motor[FRONT_LEFT].motorBackward();
@@ -449,44 +522,42 @@ double Movement::getAngleError(double expectedAngle)
   return expectedAngle - angle;
 }
 
-int Movement::getDistanceToCenter()
+double Movement::getDistanceToCenter()
 {
   double dist = 0;
   dist = sensors->getVLXInfo(vlx_front);
-  return ((int)dist % 30) - 0.062; // Dist of vlx to wall
-}
-
-void Movement::goToAngle(int targetAngle, bool turnRight)
-{
-  double current_angle = bno->getAngleX();
-
-  while (abs(current_angle - targetAngle) > 5)
-  {
-
-    updateRotatePID(targetAngle, turnRight);
-
-    current_angle = bno->getAngleX();
-  }
-
-  stop();
+  dist *= 100; // m to cm.
+  double center = ((int)dist % 15) - 5; // in cm. "-5" is the distance from vlx to wall.
+  
+  return center / 100.0;                  // Return distance in m.
 }
 
 void Movement::goToAngle(int targetAngle)
 {
+
   double current_angle = bno->getAngleX();
 
   double diff = bno->getAngleX() - targetAngle;
 
-  bool turnRight = false;
-  if (diff > 0 && diff < 180)
+  while (abs(diff) > 1)
   {
-    turnRight = false;
+
+    bool turnRight = false;
+    if (diff > 0 && diff <= 180)
+    {
+      turnRight = false;
+    }
+    else
+    {
+      turnRight = true;
+    }
+
+    updateRotatePID(targetAngle, turnRight);
+
+    diff = bno->getAngleX() - targetAngle;
   }
-  else
-  {
-    turnRight = true;
-  }
-  goToAngle(targetAngle, turnRight);
+
+  stop();
 }
 
 void Movement::updateRotatePID(int targetAngle, bool right)
@@ -526,6 +597,25 @@ void Movement::dropDecider(int ros_sign_callback)
     delay(0.1);
 
   digitalWrite(kDigitalPinsLEDS[1], LOW);
+}
+
+void Movement::traverseRamp(int option){
+  // Advance first if option is set to 1
+
+  if (option == 1){
+    updateStraightPID(kMovementRPMs);
+    delay(1000);
+  }
+  double yAngle = sensors->getAngleY();
+
+  while (yAngle > 10 || yAngle < -10){
+    double rightVlx = 
+    double leftVlx = sensors->();
+    updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
+  }
+
+
+  stop();
 }
 
 void Movement::testMotor()

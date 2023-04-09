@@ -61,6 +61,8 @@ void setup()
   bno.init();
 
   initAll(&bno, true, true);
+  GeneralChecks checks(robot);
+  //checks.checkSensorData();
   test();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
@@ -68,17 +70,55 @@ void setup()
 
 void test()
 {
-
-  // moveRoutine();
-
-  /*
-  while (true)
-    Serial.println(robot->getAngleError(0));
-    */
-  for (int i = 0; i < 1; i++)
-  {
-    bw();
+  
+  while (true){
+    s->printInfo(true, false, false, false);
   }
+
+  for (int i = 0; i < 1000; i++){
+      robot->cmdMovement(1, 1);
+      delay(100);
+      robot->cmdMovement(5);
+      delay(100);
+      robot->cmdMovement(4,1);
+      delay(100);
+      robot->cmdMovement(5);
+      delay(1000);
+    }
+  
+  end();
+
+
+  // Go in circles
+  robot->cmdMovement(1, 1);
+  delay(1000);
+  robot->cmdMovement(2, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+  delay(1000);
+  robot->cmdMovement(2, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+  delay(1000);
+  robot->cmdMovement(2, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+
+  robot->cmdMovement(2, 1);
+  delay(1000);
+  robot->cmdMovement(2, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+  delay(1000);
+  robot->cmdMovement(3, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+  delay(1000);
+  robot->cmdMovement(3, 1);
+  delay(1000);
+  robot->cmdMovement(1, 1);
+   delay(1000);
+  robot->cmdMovement(3, 1);
 
   end();
 }
@@ -222,7 +262,7 @@ void exploreFollowerWall()
     }
   }
 }
-
+/*
 void testGiros()
 {
   robot->goToAngle(90, true);
@@ -249,7 +289,7 @@ void testGiros()
   robot->goToAngle(0, false);
   delay(1000);
 }
-
+*/
 void girosIzquierda()
 {
   while (true)
@@ -466,7 +506,7 @@ void turnLeft()
   bool wallRight = (getRightDistance() < 0.15);
 
   // Turn left
-  robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
+  //robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
 
   if (wallRight)
     backward(10);
@@ -487,7 +527,7 @@ void turnRight()
   bool wallLeft = (getLeftDistance() < 0.15);
 
   // Turn right
-  robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
+  //robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
 
   if (rDirection == 3)
   {
@@ -513,7 +553,7 @@ void relativeTurn(double angle, bool goRight)
     goAngle += 360;
   }
 
-  robot->goToAngle(goAngle, goRight);
+  //robot->goToAngle(goAngle, goRight);
 }
 
 char checkColors()

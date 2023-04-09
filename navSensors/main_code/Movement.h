@@ -29,7 +29,6 @@
 #define vlx_front 0
 #define vlx_back 3
 
-
 class Movement
 {
 
@@ -154,6 +153,27 @@ public:
   // Comand Velocity, using kinematics.
   void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
 
+  // Command movement function. Used as a clean and concise interface for robot movement.
+  // The function uses the most of the movement methods implemented in this class. See the parameters'
+  // definitions below the function's signature.
+  // @param action A specific movement.
+  // @param option Specify which option to use for specific actions.s
+  // @return The status code of the movement.
+  int cmdMovement(const int action, const int option = 0);
+
+  /* Meaning of #actions, options and return values of cmdMovement:
+
+  Action  Description                     Options                           Returns
+  1       Move forward 1 unit (30 cms)    1 (use degrees as error)          1 -> successful, 0 -> move aborted
+  2       Left turn (-90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
+  3       Right turn (90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
+  4       Move backward 1 unit (30 cms)   1 (use degrees as error)          1 -> successful, 0 -> move aborted
+  5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
+  6       Traverse ramp                   None / ignored                    Estimated length of ramp.
+  7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
+  8       Update angle reference          TODO, would help to reduce error given by physical field.
+  */
+
   // Rotation methods
 
   // Sets the direction of motors for right rotation.
@@ -162,11 +182,7 @@ public:
   // Sets the direction of motors for left rotation.
   void girarIzquierda();
 
-  // Rotates the robot to the specified angle. Turn right specifies the direction in which the robot
-  // Should move to arrive to targetAngle.
-  void goToAngle(int targetAngle, bool turnRight);
-
-  // Calculates the optimum direction for rotation and calls goToAngle.
+  // Rotates the robot to the specified angle.
   void goToAngle(int targetAngle);
 
   // Updates individual motor speed using the angle error and PID.
@@ -179,7 +195,7 @@ public:
   double getAngleError(double expectedAngle);
 
   // Returns new rdirection given turn sign.
-  // @param turn 0 means right turn, 1 for left turn.
+  // @param turn 1 means right turn, 0 for left turn.
   int getTurnDirection(int turn);
 
   // Linear movement methods.
@@ -205,7 +221,9 @@ public:
   // make adjustments in the wheel velocity with respect to expected angle.
   void advanceXMeters(double x, bool useAngleError = false);
 
-  int getDistanceToCenter();
+  void traverseRamp(int option);
+
+  double getDistanceToCenter();
 
   // Stop all motors
   void stop();
