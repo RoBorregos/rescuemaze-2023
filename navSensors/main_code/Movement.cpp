@@ -38,7 +38,7 @@ Movement::initMovement(bool individualConstants)
 
 void Movement::setIndividualPID()
 {
-  motor[BACK_LEFT].PIDStraightTunings(470, 0, 15);
+  motor[BACK_LEFT].PIDStraightTunings(470, 80, 15);
   motor[FRONT_RIGHT].PIDStraightTunings(120, 80, 10);
   motor[FRONT_LEFT].PIDStraightTunings(120, 80, 10);
   motor[BACK_RIGHT].PIDStraightTunings(120, 80, 10);
@@ -162,7 +162,6 @@ void Movement::initLeds()
   pinMode(kDigitalPinsLEDS[0], OUTPUT);
   pinMode(kDigitalPinsLEDS[1], OUTPUT);
 }
-
 
 // Encoder Functions
 
@@ -355,108 +354,14 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
   motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
 }
 
-// Adjust to go to specific turn.
-void Movement::turnPID(int RPMs, int errorD, int sign)
+void Movement::updateStraightPID(int RPMs, double errorD)
 {
-  // Serial.println(errorD);
-  RPMs *= 1.0 / 10;
+  double factor = 10; // Increasing the factor increases the speed correction.
 
-  if (sign == -1)
-    RPMs *= -1;
-
-  // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180)
-  {
-
-    motor[FRONT_LEFT].motorSpeedPID((RPMs * (errorD * 1.05)), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-  }
-  else
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-  }
-}
-
-void Movement::updateStraightPID(int RPMs, int errorD)
-{
-  Serial.println(errorD);
-
-  // Use angle error to update target speeds.
-  if (errorD > -359 && errorD > -180)
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * 1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * -1.05));
-  }
-  else
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs * (errorD * -1.05), false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs * (errorD * 1.05));
-  }
-}
-
-void Movement::pidLinearMovement()
-{
-  updateStraightPID(100);
-
-  double angle_error = 0;
-  Direction where = whereToGo(angle_error);
-  pid_straight.compute(angle_error, straight_output_, 0);
-  velocityAdjustment(straight_output_);
-}
-
-void Movement::velocityAdjustment(const int adjustment)
-{
-  motor[BACK_LEFT].setVelocityAdjustment(
-      (motor[BACK_LEFT].getCurrentState() == MotorState::Forward) ? adjustment * -1 : adjustment);
-  motor[FRONT_LEFT].setVelocityAdjustment(
-      (motor[FRONT_LEFT].getCurrentState() == MotorState::Forward) ? adjustment * -1 : adjustment);
-  motor[BACK_RIGHT].setVelocityAdjustment(
-      (motor[BACK_RIGHT].getCurrentState() == MotorState::Backward) ? adjustment * -1 : adjustment);
-  motor[FRONT_RIGHT].setVelocityAdjustment(
-      (motor[FRONT_RIGHT].getCurrentState() == MotorState::Backward) ? adjustment * -1 : adjustment);
-}
-
-
-Direction Movement::whereToGo(double &current_angle)
-{
-  return whereToGo(current_angle, target_angle_);
-}
-
-Direction Movement::whereToGo(double &current_angle, const double target_angle)
-{
-  double current_a = 0; // getCurrentXAngle();
-  current_angle = current_a;
-  double diff_angle = current_a - target_angle;
-
-  int sign = 0;
-
-  if (diff_angle >= kMinAngle && diff_angle <= kInterAngle ||
-      (diff_angle <= kInterAngle * -1 && diff_angle >= kMaxAngle * -1))
-  {
-    sign = 1;
-  }
-  else
-  {
-    sign = -1;
-  }
-
-  diff_angle = static_cast<int>(diff_angle) % kMaxAngle;
-  current_angle = sign * ((diff_angle > kInterAngle) ? kMaxAngle - diff_angle : diff_angle);
-
-  if (sign != 1)
-  {
-    return Direction::right;
-  }
-  return Direction::left;
+  motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * factor));
+  motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
+  motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+  motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
 }
 
 // A possitive errorD means that the robot must increase the speed of the right wheels.
@@ -470,17 +375,10 @@ void Movement::updateStraightPID(int RPMs)
   motor[BACK_RIGHT].motorSpeedPID(RPMs);
 }
 
-void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
+void Movement::advanceXMeters(double x, bool useAngleError)
 {
-  double dist = 0;
-  if (useVlx)
-  {
-    dist = sensors->getVLXInfo(vlx_front);
-  }
-  else
-  {
-    dist = meanDistanceTraveled(); // Use encoders
-  }
+  double dist = meanDistanceTraveled(); // Use encoders;
+
   double initial = dist;
   double target = dist + x;
 
@@ -488,10 +386,43 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
   {
     while (dist < target)
     {
-      updateStraightPID(kMovementRPMs);
-      //Serial.println("Distancia recorrida: " + String(dist - initial));
+      if (useAngleError)
+      {
+        double angleError = getAngleError(dirToAngle(rDirection));
+        updateStraightPID(kMovementRPMs, angleError);
+      }
+      else
+      {
+        updateStraightPID(kMovementRPMs);
+      }
+      // Serial.println("Distancia recorrida: " + String(dist - initial));
+      dist = meanDistanceTraveled();
+    }
+  }
+  else
+  {
+    while (target < dist)
+    {
+      if (useAngleError)
+      {
+        double angleError = getAngleError(dirToAngle(rDirection));
+        updateStraightPID(-kMovementRPMs, angleError);
+      }
+      else
+      {
+        updateStraightPID(-kMovementRPMs);
+      }
+      dist = meanDistanceTraveled();
+    }
+  }
 
-      bool turnRight = false;
+  stop();
+  resetEncoders();
+}
+/*
+Find best option to rotate given current and target angle.
+
+bool turnRight = false;
 
       double diff = bno->getAngleX() - rAngle;
       if (diff > 0 && diff < 180)
@@ -504,68 +435,18 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
       }
 
       goToAngle(rAngle, turnRight);
-      // Get dist reading after correcting angle.
-      if (useVlx)
-      {
-        dist = sensors->getVLXInfo(vlx_front);
-      }
-      else
-      {
-        dist = meanDistanceTraveled();
-      }
-    }
-  }
-  else
-  {
-    updateStraightPID(-kMovementRPMs);
-    delay(100);
-  }
+*/
 
-  stop();
-  resetEncoders();
-}
-void Movement::advanceXMetersNoAngle(double x, bool useVlx)
+double Movement::getAngleError(double expectedAngle)
 {
-  double dist = 0;
-  if (useVlx)
-  {
-    dist = sensors->getVLXInfo(vlx_front);
-  }
-  else
-  {
-    dist = meanDistanceTraveled(); // Use encoders
-  }
-  double initial = dist;
-  double target = dist + x;
+  double angle = sensors->getAngleX();
 
-  if (x > 0)
+  if (expectedAngle == 0)
   {
-    while (dist < target)
-    {
-      updateStraightPID(kMovementRPMs);
-      //Serial.println("Distancia recorrida: " + String(dist - initial));
-
-      bool turnRight = false;
-
-      // Get dist reading after correcting angle.
-      if (useVlx)
-      {
-        dist = sensors->getVLXInfo(vlx_front);
-      }
-      else
-      {
-        dist = meanDistanceTraveled();
-      }
-    }
+    if (abs(expectedAngle - angle) > 90)
+      return 360 - angle;
   }
-  else
-  {
-    updateStraightPID(-kMovementRPMs);
-    delay(100);
-  }
-
-  stop();
-  resetEncoders();
+  return expectedAngle - angle;
 }
 
 int Movement::getDistanceToCenter()
@@ -573,29 +454,6 @@ int Movement::getDistanceToCenter()
   double dist = 0;
   dist = sensors->getVLXInfo(vlx_front);
   return ((int)dist % 30) - 0.062; // Dist of vlx to wall
-}
-
-void Movement::turnDecider(double current_angle, double desired_angle)
-{
-  double angle_difference = 0;
-  if (desired_angle > current_angle)
-  {
-    angle_difference = desired_angle - current_angle;
-
-    if (angle_difference < 180)
-      girarDerecha();
-    else
-      girarIzquierda();
-  }
-  else
-  {
-    angle_difference = current_angle - desired_angle;
-
-    if (angle_difference < 180)
-      girarIzquierda();
-    else
-      girarDerecha();
-  }
 }
 
 void Movement::goToAngle(int targetAngle, bool turnRight)
@@ -608,11 +466,27 @@ void Movement::goToAngle(int targetAngle, bool turnRight)
     updateRotatePID(targetAngle, turnRight);
 
     current_angle = bno->getAngleX();
-    //Serial.print("Current angle: ");
-    //Serial.println(current_angle);
   }
 
   stop();
+}
+
+void Movement::goToAngle(int targetAngle)
+{
+  double current_angle = bno->getAngleX();
+
+  double diff = bno->getAngleX() - targetAngle;
+
+  bool turnRight = false;
+  if (diff > 0 && diff < 180)
+  {
+    turnRight = false;
+  }
+  else
+  {
+    turnRight = true;
+  }
+  goToAngle(targetAngle, turnRight);
 }
 
 void Movement::updateRotatePID(int targetAngle, bool right)
@@ -645,7 +519,7 @@ void Movement::dropDecider(int ros_sign_callback)
 
   double time = millis();
 
- dispenser.dropNKits(ros_sign_callback);
+  dispenser.dropNKits(ros_sign_callback);
 
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
@@ -653,7 +527,6 @@ void Movement::dropDecider(int ros_sign_callback)
 
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
-
 
 void Movement::testMotor()
 {
@@ -671,4 +544,59 @@ void Movement::testMotor()
     Serial.print("Curr target: ");
     Serial.println(m->getTargetSpeed());
   }
+}
+
+// Robot state
+
+int Movement::dirToAngle(int rdirection)
+{
+  switch (rdirection)
+  {
+  case 0:
+    return 0; // North yaw
+    break;
+
+  case 1:
+    return 90; // East yaw
+    break;
+
+  case 2:
+    return 180; // South yaw
+    break;
+
+  case 3:
+    return 270; // West yaw
+    break;
+
+  default:
+    break;
+  }
+}
+
+int Movement::getTurnDirection(int turn)
+{
+  if (turn) // right
+  {
+    if (rDirection == 3)
+    {
+      return 0;
+    }
+    else
+    {
+      return rDirection + 1;
+    }
+  }
+  else // left
+  {
+    if (rDirection == 0)
+    {
+      return 3;
+    }
+    else
+    {
+      return rDirection - 1;
+    }
+  }
+
+  return -1;
 }

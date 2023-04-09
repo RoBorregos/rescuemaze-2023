@@ -40,8 +40,8 @@ private:
 
   // Motor characteristics.
 
-  static constexpr double kPulsesPerRevolution = 451.0;
-  static constexpr double kWheelDiameter = 0.05;                   // (m)
+  static constexpr double kPulsesPerRevolution = 490.0;
+  static constexpr double kWheelDiameter = 0.07;                   // (m)
   static constexpr double kRPM = 150;                              // (rev/m)
   static constexpr double kRPS = kRPM / 60;                        // (rev/s)
   static constexpr double kDistancePerRev = M_PI * kWheelDiameter; // (m)

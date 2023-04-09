@@ -10,6 +10,7 @@
 #include "MUX2C.h"
 #include "BNO.h"
 #include "GeneralChecks.h"
+#include "Plot.h"
 
 // Macros for vlx
 #define front_vlx 0
@@ -60,28 +61,58 @@ void setup()
   bno.init();
 
   initAll(&bno, true, true);
-
-  GeneralChecks checks(robot);
-  checks.checkWheelDirections();
-  
-  end(); 
-
-  /*
-  while (true){
-    s->printInfo(true, true, true);
-  }
-  */
+  test();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
-void end(){
+void test()
+{
+
+  // moveRoutine();
+
+  /*
+  while (true)
+    Serial.println(robot->getAngleError(0));
+    */
+  for (int i = 0; i < 1; i++)
+  {
+    bw();
+  }
+
+  end();
+}
+
+void bw()
+{
+  //robot->advanceXMeters(0.6, true);
+  //delay(1000);
+  robot->advanceXMeters(-0.3, true);
+  delay(1000);
+}
+
+void moveRoutine()
+{
+  Plot graph(robot);
+  graph.startSequence();
+
+  while (true)
+  {
+    robot->updateStraightPID(100);
+    // graph.plotTargetandCurrent();
+    graph.plotPWM();
+  }
+}
+
+void end()
+{
   while (true)
     delay(1000);
 }
 
-void pastSetup(){
- Serial.begin(57600);
+void pastSetup()
+{
+  Serial.begin(57600);
 
   bno.init();
 
@@ -92,22 +123,22 @@ void pastSetup(){
   }
   */
 
-  // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.  
+  // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
 int newAngle = 0;
 
 void loop()
 {
-  //checkLimitSwitches();
-  // backward(1);
-  // delay (1000);
+  // checkLimitSwitches();
+  //  backward(1);
+  //  delay (1000);
   exploreFollowerWall();
-  //robot->goToAngle(90, true);
-  //robot->advanceXMeters(0.3, dirToAngle(rDirection));  
-  
-  //girosIzquierda();
-  //delay(1000);
+  // robot->goToAngle(90, true);
+  // robot->advanceXMeters(0.3, dirToAngle(rDirection));
+
+  // girosIzquierda();
+  // delay(1000);
   /*
   girosIzquierda();
   delay(1000);
@@ -118,7 +149,7 @@ void loop()
   // while (true){
   //   s->printInfo(false, true, false);
   // }
-  
+
   // robot->advanceXMeters(0.3, 90);
   // delay(200);
 
@@ -166,7 +197,7 @@ void exploreFollowerWall()
 {
   while (true)
   {
-      
+
     distancefront = getFrontDistance();
     distanceright = getRightDistance();
     distanceleft = getLeftDistance();
@@ -175,7 +206,7 @@ void exploreFollowerWall()
     {
       forward(3);
       turnRight();
-      forwardTile();  
+      forwardTile();
     }
     else if (distancefront < 0.08)
     {
@@ -185,14 +216,15 @@ void exploreFollowerWall()
     // {
     //   turnLeft();
     // }
-    else 
+    else
     {
       forward(1);
     }
   }
 }
 
-void testGiros(){
+void testGiros()
+{
   robot->goToAngle(90, true);
   delay(1000);
 
@@ -215,7 +247,7 @@ void testGiros(){
   delay(1000);
 
   robot->goToAngle(0, false);
-  delay(1000);  
+  delay(1000);
 }
 
 void girosIzquierda()
@@ -235,7 +267,7 @@ void girosIzquierda()
     {
       double angle = 90;
       double angleNew = bno.getAngleX();
-      robot->turnPID(90, (angle - angleNew), -1);
+      // robot->turnPID(90, (angle - angleNew), -1);
     }
   }
 }
@@ -254,7 +286,7 @@ void girosDerecha()
     {
       double angle = 90;
       double angleNew = bno.getAngleX();
-      robot->turnPID(90, angle - angleNew, 1);
+      // robot->turnPID(90, angle - angleNew, 1);
     }
   }
 }
@@ -362,7 +394,7 @@ void giroAbajo()
   {
     double angle = 90;
     double angleNew = bno.getAngleX();
-    robot->turnPID(90, angle - angleNew, 1);
+    // robot->turnPID(90, angle - angleNew, 1);
   }
 }
 
@@ -371,7 +403,7 @@ void forward(int times)
   for (int i = 0; i < times; i++)
   {
     robot->advanceXMeters(0.01, dirToAngle(rDirection));
-    
+
     checkRamp();
 
     if (checkLimitSwitches())
@@ -432,13 +464,13 @@ void turnLeft()
 {
   // Check if there's a wall to the right
   bool wallRight = (getRightDistance() < 0.15);
-  
+
   // Turn left
   robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
 
   if (wallRight)
     backward(10);
-   
+
   if (rDirection == 0)
   {
     rDirection = 3;
@@ -451,9 +483,9 @@ void turnLeft()
 
 void turnRight()
 {
-  // Check if there's a wall 
+  // Check if there's a wall
   bool wallLeft = (getLeftDistance() < 0.15);
-  
+
   // Turn right
   robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
 
@@ -471,7 +503,7 @@ void relativeTurn(double angle, bool goRight)
 {
   double curAngle = s->getAngleX();
   double goAngle = curAngle + angle;
-  
+
   if (angle + curAngle > 360)
   {
     goAngle -= 360;
@@ -480,14 +512,14 @@ void relativeTurn(double angle, bool goRight)
   {
     goAngle += 360;
   }
-  
+
   robot->goToAngle(goAngle, goRight);
 }
 
 char checkColors()
 {
   char color = s->getTCSInfo();
-  
+
   if (color == 'N')
   {
     backward(3);
@@ -528,42 +560,42 @@ int checkLimitSwitches()
   {
     backward(2);
     relativeTurn(20, true);
-    robot->advanceXMetersNoAngle(2);
+    // robot->advanceXMetersNoAngle(2);
 
     return 1;
 
-//    if (northYaw < 359)
-//    {
-//      northYaw += 0;
-//    }
-//    else
-//    {
-//      northYaw = 0;
-//    } 
-//    if (eastYaw < 359)
-//    {
-//      eastYaw += 0;
-//    }
-//    else
-//    {
-//      eastYaw = 0;
-//    }
-//    if (southYaw < 359)
-//    {
-//      southYaw += 0;
-//    }
-//    else
-//    {
-//      southYaw = 0;
-//    }
-//    if (westYaw < 359)
-//    {
-//      westYaw += 0;
-//    }
-//    else
-//    {
-//      westYaw = 0;
-//    }
+    //    if (northYaw < 359)
+    //    {
+    //      northYaw += 0;
+    //    }
+    //    else
+    //    {
+    //      northYaw = 0;
+    //    }
+    //    if (eastYaw < 359)
+    //    {
+    //      eastYaw += 0;
+    //    }
+    //    else
+    //    {
+    //      eastYaw = 0;
+    //    }
+    //    if (southYaw < 359)
+    //    {
+    //      southYaw += 0;
+    //    }
+    //    else
+    //    {
+    //      southYaw = 0;
+    //    }
+    //    if (westYaw < 359)
+    //    {
+    //      westYaw += 0;
+    //    }
+    //    else
+    //    {
+    //      westYaw = 0;
+    //    }
   }
   else if (s->rightLimitSwitch())
   {
@@ -572,38 +604,38 @@ int checkLimitSwitches()
     forward(2);
 
     return 1;
-//    if (northYaw > 0)
-//    {
-//      northYaw -= 0;
-//    }
-//    else
-//    {
-//      northYaw = 359;
-//    } 
-//    if (eastYaw > 0)
-//    {
-//      eastYaw -= 0;
-//    }
-//    else
-//    {
-//      eastYaw = 359;
-//    }
-//    if (southYaw > 0)
-//    {
-//      southYaw -= 0;
-//    }
-//    else
-//    {
-//      southYaw = 359;
-//    }
-//    if (westYaw > 0)
-//    {
-//      westYaw -= 0;
-//    }
-//    else
-//    {
-//      westYaw = 359;
-//    }
+    //    if (northYaw > 0)
+    //    {
+    //      northYaw -= 0;
+    //    }
+    //    else
+    //    {
+    //      northYaw = 359;
+    //    }
+    //    if (eastYaw > 0)
+    //    {
+    //      eastYaw -= 0;
+    //    }
+    //    else
+    //    {
+    //      eastYaw = 359;
+    //    }
+    //    if (southYaw > 0)
+    //    {
+    //      southYaw -= 0;
+    //    }
+    //    else
+    //    {
+    //      southYaw = 359;
+    //    }
+    //    if (westYaw > 0)
+    //    {
+    //      westYaw -= 0;
+    //    }
+    //    else
+    //    {
+    //      westYaw = 359;
+    //    }
   }
 
   return 0;
