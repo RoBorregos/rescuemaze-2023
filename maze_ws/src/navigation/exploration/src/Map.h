@@ -6,7 +6,7 @@
 #include <boost/serialization/map.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-#include <nav_msgs/OccupancyGrid.h>
+// #include <nav_msgs/OccupancyGrid.h>
 
 using namespace std;
 

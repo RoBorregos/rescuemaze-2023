@@ -434,8 +434,7 @@ void Movement::turnPID(int RPMs, int errorD, int sign)
 
 void Movement::updateStraightPID(int RPMs, int errorD)
 {
-  Serial.println(errorD);
-
+  // Serial.println(errorD);
   // Use angle error to update target speeds.
   if (errorD > -359 && errorD > -180)
   {
@@ -532,12 +531,117 @@ Direction Movement::whereToGo(double &current_angle, const double target_angle)
 // A possitive errorD means that the robot must increase the speed of the right wheels.
 void Movement::updateStraightPID(int RPMs)
 {
+    //   // Use angle error to update target speeds.
 
-  // Use angle error to update target speeds.
-  motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-  motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-  motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-  motor[BACK_RIGHT].motorSpeedPID(RPMs);
+    // return;
+    
+  // Use VLX distance error to update target speeds.
+  // Serial.println("UpdateStraightPID");
+  if (millis() - lastUpdateVLX < 10)
+  {
+    motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs, false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs);    
+    return;
+  }
+  double rightDistance = sensors->getVLXInfo(1);
+  double leftDistance = sensors->getVLXInfo(2);
+
+  lastUpdateVLX = millis();
+
+  while (rightDistance > 0.3)
+    rightDistance -= 0.3;
+  while (leftDistance > 0.3)
+    leftDistance -= 0.3;
+
+  double error = 10 * (rightDistance - leftDistance);
+
+  Serial.print("Error: ");
+  Serial.println(error);
+
+  if (error < 0.3 && error > -0.3)
+  {
+    // Use angle error to update target speeds.
+    motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
+    motor[BACK_LEFT].motorSpeedPID(RPMs, false);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs);    
+  }  
+  // Error > 0 means left side is closer to wall.
+  else if (error > 0)
+  {
+    Serial.print("Original RPMs: ");
+    Serial.print(RPMs);
+    Serial.print("   New Left RPMs: ");
+    Serial.print(RPMs * ((error + 1) * 0.8));
+    Serial.print("   New Right RPMs: ");
+    Serial.println(RPMs * ((error) * 0.8));
+    // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
+    // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
+    // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
+    // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
+
+    motor[FRONT_LEFT].motorSpeedPID(RPMs);
+    motor[BACK_LEFT].motorSpeedPID(RPMs);
+    motor[FRONT_RIGHT].motorStop();
+    motor[BACK_RIGHT].motorStop();
+
+    delay(300);
+
+    motor[FRONT_LEFT].motorStop();
+    motor[BACK_LEFT].motorStop();
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs);
+
+    delay(200);
+    
+    stop();
+
+    return;
+  }
+  // Error < 0 means right side is closer to wall.
+  else if (error < 0)
+  {
+    Serial.print("Original RPMs: ");
+    Serial.print(RPMs);
+    Serial.print("   New Left RPMs: ");
+    Serial.print(RPMs * (error) * -0.8);
+    Serial.print("   New Right RPMs: ");
+    Serial.println(RPMs * ((error - 1) * -0.8));
+    // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
+    // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
+    // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
+    // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
+
+    motor[FRONT_LEFT].motorStop();
+    motor[BACK_LEFT].motorStop();
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs);
+
+    delay(300);
+
+    motor[FRONT_LEFT].motorSpeedPID(RPMs);
+    motor[BACK_LEFT].motorSpeedPID(RPMs);
+    motor[FRONT_RIGHT].motorStop();
+    motor[BACK_RIGHT].motorStop();
+
+    delay(200);
+    
+    stop();
+
+    return;
+  }
+
+
+  // // Use angle error to update target speeds.
+  // motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
+  // motor[BACK_LEFT].motorSpeedPID(RPMs, false);
+  // motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+  // motor[BACK_RIGHT].motorSpeedPID(RPMs);
+
+  // return;
+  
 }
 
 void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
@@ -573,7 +677,10 @@ void Movement::advanceXMeters(double x, double rAngle, bool useVlx)
         turnRight = true;
       }
 
-      goToAngle(rAngle, turnRight);
+      if (millis() - lastUpdateVLX < 5)
+      {
+        goToAngle(rAngle, turnRight);
+      }
       // Get dist reading after correcting angle.
       if (useVlx)
       {

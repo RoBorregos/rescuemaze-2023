@@ -46,6 +46,8 @@ private:
   // Sensors
   Sensors *sensors;
 
+  unsigned int lastUpdateVLX = millis();  
+
   // Servo
   static constexpr uint8_t kServoPin = 7; // TODO: check pin
 
