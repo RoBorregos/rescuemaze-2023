@@ -82,6 +82,14 @@ public:
   // Returns color letter detected with the use of precision ranges.
   char getColorWithPrecision();
 
+  // Return the mode obtained after sampleSize detections, if the probability is above
+  // the specified threshold.
+  char getColorMode(int sampleSize, double certainity=0);
+
+  // Calls getColorWithPrecision k times at most. If the initial reading differs from
+  // any of the subsequent k calls, the function returns 'u'. Otherwise, it returns the start character.
+  char getColorKReps(int reps);
+
   // Prints the colors matrix to check if the colors were saved successfully.
   void printColorMatrix();
 

@@ -84,33 +84,34 @@ void RosBridge::publishVLX()
   vlx_sensor_publisher_front.publish(&vlx_sensor_msgs_front);
 }
 
-
 void RosBridge::publishLimitSwitches()
 {
   int rightSwitch = 0;
   int leftSwitch = 0;
 
-  rightSwitch = robot->rightLimitSwitch();
-  leftSwitch = robot->leftLimitSwitch();
-  
+  sensors->getLimitSwitches(rightSwitch, leftSwitch);
+
   if (rightSwitch == 1)
   {
     limit_switch_right_msgs.data = 1;
     limit_switch_right_publisher.publish(&limit_switch_right_msgs);
-  } else {
+  }
+  else
+  {
     limit_switch_right_msgs.data = 0;
     limit_switch_right_publisher.publish(&limit_switch_right_msgs);
   }
-    if (leftSwitch == 1)
+  if (leftSwitch == 1)
   {
     limit_switch_left_msgs.data = 1;
     limit_switch_left_publisher.publish(&limit_switch_left_msgs);
-  } else {
+  }
+  else
+  {
     limit_switch_left_msgs.data = 0;
     limit_switch_left_publisher.publish(&limit_switch_left_msgs);
   }
 }
-
 
 void RosBridge::publish()
 {
@@ -122,7 +123,7 @@ void RosBridge::publish()
     // TCS sensor data
     tcs_sensor_msgs.data = sensors->getTCSInfo();
     tcs_sensor_publisher.publish(&tcs_sensor_msgs);
-    
+
     publishVLX();
     publishLimitSwitches();
   }

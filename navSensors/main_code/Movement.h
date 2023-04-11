@@ -29,13 +29,12 @@
 #define vlx_front 0
 #define vlx_back 3
 
-enum class Direction{
-    left = 1,
-    right = 2 
-};
-
 class Movement
 {
+
+  // Give GeneralChecks full access.
+  friend class GeneralChecks;
+
 private:
   // ROS node.
   ros::NodeHandle *nh;
@@ -47,15 +46,13 @@ private:
   Sensors *sensors;
 
   unsigned int lastUpdateVLX = millis();  
+  int rDirection = 0; // 0 is north, 1 is east, 2 is south, and 3 is west.
 
   // Servo
-  static constexpr uint8_t kServoPin = 7; // TODO: check pin
+  static constexpr uint8_t kServoPin = 0; // TODO: check pin
 
   // Leds
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
-
-  // Limit Switches
-  static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right switches
 
   // Motor.
   static constexpr int kMotorCount = 4;
@@ -95,31 +92,12 @@ private:
   static constexpr double kIStraightFR = 3; // 55
   static constexpr double kDStraightFR = 2; // 40
 
-  PIDRb pid_straight_;
-  double straight_output_ = 0;
-  int target_angle_ = 0;
-  static constexpr uint8_t kPidMovementTimeSample = 100;
-  static constexpr uint16_t kPidMaxErrorSum = 3000;
-  static constexpr double kOutputMinLimitPidStraight = -0.175;
-  static constexpr double kOutputMaxLimitPidStraight = 0.175;
-  static constexpr double kPPidStraight = 0.0008;
-  static constexpr double kIPidStraight = 0.00015;
-  static constexpr double kDPidStraight = 0.0002;
-  static constexpr double kOutputMinLimitPidRotation = -0.18;
-  static constexpr double kOutputMaxLimitPidRotation = 0.18;
-  static constexpr double kOutputAdjustment = -0.075;
-  static constexpr double kPidRotationTolerance = 1;
-  static constexpr double kPPidRotation = 0.00050;
-  static constexpr double kIPidRotation = 0.00110;
-
-
   // Kinematics.
   Kinematics kinematics;
 
-  PIDRb pid_straight;
-
   // Cmd movement constants
-  static constexpr int kMovementRPMs = 80;
+  // TODO: Check maximum rpms of motors in field, and in function of battery available.
+  static constexpr int kMovementRPMs = 80; // Value reduced from 100.
   static constexpr int kMaxAngle = 360;
   static constexpr uint16_t kInterAngle = 180;
   static constexpr int kMinAngle = 0.0;
@@ -147,9 +125,8 @@ public:
 
   // Initialization
 
-  // Initializes motors, leds, servo, limit switches, and kinematics.
+  // Initializes motors, servo and kinematics.
   void initRobot();
-  void turnPID(int RPMs, int errorD, int sign);
 
   // Sets the values of the PID for each motor.
   void setIndividualPID();
@@ -159,9 +136,6 @@ public:
 
   // Initializes indicator leds.
   void initLeds();
-
-  // Initializes limit switches.
-  void initSwitches();
 
   // Encoder Methods
   // @return The motor's mean distance traveled.
@@ -180,66 +154,87 @@ public:
   // Comand Velocity, using kinematics.
   void cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug = false);
 
-  // Sets motors state to turn right.
+  // Command movement function. Used as a clean and concise interface for robot movement.
+  // The function uses the most of the movement methods implemented in this class. See the parameters'
+  // definitions below the function's signature.
+  // @param action A specific movement.
+  // @param option Specify which option to use for specific actions.s
+  // @return The status code of the movement.
+  int cmdMovement(const int action, const int option = 0);
+
+  /* Meaning of #actions, options and return values of cmdMovement:
+
+  Action  Description                     Options                           Returns
+  1       Move forward 1 unit (30 cms)    1 (use degrees as error)          1 -> successful, 0 -> move aborted
+  2       Left turn (-90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
+  3       Right turn (90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
+  4       Move backward 1 unit (30 cms)   1 (use degrees as error)          1 -> successful, 0 -> move aborted
+  5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
+  6       Traverse ramp                   None / ignored                    Estimated length of ramp.
+  7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
+  8       Update angle reference          TODO, would help to reduce error given by physical field.
+  */
+
+  // Rotation methods
+
+  // Sets the direction of motors for right rotation.
   void girarDerecha();
 
-  // Sets motors state to turn left.
+  // Sets the direction of motors for left rotation.
   void girarIzquierda();
 
-  void goToAngle(int targetAngle, bool turnRight);
+  // Rotates the robot to the specified angle.
+  void goToAngle(int targetAngle);
 
+  // Updates individual motor speed using the angle error and PID.
   void updateRotatePID(int RPMs, bool right);
+
+  // Returns the robot's expected angle given its rdirection.
+  int dirToAngle(int rdirection);
+
+  // A positive error means that the robot must rotate to the right. Negative error -> left.
+  double getAngleError(double expectedAngle);
+
+  // Returns new rdirection given turn sign.
+  // @param turn 1 means right turn, 0 for left turn.
+  int getTurnDirection(int turn);
+
+  // Linear movement methods.
+
+  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs,
+  // but takes into account the error in degress from the 'perfect' trajectory .
+  // @param RPMs The target speed in RPMs.
+  // @param errorD The error, in degrees, used to adjust speed of each motor.
+  void updateStraightPID(int RPMs, double errorD);
 
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
-  void updateStraightPID(int RPMs, int errorD);
-
   void updateStraightPID(int RPMs);
-
-  void Movement::updateStraightPID2(int RPMs, int errorD);
 
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
   void updatePIDKinematics(Kinematics::output rpm);
 
-  void pidLinearMovement();
-
-  void velocityAdjustment(const int adjustment);
-
-  Direction whereToGo(double &current_angle);
-  Direction whereToGo(double &current_angle, const double target_angle);
-
   // Moves the robot forward the specified distance.
   // @param x Distance in meters
 
-  void advanceXMeters(double x, double rAngle, bool useVlx=false);
-  
-  void advanceXMetersNoAngle(double x, bool useVlx=false);
+  // Advance the specified distance using encoders. If rAngle is given, the error is used to
+  // make adjustments in the wheel velocity with respect to expected angle.
+  void advanceXMeters(double x, bool useAngleError = false);
 
-  int getDistanceToCenter();
+  void traverseRamp(int option);
 
-  // Decides how to turn depinding on the current and desired angles
-  void turnDecider(double current_angle, double desired_angle);
+  double getDistanceToCenter();
 
-
+  // Stop all motors
   void stop();
 
   // Other Methods
   // Gets sign which refers to where should a kit be dropped
   void dropDecider(int ros_sign_callback);
-  
-  int rightLimitSwitch();
-  int leftLimitSwitch();
-
-  void debugLimitSwitches();
 
   // For specific tests on specific motors.
   void testMotor();
-
-  // Test that all motors are registered correctly (motor[0] is actually front left, etc),
-  // as well as their directions.
-  void testAllMotors();
-
 };
 
 #endif

@@ -105,7 +105,7 @@ class serialPlot:
 
 def main():
     # portName = 'COM11'
-    portName = '/dev/ttyUSB0'
+    portName = '/dev/ttyUSB1'
     baudRate = 57600
     maxPlotLength = 100     # number of points in x-axis of real time plot
     dataNumBytes = 4        # number of bytes of 1 data point
@@ -113,7 +113,7 @@ def main():
     s = serialPlot(portName, baudRate, maxPlotLength, dataNumBytes, numPlots)   # initializes all required variables
     s.readSerialStart()                                               # starts background thread
 
-    plot_pwm = False
+    plot_pwm = True
 
     # plotting starts below
     pltInterval = 35    # Period at which the plot animation updates [ms]
