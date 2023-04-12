@@ -20,84 +20,86 @@
 #include "Movement.h"
 #include "Sensors.h"
 
+class RosBridge
+{
+  friend class GeneralChecks;
 
-class RosBridge{
-  public:
-    // Constructor
-    RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh);
+public:
+  // Constructor
+  RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh);
 
-    // Run
-    // Calls watchdog and publish.
-    void run();
+  // Run
+  // Calls watchdog and publish.
+  void run();
 
-  private:
-    // Dispenser Subscriber
-    // Receives dispenser drop position
-    void dispenserCallback(const std_msgs::Int16 &dispenser_sign);
+private:
+  // Dispenser Subscriber
+  // Receives dispenser drop position
+  void dispenserCallback(const std_msgs::Int16 &dispenser_sign);
 
-    // Velocity Subscriber
-    // Receives velocity commands.
-    void cmdVelocityCallback(const geometry_msgs::Twist &cmdvel);
+  // Velocity Subscriber
+  // Receives velocity commands.
+  void cmdVelocityCallback(const geometry_msgs::Twist &cmdvel);
 
-    // Subscriber to make tests
-    void testCallback(const std_msgs::String &test_msg);
+  // Subscriber to make tests
+  void testCallback(const std_msgs::String &test_msg);
 
-    // Verify it is still receiving velocity commands.
-    void watchdog();
+  // Verify it is still receiving velocity commands.
+  void watchdog();
 
-    // Encoders Publisher
-    // Publish data to topics.
-    void publish();
+  // Encoders Publisher
+  // Publish data to topics.
+  void publish();
 
-    void publishVLX();
+  void publishVLX();
 
-    void publishLimitSwitches();
+  void publishLimitSwitches();
 
-    Movement *robot;
-    Sensors *sensors;
+  Movement *robot;
+  Sensors *sensors;
 
-    // Node.
-    ros::NodeHandle *nh;
+  // Node.
+  ros::NodeHandle *nh;
 
-    // Suscribers
-    
-    ros::Subscriber<geometry_msgs::Twist, RosBridge> velocity_subscriber;
-    ros::Subscriber<std_msgs::Int16, RosBridge> dispenser_subscriber;
+  // Suscribers
 
-    ros::Subscriber<std_msgs::String, RosBridge> test_subscriber;
+  ros::Subscriber<geometry_msgs::Twist, RosBridge> velocity_subscriber;
+  ros::Subscriber<std_msgs::Int16, RosBridge> dispenser_subscriber;
 
-    static constexpr uint16_t kWatchdogPeriod = 500;
-    
-    // Publishers
-    ros::Publisher vlx_sensor_publisher_front;
-    ros::Publisher tcs_sensor_publisher;
-    ros::Publisher limit_switch_right_publisher; // Right limit switch
-    ros::Publisher limit_switch_left_publisher; // Left limit switch
-    ros::Publisher test_publisher;
+  ros::Subscriber<std_msgs::String, RosBridge> test_subscriber;
 
-    // Messages
-    sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensor
-    std_msgs::Char tcs_sensor_msgs;          // Color sensor
-    std_msgs::String testT;
-    std_msgs::Int16 limit_switch_right_msgs; // Right limit switch
-    std_msgs::Int16 limit_switch_left_msgs; // Right limit switch
+  static constexpr uint16_t kWatchdogPeriod = 500;
 
-    static constexpr uint8_t kOdomPeriod = 40;
+  // Publishers
+  ros::Publisher vlx_sensor_publisher_front;
+  ros::Publisher tcs_sensor_publisher;
+  ros::Publisher limit_switch_right_publisher; // Right limit switch
+  ros::Publisher limit_switch_left_publisher;  // Left limit switch
+  ros::Publisher test_publisher;
 
-    // Timers.
-    unsigned long odom_timer = 0;
-    unsigned long watchdog_timer = 0;
-    unsigned long watchdog_timer_dispenser = 0;
+  // Messages
+  sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensor
+  std_msgs::Char tcs_sensor_msgs;           // Color sensor
+  std_msgs::String testT;
+  std_msgs::Int16 limit_switch_right_msgs; // Right limit switch
+  std_msgs::Int16 limit_switch_left_msgs;  // Right limit switch
 
-    // Motor and Sensor constants
+  static constexpr uint8_t kOdomPeriod = 40;
 
-    // VLX
-    const float kVLX_fov = (45 * 3.1416) / 180;
-    const float kVLX_min = 0.03;
-    const float kVLX_max = 3;
+  // Timers.
+  unsigned long odom_timer = 0;
+  unsigned long watchdog_timer = 0;
+  unsigned long watchdog_timer_dispenser = 0;
 
-    // Motor.
-    const int kMotorCount = 4;
+  // Motor and Sensor constants
+
+  // VLX
+  const float kVLX_fov = (45 * 3.1416) / 180;
+  const float kVLX_min = 0.03;
+  const float kVLX_max = 3;
+
+  // Motor.
+  const int kMotorCount = 4;
 };
 
 #endif

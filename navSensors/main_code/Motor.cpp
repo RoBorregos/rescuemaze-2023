@@ -213,6 +213,7 @@ void Motor::motorSpeedPID(double target_speed, bool debug)
 
   pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
   setPWM(tmp_pwm);
+  
 }
 
 void Motor::motorRotateIzqPID(double target_angle, double current_angle)
@@ -275,6 +276,11 @@ void Motor::motorSpeedPWM(double target_speed)
 double Motor::getDistanceTraveled()
 {
   return (getEncoderTics() / kPulsesPerRevolution) * kDistancePerRev;
+}
+
+double Motor::getRevolutions()
+{
+  return getEncoderTics() / kPulsesPerRevolution;
 }
 
 void Motor::setEncoderTics(int tics)

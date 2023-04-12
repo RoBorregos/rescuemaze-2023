@@ -17,6 +17,8 @@
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
 {
+  friend class GeneralChecks;
+  
   // Sensors Count
   static constexpr int kBNOCount = 10;                                   // BNO sensor data count
   static constexpr int kVLXCount = 4;                                    // VLX sensors data count
@@ -24,17 +26,13 @@ class Sensors
   static constexpr int kSensorCount = kBNOCount + kVLXCount + kTCSCount; // Total sensors data count
 
   // TCS constants
-  static constexpr int kTCSPrecision = 3
-;                   // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 5;                  // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"NAAAA"}; // List of color initials
+  static constexpr int kTCSPrecision = 100;                  // Precision for matching color values.
+  static constexpr uint8_t colorAmount = 2;                  // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"NA"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
-  static constexpr uint8_t colors[colorAmount][3] = {
-      {85, 85, 85},
-      {46, 92, 106},
-      {64, 106, 106},
-      {62, 106, 106},
-      {46, 92, 115}};
+  static constexpr int colors[colorAmount][3] = {
+      {100, 100, 100},
+      {300, 500, 550}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
@@ -50,14 +48,12 @@ class Sensors
   // Front is in pin 1.
   // Right is in pin 6.
   // Left is in pin 0.
-  
+
   int kMuxPins[3] = {1, 6, 0}; // VLX multiplexor pins
   int kMuxTCS = {2};           // TCS multiplexor pin
 
   // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches
-
-  friend class GeneralChecks;
 
 public:
   String vlxNames[3] = {"Front", "Right", "Left"};
@@ -83,11 +79,10 @@ public:
 
   // Limit switches
 
-  void debugLimitSwitches();
+  void debugLimitSwitches(); // Prints limit switches data.
   int rightLimitSwitch();
   int leftLimitSwitch();
-
-  void getLimitSwitches(int &right, int &left);
+  void getLimitSwitches(int &right, int &left); // Returns limit switches data.
 
   // BNO data
 
@@ -138,6 +133,9 @@ public:
 
   // Print the rgb values detected by the tcs.
   void rgbTCS();
+
+  // Print the rgbc values detected by the tcs.
+  void rgbTCSClear();
 
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.

@@ -10,23 +10,28 @@
 
 class TCS
 {
+  friend class GeneralChecks;
+
 private:
-  Adafruit_TCS34725 tcs;
+  // Test with different integration times (2.4ms, 24ms, 50ms, 101ms, 154ms, 700ms). Note: integration time increases detection time.
+  // Test with different gain values (1x, 4x, 16x, 60x)
+  Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
   float red;
   float green;
   float blue;
+
   MUX2C mux;
-  uint8_t precision;
-  const char *colorList; // Array with color initials. 
+  int precision;
+  const char *colorList; // Array with color initials.
   uint8_t colorAmount = 3;
 
   // Matrix with colors detected by sensor
   // rows: amount of colors
   // columns:  R G B value registered for each color
-  const uint8_t (*colors)[3];
-  
+  const int (*colors)[3];
+
   /*
-  for color at colorList[i], 
+  for color at colorList[i],
     colors[i][0] = amount of red.
     colors[i][1] = amount of green.
     colors[i][2] = amount of blue.
@@ -34,7 +39,7 @@ private:
   */
 
   // Checks if detected color is within range.
-  bool inRange(uint8_t color, uint8_t colorRegistered);
+  bool inRange(double color, double colorRegistered);
 
   void setDefValues();
 
@@ -51,13 +56,13 @@ public:
   // Sets colors and colorAmount for TCS object.
   // @param colors[][3] 2D array with RGB values.
   // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
-  void init(const uint8_t colors[][3], const uint8_t colorAmount);
+  void init(const int colors[][3], const uint8_t colorAmount);
 
   // Sets colors, colorAmount and colorList for TCS object.
   // @param colors[][3] 2D array with RGB values.
   // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
   // @param colorList[] Array of initials of registered colors.
-  void init(const uint8_t colors[][3], const uint8_t colorAmount, const char colorList[]);
+  void init(const int colors[][3], const uint8_t colorAmount, const char colorList[]);
 
   // Sets MUX position.
   // @param posMux new mutliplexor position.
@@ -69,12 +74,18 @@ public:
 
   // Prints the RGB values of the sensor
   void printRGB();
-  
+
+  // Prints the RGBC values of the sensor
+  void printRGBC();
+
   // Prints the color detected by the sensor.
   void printColor();
 
   // Updates the RGB values of the sensor
   void updateRGB();
+
+  // Updates the RGB values but includes the Clear section.
+  void updateRGBC();
 
   // Returns the color letter that the sensor detected
   char getColor();
@@ -84,7 +95,7 @@ public:
 
   // Return the mode obtained after sampleSize detections, if the probability is above
   // the specified threshold.
-  char getColorMode(int sampleSize, double certainity=0);
+  char getColorMode(int sampleSize, double certainity = 0);
 
   // Calls getColorWithPrecision k times at most. If the initial reading differs from
   // any of the subsequent k calls, the function returns 'u'. Otherwise, it returns the start character.

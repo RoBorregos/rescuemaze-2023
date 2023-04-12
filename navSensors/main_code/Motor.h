@@ -16,6 +16,8 @@ enum class MotorState
 // Class for controlling motor movement.
 class Motor
 {
+  friend class GeneralChecks;
+
 private:
   // Motor info
 
@@ -126,6 +128,9 @@ public:
   // Returns distance traveled in meters
   double getDistanceTraveled();
 
+  // Return revolutions traveled.
+  double getRevolutions();
+
   // Attach interrupt of encoders.
   void initEncoders();
 
@@ -182,7 +187,7 @@ public:
   void PIDRotateTunings(double kp, double ki, double kd);
 
   void PIDAggressiveTunings(double kp, double ki, double kd);
-  
+
   void PIDConservativeTunings(double kp, double ki, double kd);
 };
 #endif

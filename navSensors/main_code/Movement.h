@@ -31,7 +31,6 @@
 
 class Movement
 {
-
   // Give GeneralChecks full access.
   friend class GeneralChecks;
 
@@ -118,6 +117,9 @@ public:
 
   // Using only Arduino without bno
   Movement(Sensors *sensors, bool individualConstants = false);
+
+  // Only motors
+  Movement(bool individualConstants = false);
 
   // Initialize objects in common of constructors.
   initMovement(bool individualConstants = false);
@@ -217,12 +219,18 @@ public:
   // Moves the robot forward the specified distance.
   // @param x Distance in meters
 
+  // TODO: Adjust distance precision.
   // Advance the specified distance using encoders. If rAngle is given, the error is used to
   // make adjustments in the wheel velocity with respect to expected angle.
   void advanceXMeters(double x, bool useAngleError = false);
 
+  // TODO: Test method.
+  void advanceSlow(bool direction);
+
+  // TODO: Implement this method.
   void traverseRamp(int option);
 
+  // TODO: Correct logic for this method.
   double getDistanceToCenter();
 
   // Stop all motors

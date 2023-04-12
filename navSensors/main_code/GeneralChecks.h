@@ -2,7 +2,13 @@
 #define GeneralChecks_h
 
 #include "Movement.h"
+#include "Sensors.h"
+#include "Motor.h"
+#include "MotorID.h"
 #include "MUX2C.h"
+#include "BNO.h"
+#include "Plot.h"
+
 
 // Class used to perform quick tests on sensors and basic unitary movements of robot.
 class GeneralChecks
@@ -35,6 +41,12 @@ public:
 
     // Helper function to log messages.
     void log(const char *s, bool newLine = true);
+
+    // Do specific tests. Use to avoid polluting main_code.ino and seize access as friend class.
+    void test();
+    
+    // End script execution. Used for testing.
+    void end();
 };
 
 #endif

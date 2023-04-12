@@ -69,7 +69,7 @@ void GeneralChecks::checkSensorData(int iterations)
 
         for (int i = 0; i < robot->sensors->kMuxVLX; i++)
         {
-            
+
             for (int j = 0; j < iterations; j++)
             {
                 Serial.print(robot->sensors->vlxNames[i]);
@@ -177,3 +177,99 @@ void GeneralChecks::log(const char *s, bool newLine)
             Serial.print(s);
     }
 }
+
+void GeneralChecks::test()
+{
+    while (true)
+    {
+        Serial.println(robot->sensors->getTCSInfo());
+        // s->rgbTCSClear();
+        // s->rgbTCS();
+        // delay(500);
+        // s->printInfo(false, false, true, false);
+    }
+
+    for (int i = 0; i < 1000; i++)
+    {
+        robot->cmdMovement(1, 1);
+        delay(100);
+        robot->cmdMovement(5);
+        delay(100);
+        robot->cmdMovement(4, 1);
+        delay(100);
+        robot->cmdMovement(5);
+        delay(1000);
+    }
+
+    end();
+
+    // Go in circles
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(3, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(3, 1);
+    delay(1000);
+    robot->cmdMovement(1, 1);
+    delay(1000);
+    robot->cmdMovement(3, 1);
+
+    end();
+}
+
+void GeneralChecks::end()
+{
+    while (true)
+        delay(1000);
+}
+/*
+
+Test number of revolutions given by the encoders.
+void GeneralChecks::test()
+
+{
+    Plot graph(robot);
+    graph.startSequence();
+
+    robot->motor[1].motorBackward();
+    while (true)
+    {
+        robot->motor[1].setPWM(0);
+        // robot->updateStraightPID(40);
+        // robot
+        delay(50);
+        Serial.print("Front left: ");
+        Serial.print(robot->motor[0].getRevolutions());
+        Serial.print(", Back left: ");
+        Serial.print(robot->motor[1].getRevolutions());
+        Serial.print(", Front right: ");
+        Serial.print(robot->motor[2].getRevolutions());
+
+        Serial.print(", Back right: ");
+        Serial.println(robot->motor[3].getRevolutions());
+
+        // graph.plotTargetandCurrent();
+        // graph.plotPWM();
+    }
+}
+*/

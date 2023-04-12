@@ -9,6 +9,7 @@
 
 class Dispenser
 {
+  friend class GeneralChecks;
 private:
   Servo dispenser;
 

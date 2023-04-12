@@ -6,6 +6,8 @@
 
 class PIDRb
 {
+  friend class GeneralChecks;
+  
 private:
   double kp{0};
   double ki{0};

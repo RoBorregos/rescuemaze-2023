@@ -27,14 +27,14 @@ void TCS::init()
   }
 }
 
-void TCS::init(const uint8_t colors[][3], const uint8_t colorAmount)
+void TCS::init(const int colors[][3], const uint8_t colorAmount)
 {
   this->colors = colors;
   this->colorAmount = colorAmount;
   init();
 }
 
-void TCS::init(const uint8_t colors[][3], const uint8_t colorAmount, const char colorList[])
+void TCS::init(const int colors[][3], const uint8_t colorAmount, const char colorList[])
 {
   this->colorList = colorList;
   init(colors, colorAmount);
@@ -61,10 +61,39 @@ void TCS::updateRGB()
   tcs.setInterrupt(true); // turn off LED
 }
 
+// RGB results differ from getRGB(). If .getRawData() is used, the results of getRGB are altered until next tcs restart.
+void TCS::updateRGBC()
+{
+  mux.tcaSelect();
+  tcs.setInterrupt(false); // turn on LED
+  delay(50);
+  uint16_t red_r, green_r, blue_r, clear_r;
+  tcs.getRawData(&red_r, &green_r, &blue_r, &clear_r); 
+  red = red_r;
+  green = green_r;
+  blue = blue_r;
+  tcs.setInterrupt(true); // turn off LED
+}
+
 void TCS::printRGB()
 {
   updateRGB();
 
+  Serial.print("R: ");
+  Serial.print(red);
+  Serial.print("  G: ");
+  Serial.print(green);
+  Serial.print("  B: ");
+  Serial.println(blue);
+}
+
+void TCS::printRGBC()
+{
+  double t = millis();
+  updateRGBC();
+  
+  Serial.print("Time: ");
+  Serial.println(millis() - (t)); // Prints around integration time in ms
   Serial.print("R: ");
   Serial.print(red);
   Serial.print("  G: ");
@@ -109,9 +138,13 @@ char TCS::getColor()
   return color_letter;
 }
 
-bool TCS::inRange(uint8_t input, uint8_t registered)
+bool TCS::inRange(double input, double registered)
 {
-  return (registered - precision <= input && input <= registered + precision);
+  /*
+  if ((((registered - precision) <= input) && (input <= (registered + precision)))){
+    Serial.println("Input: " + String(input) + " Registered: " + String(registered) + " Precision: " + String(precision));
+  }*/
+  return (((registered - precision) <= input) && (input <= (registered + precision)));
 }
 
 char TCS::getColorWithPrecision()
@@ -122,24 +155,23 @@ char TCS::getColorWithPrecision()
     return getColor();
   }
 
-  updateRGB();
-
+  // updateRGB();
+  updateRGBC();
+  /*
+  Serial.print("R: ");
+  Serial.print(red);
+  Serial.print("  G: ");
+  Serial.print(green);
+  Serial.print("  B: ");
+  Serial.print(blue);
+  Serial.print("Precision: ");
+  Serial.println(precision);
+  */
   for (uint8_t i = 0; i < colorAmount; i++)
   {
     if (inRange(red, colors[i][0]) && inRange(green, colors[i][1]) && inRange(blue, colors[i][2]))
     {
-      // Ver si borrar
-      if (colorList[i] == 'N'){
-        if (colors[i][0] == colors[i][1] && colors[i][0] == colors[i][2])
-          return colorList[i];
-         else
-          continue;
-        } else {
-          return colorList[i];
-          }
-          
-       // Ver si borrar.
-      // return colorList[i];
+      return colorList[i];
     }
   }
 
@@ -150,7 +182,7 @@ char TCS::getColorWithPrecision()
 char TCS::getColorKReps(int reps)
 {
   char start = getColorWithPrecision();
-  
+
   if (start == 'u')
     return start;
 
@@ -199,9 +231,10 @@ char TCS::getColorMode(int sampleSize, double certainity)
     unknown -= repetitions[i];
   }
 
-  double probability = repetitions[mode] / (double) sampleSize;
+  double probability = repetitions[mode] / (double)sampleSize;
 
-  if (repetitions[mode] > unknown && probability > certainity){
+  if (repetitions[mode] > unknown && probability > certainity)
+  {
     return colorList[mode];
   }
 

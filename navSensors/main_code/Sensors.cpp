@@ -3,7 +3,7 @@
 // Definitions of non-int static constexpr variables. (Declarations and initialization in .h)
 
 constexpr char Sensors::colorList[];
-constexpr uint8_t Sensors::colors[Sensors::colorAmount][3];
+constexpr int Sensors::colors[Sensors::colorAmount][3];
 
 // Constructors
 
@@ -185,6 +185,10 @@ void Sensors::bnoPrint()
 void Sensors::rgbTCS()
 {
   tcs.printRGB();
+}
+void Sensors::rgbTCSClear()
+{
+  tcs.printRGBC();
 }
 
 void Sensors::checkTCS()

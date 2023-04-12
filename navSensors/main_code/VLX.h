@@ -10,32 +10,34 @@
 
 #define VLX_ADDR 0x29
 
-class VLX{
-  private:
-    Adafruit_VL53L0X vlx = Adafruit_VL53L0X(); 
-    MUX2C mux;
-    VL53L0X_RangingMeasurementData_t measure;
+class VLX
+{
+  friend class GeneralChecks;
 
-    // Unit conversion
-    const float kMm_in_M = 0.001;
+private:
+  Adafruit_VL53L0X vlx = Adafruit_VL53L0X();
+  MUX2C mux;
+  VL53L0X_RangingMeasurementData_t measure;
 
-  public:
+  // Unit conversion
+  const float kMm_in_M = 0.001;
 
-    VLX();
-    
-    VLX(uint8_t posMux);
+public:
+  VLX();
 
-    void setMux(uint8_t posMux);
+  VLX(uint8_t posMux);
 
-    // Retuns distance in meters.
-    double getDistance();
+  void setMux(uint8_t posMux);
 
-    // Returns distance in millimeters.
-    float getRawDistance();
-    void init();
+  // Retuns distance in meters.
+  double getDistance();
 
-    // Prints distance in meters.
-    void printDistance();
+  // Returns distance in millimeters.
+  float getRawDistance();
+  void init();
+
+  // Prints distance in meters.
+  void printDistance();
 };
 
 #endif

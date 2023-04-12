@@ -26,6 +26,14 @@ Movement::Movement(Sensors *sensors, bool individualConstants) : sensors(sensors
   initMovement(individualConstants);
 }
 
+Movement::Movement(bool individualConstants)
+{
+  sensors = nullptr;
+  nh = nullptr;
+  bno = nullptr;
+  initMovement(individualConstants);
+}
+
 Movement::initMovement(bool individualConstants)
 {
   kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
@@ -382,7 +390,7 @@ int Movement::cmdMovement(const int action, const int option)
 
   case 6:
     // Traverse ramp
-    traverseRamp();
+    traverseRamp(option);
     return 1;
     break;
 
@@ -510,6 +518,14 @@ bool turnRight = false;
       goToAngle(rAngle, turnRight);
 */
 
+void Movement::advanceSlow(bool direction){
+  if (direction){
+    updateStraightPID(10);
+  } else {
+    updateStraightPID(-10);
+  }
+}
+
 double Movement::getAngleError(double expectedAngle)
 {
   double angle = sensors->getAngleX();
@@ -609,9 +625,9 @@ void Movement::traverseRamp(int option){
   double yAngle = sensors->getAngleY();
 
   while (yAngle > 10 || yAngle < -10){
-    double rightVlx = 
-    double leftVlx = sensors->();
-    updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
+    //double rightVlx = 
+    //double leftVlx = sensors->();
+   // updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
   }
 
 

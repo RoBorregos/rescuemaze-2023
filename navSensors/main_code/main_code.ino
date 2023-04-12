@@ -1,8 +1,3 @@
-// Usar bno y vlx para robot.
-// Tmb poner el dispense
-
-// https://prod.liveshare.vsengsaas.visualstudio.com/join?AB1AC08928A0F68DBD97A45B571C4353E54F
-
 #include "Movement.h"
 #include "Sensors.h"
 #include "Motor.h"
@@ -62,65 +57,10 @@ void setup()
 
   initAll(&bno, true, true);
   GeneralChecks checks(robot);
+  checks.test();
   //checks.checkSensorData();
-  test();
-
+  
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
-}
-
-void test()
-{
-  
-  while (true){
-    s->printInfo(true, false, false, false);
-  }
-
-  for (int i = 0; i < 1000; i++){
-      robot->cmdMovement(1, 1);
-      delay(100);
-      robot->cmdMovement(5);
-      delay(100);
-      robot->cmdMovement(4,1);
-      delay(100);
-      robot->cmdMovement(5);
-      delay(1000);
-    }
-  
-  end();
-
-
-  // Go in circles
-  robot->cmdMovement(1, 1);
-  delay(1000);
-  robot->cmdMovement(2, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-  delay(1000);
-  robot->cmdMovement(2, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-  delay(1000);
-  robot->cmdMovement(2, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-
-  robot->cmdMovement(2, 1);
-  delay(1000);
-  robot->cmdMovement(2, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-  delay(1000);
-  robot->cmdMovement(3, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-  delay(1000);
-  robot->cmdMovement(3, 1);
-  delay(1000);
-  robot->cmdMovement(1, 1);
-   delay(1000);
-  robot->cmdMovement(3, 1);
-
-  end();
 }
 
 void bw()
@@ -129,41 +69,6 @@ void bw()
   //delay(1000);
   robot->advanceXMeters(-0.3, true);
   delay(1000);
-}
-
-void moveRoutine()
-{
-  Plot graph(robot);
-  graph.startSequence();
-
-  while (true)
-  {
-    robot->updateStraightPID(100);
-    // graph.plotTargetandCurrent();
-    graph.plotPWM();
-  }
-}
-
-void end()
-{
-  while (true)
-    delay(1000);
-}
-
-void pastSetup()
-{
-  Serial.begin(57600);
-
-  bno.init();
-
-  initAll(&bno, true, true);
-  /*
-  while (true){
-    s->printInfo(true, true, true);
-  }
-  */
-
-  // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
 int newAngle = 0;

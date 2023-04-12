@@ -13,6 +13,7 @@
 
 class MUX2C
 {
+  friend class GeneralChecks;
 
 private:
   uint8_t tcaPos;
@@ -48,13 +49,12 @@ public:
   // address manually because 2 sensors may have the same address.
   // @param address The sensor's address.
   void setMatching(uint8_t address);
-  
-  // Searches and sets an available channel. Same functionaly as setMatching() but prints 
+
+  // Searches and sets an available channel. Same functionaly as setMatching() but prints
   // debug messages. Avoid calling after any i2c device has been initialized, as it may
   // end communication.
   // @param address The sensor's address.
   void setChannel(uint8_t address);
-
 };
 
 #endif
