@@ -144,6 +144,10 @@ private:
     void sendGoal(geometry_msgs::Pose pose);
     int sendGoalJetson(int movement, int rDirection);
 
+    int checkUpRamp();
+    int checkDownRamp();
+    int checkBumperStairs();
+
     void cancelGoal();
 
     double yawDifference(double yaw1, double yaw2);
@@ -618,6 +622,20 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
     movementClientAsync(goal);
 }
 
+int ROSbridge::checkUpRamp()
+{
+    ros::spinOnce();
+    
+    // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
+    if (distLidar < 0.3 && distLidar - distVlx < 0.1 && distLidar - distVlx > 0.05)
+    {
+        ROS_INFO("Up ramp");
+        // upRamp = true;
+
+        return 1;
+    }
+}
+
 // 1: forward
 // 2: left
 // 3: right
@@ -646,9 +664,21 @@ int ROSbridge::sendGoalJetson(int movement, int rDirection)
     if (movement == 0)
     {
         ROS_INFO("Forward");
+
+        // Check if there's a ramp
+        if (checkUpRamp())
+        {
+            upRamp = true;
+            movementmsg.data = 4;
+        }
+        else
+        {
+            movementmsg.data = 1;
+        }
+
         movementmsg.data = 1;
     }
-    if (movement == 1)
+    else if (movement == 1)
     {
         ROS_INFO("Turn right");
         movementmsg.data = 3;
@@ -658,11 +688,11 @@ int ROSbridge::sendGoalJetson(int movement, int rDirection)
         ROS_INFO("Turn left");
         movementmsg.data = 2;
     }
-    if (movement == 4)
-    {
-        ROS_INFO("Forward (ramp)");
-        movementmsg.data = 4;
-    }
+    // if (movement == 4)
+    // {
+    //     ROS_INFO("Forward (ramp)");
+    //     movementmsg.data = 4;
+    // }
     if (movement == 5)
     {
         ROS_INFO("Backward");
@@ -720,14 +750,14 @@ int ROSbridge::sendGoalJetson(int movement, int rDirection)
 
             // ac.cancelGoal();
         }
-        // check if there's ramp and imu is close to 0
-        else if (upRamp && pitch > NOSEUP_PITCH && pitch < NOSEDOWN_PITCH)
-        {
-            if (debugging)
-                ROS_INFO("Up ramp");
+        // // check if there's ramp and imu is close to 0
+        // else if (upRamp && pitch > NOSEUP_PITCH && pitch < NOSEDOWN_PITCH)
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Up ramp");
 
-            upRamp = true;
-        }
+        //     upRamp = true;
+        // }
     }
 
     if (blackTile)
