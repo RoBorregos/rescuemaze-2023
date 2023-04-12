@@ -448,16 +448,6 @@ void Movement::updateStraightPID(int RPMs, double errorD)
   motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
 }
 
-void Movement::updateStraightPID(int RPMs, double errorD)
-{
-  double factor = 10; // Increasing the factor increases the speed correction.
-
-  motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-  motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-  motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
-  motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
-}
-
 // A possitive errorD means that the robot must increase the speed of the right wheels.
 void Movement::updateStraightPID(int RPMs)
 {
@@ -597,7 +587,7 @@ void Movement::advanceXMeters(double x, bool useAngleError)
 
       if (millis() - lastUpdateVLX < 5)
       {
-        goToAngle(rAngle, turnRight);
+        goToAngle(getTurnDirection(rDirection));
       }
       // Get dist reading after correcting angle.
       // Serial.println("Distancia recorrida: " + String(dist - initial));
