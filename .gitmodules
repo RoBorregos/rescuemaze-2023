@@ -7,3 +7,6 @@
 [submodule "maze_ws/src/devices/ydlidar/YDLidar-SDK"]
 	path = maze_ws/src/devices/ydlidar/YDLidar-SDK
 	url = https://github.com/YDLIDAR/YDLidar-SDK.git
+[submodule "maze_ws/src/devices/ros-imu-bno055"]
+	path = maze_ws/src/devices/ros-imu-bno055
+	url = https://github.com/dheera/ros-imu-bno055.git
