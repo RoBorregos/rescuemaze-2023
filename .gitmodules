@@ -1,3 +1,9 @@
 [submodule "maze_ws/src/devices/ldlidar_stl_ros"]
 	path = maze_ws/src/devices/ldlidar_stl_ros
 	url = https://github.com/ldrobotSensorTeam/ldlidar_stl_ros.git
+[submodule "maze_ws/src/devices/ydlidar/ydlidar_ws/src/ydlidar_ros_driver"]
+	path = maze_ws/src/devices/ydlidar/ydlidar_ws/src/ydlidar_ros_driver
+	url = https://github.com/YDLIDAR/ydlidar_ros_driver.git
+[submodule "maze_ws/src/devices/ydlidar/YDLidar-SDK"]
+	path = maze_ws/src/devices/ydlidar/YDLidar-SDK
+	url = https://github.com/YDLIDAR/YDLidar-SDK.git
