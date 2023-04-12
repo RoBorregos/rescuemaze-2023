@@ -361,27 +361,47 @@ void forward(int times)
 
 void forward()
 {
-  robot->advanceXMeters(0.01, dirToAngle(rDirection));
+  robot->advanceXMeters(0.3, dirToAngle(rDirection));
 }
 
 int forwardTile()
 {
+  // PID approach
+  // robot->advanceXMeters(0.3, dirToAngle(rDirection), true);
+  // return 1;
+
+  // VLX approach
   // forward(18);
   double curDistance = getFrontDistance();
-  double targetDistance = curDistance - 0.3;
+  double targetDistance;
 
-  while (curDistance < targetDistance)
+  if (curDistance > 0.3)
   {
-    checkRamp();
-    if (checkColors() == 'N')
+    targetDistance = curDistance - 0.3;
+  }
+  else // 0.15 < distance <= 0.3
+  {
+    targetDistance = 0.05;    
+  }
+
+  while (curDistance > targetDistance)
+  {
+    if (false)
     {
-      return 0;
+      checkRamp();
+      if (checkColors() == 'N')
+      {
+        return 0;
+      }
+      
+      checkLimitSwitches();
     }
-    checkLimitSwitches();
 
     forward();
     curDistance = getFrontDistance();
   }
+
+  forward();
 
   return 1;
 }
@@ -597,4 +617,72 @@ void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
 
   static Movement movement(bno, s, setIndividualConstants);
   robot = &movement;
+}
+
+
+void testGiros(){
+  robot->goToAngle(90, true);
+  delay(1000);
+
+  robot->goToAngle(180, true);
+  delay(1000);
+
+  robot->goToAngle(270, true);
+  delay(1000);
+
+  robot->goToAngle(360, true);
+  delay(1000);
+
+  robot->goToAngle(270, false);
+  delay(1000);
+
+  robot->goToAngle(180, false);
+  delay(1000);
+
+  robot->goToAngle(90, false);
+  delay(1000);
+
+  robot->goToAngle(0, false);
+  delay(1000);  
+}
+
+void girosIzquierda()
+{
+  while (true)
+  {
+    int errorD = bno.getAngleX();
+    int errorFiltrado = errorD + newAngle;
+    Serial.println(errorD);
+    if (errorFiltrado > 265 && errorFiltrado < 270)
+    {
+      robot->stop();
+      newAngle -= 90;
+      break;
+    }
+    else
+    {
+      double angle = 90;
+      double angleNew = bno.getAngleX();
+      robot->turnPID(90, (angle - angleNew), -1);
+    }
+  }
+}
+
+void girosDerecha()
+{
+  while (true)
+  {
+    int errorD = 90 - bno.getAngleX() + newAngle;
+    if (errorD <= 0 && errorD > -5)
+    {
+      Serial.println("Angulo correecto");
+      newAngle += 90;
+    }
+    else
+    {
+      double angle = 90;
+      double angleNew = bno.getAngleX();
+      robot->turnPID(90, angle - angleNew, 1);
+    }
+  }
 }

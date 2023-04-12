@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/diego/coding/rescuemaze-2023/maze_ws/src/devices/ydlidar_ws/devel/setup.sh

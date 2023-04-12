@@ -45,6 +45,7 @@ private:
   // Sensors
   Sensors *sensors;
 
+  unsigned int lastUpdateVLX = millis();  
   int rDirection = 0; // 0 is north, 1 is east, 2 is south, and 3 is west.
 
   // Servo
