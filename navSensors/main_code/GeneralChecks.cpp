@@ -56,7 +56,7 @@ void GeneralChecks::calibrateSensors()
 void GeneralChecks::checkSensorData(int iterations)
 {
     // If information is being published to ROS, simply echo individual topics.
-    if (!publishRos)
+    if (!publishRos && !CK::kusingROS)
     {
         Serial.println("BNO information: ");
         for (int i = 0; i < iterations; i++)
@@ -165,7 +165,7 @@ void GeneralChecks::checkUnitaryMovements()
 
 void GeneralChecks::log(const char *s, bool newLine)
 {
-    if (publishRos)
+    if (publishRos && CK::kusingROS)
     {
         robot->nh->loginfo(s);
     }
@@ -182,7 +182,8 @@ void GeneralChecks::test()
 {
     while (true)
     {
-        Serial.println(robot->sensors->getTCSInfo());
+        if (!CK::kusingROS)
+            Serial.println(robot->sensors->getTCSInfo());
         // s->rgbTCSClear();
         // s->rgbTCS();
         // delay(500);

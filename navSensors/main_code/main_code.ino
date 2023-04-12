@@ -6,6 +6,7 @@
 #include "BNO.h"
 #include "GeneralChecks.h"
 #include "Plot.h"
+#include "CommonK.h"
 
 // Macros for vlx
 #define front_vlx 0
@@ -58,15 +59,15 @@ void setup()
   initAll(&bno, true, true);
   GeneralChecks checks(robot);
   checks.test();
-  //checks.checkSensorData();
-  
+  // checks.checkSensorData();
+
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
 void bw()
 {
-  //robot->advanceXMeters(0.6, true);
-  //delay(1000);
+  // robot->advanceXMeters(0.6, true);
+  // delay(1000);
   robot->advanceXMeters(-0.3, true);
   delay(1000);
 }
@@ -201,7 +202,9 @@ void girosIzquierda()
   {
     int errorD = bno.getAngleX();
     int errorFiltrado = errorD + newAngle;
-    Serial.println(errorD);
+    if (!CK::kusingROS)
+      Serial.println(errorD);
+      
     if (errorFiltrado > 265 && errorFiltrado < 270)
     {
       robot->stop();
@@ -411,7 +414,7 @@ void turnLeft()
   bool wallRight = (getRightDistance() < 0.15);
 
   // Turn left
-  //robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
+  // robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
 
   if (wallRight)
     backward(10);
@@ -432,7 +435,7 @@ void turnRight()
   bool wallLeft = (getLeftDistance() < 0.15);
 
   // Turn right
-  //robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
+  // robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
 
   if (rDirection == 3)
   {
@@ -458,7 +461,7 @@ void relativeTurn(double angle, bool goRight)
     goAngle += 360;
   }
 
-  //robot->goToAngle(goAngle, goRight);
+  // robot->goToAngle(goAngle, goRight);
 }
 
 char checkColors()

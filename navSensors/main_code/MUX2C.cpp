@@ -26,7 +26,10 @@ void MUX2C::tcaSelect()
 void MUX2C::findI2C(bool scan, uint8_t address)
 {
   Wire.begin();
-  
+
+  if (CK::kusingROS)
+    scan = false;
+
   if (scan)
     Serial.println("\nScanning I2C positions");
 
@@ -70,26 +73,31 @@ void MUX2C::setMatching(uint8_t address)
   findI2C(false, address);
 }
 
-void MUX2C::setChannel(uint8_t address){
-  Serial.println("Searching for channel...");
-    setMatching(address);
+void MUX2C::setChannel(uint8_t address)
+{
+  if (!CK::kusingROS)
+    Serial.println("Searching for channel...");
 
-    uint8_t channel = getTcaPos();
+  setMatching(address);
 
-    if (channel == 8)
-    {
-      Serial.println("Channel not found. Check connections");
-    }
-    else
-    {
-      Serial.print("Channel ");
-      Serial.print(channel);
-      Serial.println(" found and set.");
-      Serial.println("Warning: manually set channels because automatic selection may cause errors ");
-      Serial.println("in case 2 devices have the same I2C address.");
-    }
+  uint8_t channel = getTcaPos();
+
+  if (CK::kusingROS)
+    return;
+
+  if (channel == 8)
+  {
+    Serial.println("Channel not found. Check connections");
+  }
+  else
+  {
+    Serial.print("Channel ");
+    Serial.print(channel);
+    Serial.println(" found and set.");
+    Serial.println("Warning: manually set channels because automatic selection may cause errors ");
+    Serial.println("in case 2 devices have the same I2C address.");
+  }
 }
-
 
 uint8_t MUX2C::getTcaPos()
 {

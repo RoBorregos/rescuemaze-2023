@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "Movement.h"
+#include "CommonK.h"
 
 // This class prints data by serial communication in order to be displayed in graphs using a
 // python application. This helps in order to see the PID controller development.

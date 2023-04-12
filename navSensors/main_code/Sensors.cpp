@@ -58,7 +58,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
   if (bno && usingBNO)
     this->bno->anglesInfo();
 
-  if (vlx && usingVLX)
+  if (vlx && usingVLX && !CK::kusingROS)
   {
     for (int i = 0; i < kMuxVLX; i++)
     {
@@ -70,7 +70,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
     Serial.println();
   }
 
-  if (tcs)
+  if (tcs && !CK::kusingROS)
   {
     Serial.print("TCS sensor  ");
     this->tcs.printRGB();
@@ -83,7 +83,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 
 float Sensors::getVLXInfo(int posVLX)
 {
-  if (!usingVLX)
+  if (!usingVLX && !CK::kusingROS)
   {
     Serial.println("WARNING: invalid method call, VLX marked as not used.");
     return -1;
@@ -164,7 +164,7 @@ char Sensors::getTCSInfo()
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
 {
-  if (!usingBNO)
+  if (!usingBNO && !CK::kusingROS)
   {
     Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
@@ -174,7 +174,7 @@ void Sensors::bnoAngles(float &x, float &y, float &z)
 
 void Sensors::bnoPrint()
 {
-  if (!usingBNO)
+  if (!usingBNO && !CK::kusingROS)
   {
     Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
@@ -220,6 +220,10 @@ int Sensors::rightLimitSwitch()
 void Sensors::debugLimitSwitches()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[0]);
+  
+  if (CK::kusingROS)
+    return;
+
   if (val == HIGH)
   {
     Serial.println("Switch 0 is open");

@@ -23,7 +23,8 @@ void TCS::init()
   mux.tcaSelect();
   if (!tcs.begin())
   {
-    Serial.println("TCS Error.");
+    if (!CK::kusingROS)
+      Serial.println("TCS Error.");
   }
 }
 
@@ -68,7 +69,7 @@ void TCS::updateRGBC()
   tcs.setInterrupt(false); // turn on LED
   delay(50);
   uint16_t red_r, green_r, blue_r, clear_r;
-  tcs.getRawData(&red_r, &green_r, &blue_r, &clear_r); 
+  tcs.getRawData(&red_r, &green_r, &blue_r, &clear_r);
   red = red_r;
   green = green_r;
   blue = blue_r;
@@ -78,32 +79,40 @@ void TCS::updateRGBC()
 void TCS::printRGB()
 {
   updateRGB();
-
-  Serial.print("R: ");
-  Serial.print(red);
-  Serial.print("  G: ");
-  Serial.print(green);
-  Serial.print("  B: ");
-  Serial.println(blue);
+  if (!CK::kusingROS)
+  {
+    Serial.print("R: ");
+    Serial.print(red);
+    Serial.print("  G: ");
+    Serial.print(green);
+    Serial.print("  B: ");
+    Serial.println(blue);
+  }
 }
 
 void TCS::printRGBC()
 {
   double t = millis();
   updateRGBC();
-  
-  Serial.print("Time: ");
-  Serial.println(millis() - (t)); // Prints around integration time in ms
-  Serial.print("R: ");
-  Serial.print(red);
-  Serial.print("  G: ");
-  Serial.print(green);
-  Serial.print("  B: ");
-  Serial.println(blue);
+
+  if (!CK::kusingROS)
+  {
+    Serial.print("Time: ");
+    Serial.println(millis() - (t)); // Prints around integration time in ms
+    Serial.print("R: ");
+    Serial.print(red);
+    Serial.print("  G: ");
+    Serial.print(green);
+    Serial.print("  B: ");
+    Serial.println(blue);
+  }
 }
 
 void TCS::printColor()
 {
+  if (CK::kusingROS)
+    return;
+
   Serial.print("Color: ");
   char color = (colors) ? getColorWithPrecision() : getColor();
   Serial.println(color);
@@ -151,13 +160,16 @@ char TCS::getColorWithPrecision()
 {
   if (colors == nullptr)
   {
-    Serial.println("The colors aren't declared, getColor() will be used.");
+    if (!CK::kusingROS)
+      Serial.println("The colors aren't declared, getColor() will be used.");
     return getColor();
   }
 
   // updateRGB();
   updateRGBC();
   /*
+  if (!CK::kusingROS)
+  {
   Serial.print("R: ");
   Serial.print(red);
   Serial.print("  G: ");
@@ -166,6 +178,7 @@ char TCS::getColorWithPrecision()
   Serial.print(blue);
   Serial.print("Precision: ");
   Serial.println(precision);
+  }
   */
   for (uint8_t i = 0; i < colorAmount; i++)
   {
@@ -243,6 +256,9 @@ char TCS::getColorMode(int sampleSize, double certainity)
 
 void TCS::printColorMatrix()
 {
+  if (CK::kusingROS)
+    return;
+
   if (colors == nullptr)
   {
     Serial.println("Color matrix is null.");
@@ -260,6 +276,9 @@ void TCS::printColorMatrix()
 
 void TCS::printColorList()
 {
+  if (CK::kusingROS)
+    return;
+    
   if (colorList == nullptr)
   {
     Serial.println("Color list is null.");

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include "CommonK.h"
 
 // Multiplexor: Used to select a device when there are several I2C devices
 // with the same address.

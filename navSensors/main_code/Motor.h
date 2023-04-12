@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "MotorID.h"
 #include "PIDRb.h"
+#include "CommonK.h"
 
 // Describes the state of a specific motor.
 enum class MotorState

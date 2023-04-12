@@ -8,6 +8,7 @@
 #include "MUX2C.h"
 #include "BNO.h"
 #include "Plot.h"
+#include "CommonK.h"
 
 
 // Class used to perform quick tests on sensors and basic unitary movements of robot.

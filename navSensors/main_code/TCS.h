@@ -3,6 +3,7 @@
 
 #include "Adafruit_TCS34725.h"
 #include "MUX2C.h"
+#include "CommonK.h"
 
 #define TCS_ADDR 0x29
 

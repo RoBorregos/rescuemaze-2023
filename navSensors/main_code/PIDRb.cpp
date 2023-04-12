@@ -65,7 +65,7 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   timePassed = millis();
 
-  if (debug)
+  if (debug && !CK::kusingROS)
   {
     Serial.println("Time diff: " + String(timeDiff));
     Serial.println("Input: " + String(input));
@@ -161,32 +161,35 @@ void PIDRb::setConservative(double kp, double ki, double kd)
   this->cons_kd = kd;
 }
 
-void PIDRb::compute(const double error, double &output, const byte flag) {
-  if(millis()-timePassed < sampleTime) {
-      return;
+void PIDRb::compute(const double error, double &output, const byte flag)
+{
+  if (millis() - timePassed < sampleTime)
+  {
+    return;
   }
 
-  if(errorPre * error <= 0) {
+  if (errorPre * error <= 0)
+  {
     errorPre = 0;
     errorSum = 0;
   }
-  if(flag == 0) {
-    if(abs(error) <= 2) {
+  if (flag == 0)
+  {
+    if (abs(error) <= 2)
+    {
       errorPre = 0;
       errorSum = 0;
     }
   }
-  
+
   output = error * kp + errorSum * ki + (error - errorPre) * kd;
   errorPre = error;
   errorSum += error;
-  
-  
+
   errorSum = max(maxError * -1, min(maxError, errorSum));
   output = max(minOutput, min(maxOutput, output));
-  
-  timePassed = millis();
 
+  timePassed = millis();
 }
 
 void PIDRb::setAggressive(double kp, double ki, double kd)
@@ -216,6 +219,7 @@ void PIDRb::reset()
 
 void PIDRb::infoPID()
 {
+  // if (!CK::kusingROS){
   // Serial.println("PID INFORMATION");
   // Serial.print("kP = ");
   // Serial.print(kp_);
@@ -232,4 +236,5 @@ void PIDRb::infoPID()
   // Serial.print("  OutputMAX = ");
   // Serial.println(max_output_);
   // Serial.println(" ");
+  // }
 }

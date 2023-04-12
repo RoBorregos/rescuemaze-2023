@@ -202,6 +202,9 @@ void Movement::resetEncoders()
 
 void Movement::encoderTics()
 {
+  if (CK::kusingROS)
+    return;
+
   for (int i = 0; i < kMotorCount; i++)
   {
     Serial.print("Motor ");
@@ -223,7 +226,7 @@ void Movement::stop()
 
 void Movement::cmdVelocity(const double linear_x, const double linear_y, const double angular_z, const bool debug)
 {
-  if (nh == nullptr)
+  if (nh == nullptr && !CK::kusingROS)
   {
     Serial.println("ERROR, trying to use NodeHandle without initializing it. Change constructor or method call.");
     return;
@@ -383,7 +386,7 @@ int Movement::cmdMovement(const int action, const int option)
     break;
   case 5:
     // Rearrange in tile. Use VLX and BNO.
-    goToAngle(getTurnDirection(rDirection)); // Rearrange orientation
+    goToAngle(getTurnDirection(rDirection));     // Rearrange orientation
     advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
     return 1;
     break;
@@ -518,10 +521,14 @@ bool turnRight = false;
       goToAngle(rAngle, turnRight);
 */
 
-void Movement::advanceSlow(bool direction){
-  if (direction){
+void Movement::advanceSlow(bool direction)
+{
+  if (direction)
+  {
     updateStraightPID(10);
-  } else {
+  }
+  else
+  {
     updateStraightPID(-10);
   }
 }
@@ -542,10 +549,10 @@ double Movement::getDistanceToCenter()
 {
   double dist = 0;
   dist = sensors->getVLXInfo(vlx_front);
-  dist *= 100; // m to cm.
+  dist *= 100;                          // m to cm.
   double center = ((int)dist % 15) - 5; // in cm. "-5" is the distance from vlx to wall.
-  
-  return center / 100.0;                  // Return distance in m.
+
+  return center / 100.0; // Return distance in m.
 }
 
 void Movement::goToAngle(int targetAngle)
@@ -615,21 +622,23 @@ void Movement::dropDecider(int ros_sign_callback)
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
-void Movement::traverseRamp(int option){
+void Movement::traverseRamp(int option)
+{
   // Advance first if option is set to 1
 
-  if (option == 1){
+  if (option == 1)
+  {
     updateStraightPID(kMovementRPMs);
     delay(1000);
   }
   double yAngle = sensors->getAngleY();
 
-  while (yAngle > 10 || yAngle < -10){
-    //double rightVlx = 
-    //double leftVlx = sensors->();
-   // updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
+  while (yAngle > 10 || yAngle < -10)
+  {
+    // double rightVlx =
+    // double leftVlx = sensors->();
+    // updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
   }
-
 
   stop();
 }
@@ -644,11 +653,15 @@ void Movement::testMotor()
 
   while (true)
   {
-    Serial.print("Curr speed: ");
-    Serial.print(m->getCurrentSpeed());
-    Serial.print(", ");
-    Serial.print("Curr target: ");
-    Serial.println(m->getTargetSpeed());
+    if (!CK::kusingROS)
+    {
+      /* Display the results in the Serial Monitor */
+      Serial.print("Curr speed: ");
+      Serial.print(m->getCurrentSpeed());
+      Serial.print(", ");
+      Serial.print("Curr target: ");
+      Serial.println(m->getTargetSpeed());
+    }
   }
 }
 

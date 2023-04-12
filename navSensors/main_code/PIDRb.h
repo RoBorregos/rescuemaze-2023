@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <math.h>
+#include "CommonK.h"
 
 class PIDRb
 {

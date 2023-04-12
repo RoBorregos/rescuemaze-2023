@@ -19,6 +19,7 @@
 
 #include "Movement.h"
 #include "Sensors.h"
+#include "CommonK.h"
 
 class RosBridge
 {

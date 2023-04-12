@@ -3,7 +3,7 @@
 
 #include <Servo.h>
 #include <Arduino.h>
-
+#include "CommonK.h"
 
 // Class used to control kit dispensers.
 

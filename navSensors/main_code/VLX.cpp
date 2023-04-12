@@ -17,10 +17,11 @@ void VLX::setMux(uint8_t posMux)
 void VLX::init()
 {
   mux.tcaSelect();
-  
+
   if (!vlx.begin())
   {
-    Serial.println("ERROR VLX");
+    if (!CK::kusingROS)
+      Serial.println("ERROR VLX");
   }
 }
 
@@ -42,6 +43,9 @@ double VLX::getDistance()
 
 void VLX::printDistance()
 {
+  if (CK::kusingROS)
+    return;
+    
   Serial.print("Distancia: ");
   Serial.print(VLX::getDistance());
   Serial.println(" M");
