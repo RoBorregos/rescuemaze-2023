@@ -3,9 +3,10 @@
 """Test of camera_service ros"""
 
 import rospy
+import time
 from openmv_camera.srv import *
 
-srv_name = 'openmv_camera_left' # 'openmv_camera_right'
+srv_name =  'openmv_camera_right' # 'openmv_camera_left'
 
 def camera_client():
     rospy.wait_for_service(srv_name)
@@ -19,5 +20,7 @@ def camera_client():
 
 if __name__ == "__main__":
     print("Test run camera service")
+    init_time = time.time()
     res = camera_client()
     print(res)
+    print("Execution time: ", time.time() - init_time)

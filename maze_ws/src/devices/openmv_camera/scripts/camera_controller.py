@@ -1,25 +1,31 @@
 #!/usr/bin/env python3
 
 # Script to use as camera's controller. Initializes camera service.
+# TODO: Check options for reducing latency for tflite model.
 
 # Original script from: https://github.com/openmv/openmv/blob/master/tools/rpc/rpc_image_transfer_jpg_as_the_controller_device.py
 
 import rpc, rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2, pytesseract, os
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
+import tflite_runtime.interpreter as tflite # Use on Jetson
 
 from openmv_camera.srv import CameraDetection, CameraDetectionResponse
 from PIL import Image
 
 
+def initInterpreter():
+    # Initialize interpreter only at startup
+    global interpreter
+    # interpreter = tf.lite.Interpreter(model_path="model.tflite")
+    interpreter = tflite.Interpreter(model_path="model.tflite") # Use with jetson
+    interpreter.allocate_tensors()
+
 def process_image(image):
-    # Use interpreter: https://www.tensorflow.org/api_docs/python/tf/lite/Interpreter
+    # Use interpreter tutorial: https://www.tensorflow.org/api_docs/python/tf/lite/Interpreter
     if debug:
         print(os.getcwd())
         print(os.listdir())
-
-    interpreter = tf.lite.Interpreter(model_path="model.tflite")
-    interpreter.allocate_tensors()
 
     output = interpreter.get_output_details()[0]  # Model has single output.
     
@@ -28,10 +34,10 @@ def process_image(image):
         print(output)
 
     input = interpreter.get_input_details()[0]  # Model has single input.
-    input_data = tf.constant(1., shape=[1, 1])
+    #input_data = tf.constant(1., shape=[1, 1])
 
     shape = interpreter.get_input_details()[0]['shape'] # get shape of input -> [1, 224, 224, 3]
-
+    
     image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB) # convert to RGB -> make image shape [240, 320, 3]
     image = cv2.resize(image, (shape[1], shape[2])) # resize to input shape
     image = image.reshape(shape) # reshape image to input shape -> [1, 224, 224, 3]
@@ -118,7 +124,6 @@ def format_image(image):
 
 
 def detect_any(req):
-
     # First try to detect if there is red, yellow, or green.
     detection = unpack_res(interface.call('detect_dominant_color'))
 
@@ -150,6 +155,7 @@ def detect_any(req):
     if detection == 'H' or detection == 'S' or detection == 'U':
         return CameraDetectionResponse(detection)
 
+    
     return CameraDetectionResponse('X') # Character to signal that no suitable data was obtained.
 
 
@@ -186,6 +192,7 @@ if __name__ == '__main__':
     if rospy.has_param(name + "port"):
         port = rospy.get_param(name + "port")
 
+    # Ensure Model.tflite is located at working_dir
     if rospy.has_param(name + "working_dir"):
         working_dir = rospy.get_param(name + "working_dir")
         os.chdir(working_dir)
@@ -196,6 +203,7 @@ if __name__ == '__main__':
     if (debug): portInformation()
 
     initRPC(port)
+    initInterpreter()
 
     # Start the service
     s = rospy.Service('openmv_camera_' + direction, CameraDetection, detect_any)
