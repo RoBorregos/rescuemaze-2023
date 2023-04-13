@@ -60,6 +60,7 @@ def process_image(image):
         print("Probabilities of most likely:")
         print(res[max_p]/sum_p)
         print("Most likely:", res[max_p])
+        print("All probabilities: ", res)
 
     # If the probability of the most likely character is greater than 50%, return it. Else return unknown.
     if (res[max_p] / sum_p) > 0.3:

@@ -39,8 +39,23 @@ private:
   registered during manual color calibration.
   */
 
+  const int (*colorThresholds)[6];
+
+  /*
+  for color at colorList[i],
+    colors[i][0] = minRed.
+    colors[i][1] = MaxRed.
+    colors[i][2] = minGreen.
+    colors[i][3] = maxGreen.
+    colors[i][4] = minBlue.
+    colors[i][5] = maxBlue.
+  registered during manual color calibration.
+ */
+
   // Checks if detected color is within range.
   bool inRange(double color, double colorRegistered);
+
+  bool inRangeThreshold(double lowerBound, double colorDetection, double upperBound);
 
   void setDefValues();
 
@@ -64,6 +79,13 @@ public:
   // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
   // @param colorList[] Array of initials of registered colors.
   void init(const int colors[][3], const uint8_t colorAmount, const char colorList[]);
+
+  // Sets colors, colorAmount and colorList for TCS object.
+  // @param colors[][3] 2D array with RGB values.
+  // @param colorAmount Number of colors registered in colors[][]; rows in colors array.
+  // @param colorList[] Array of initials of registered colors.
+  // @param colorThresholds[] Array of thresholds for detecting each color.
+  void init(const int colors[][3], const uint8_t colorAmount, const char colorList[], const int colorThresholds[][6]);
 
   // Sets MUX position.
   // @param posMux new mutliplexor position.
@@ -93,6 +115,9 @@ public:
 
   // Returns color letter detected with the use of precision ranges.
   char getColorWithPrecision();
+
+  // Returns color letter detected with the use of precision ranges.
+  char getColorWithThreshold();
 
   // Return the mode obtained after sampleSize detections, if the probability is above
   // the specified threshold.

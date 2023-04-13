@@ -4,6 +4,7 @@
 
 constexpr char Sensors::colorList[];
 constexpr int Sensors::colors[Sensors::colorAmount][3];
+constexpr int Sensors::colorThresholds[Sensors::colorAmount][6];
 
 // Constructors
 
@@ -159,6 +160,7 @@ float Sensors::getAngleZ()
 
 char Sensors::getTCSInfo()
 {
+  // return tcs.getColorWithThresholds();
   return tcs.getColorWithPrecision();
 }
 

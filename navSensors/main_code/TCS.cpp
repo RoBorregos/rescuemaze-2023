@@ -41,6 +41,12 @@ void TCS::init(const int colors[][3], const uint8_t colorAmount, const char colo
   init(colors, colorAmount);
 }
 
+void TCS::init(const int colors[][3], const uint8_t colorAmount, const char colorList[], const int colorThresholds[][6])
+{
+  this->colorThresholds = colorThresholds;
+  init(colors, colorAmount, colorList);
+}
+
 void TCS::setDefValues()
 {
   red = 0;
@@ -50,6 +56,7 @@ void TCS::setDefValues()
   char tempC[4] = {"wgb"};
   colorList = tempC;
   colors = nullptr;
+  colorThresholds = nullptr;
   precision = 10;
 }
 
@@ -156,6 +163,19 @@ bool TCS::inRange(double input, double registered)
   return (((registered - precision) <= input) && (input <= (registered + precision)));
 }
 
+bool TCS::inRangeThreshold(double lowerBound, double colorDetection, double upperBound)
+{
+  // Fix order in case it is inverted.
+  if (lowerBound > upperBound)
+  {
+    double temp = lowerBound;
+    lowerBound = upperBound;
+    upperBound = temp;
+  }
+
+  return ((lowerBound <= colorDetection) && (colorDetection <= upperBound));
+}
+
 char TCS::getColorWithPrecision()
 {
   if (colors == nullptr)
@@ -183,6 +203,31 @@ char TCS::getColorWithPrecision()
   for (uint8_t i = 0; i < colorAmount; i++)
   {
     if (inRange(red, colors[i][0]) && inRange(green, colors[i][1]) && inRange(blue, colors[i][2]))
+    {
+      return colorList[i];
+    }
+  }
+
+  // In case no color is detected.
+  return 'u';
+}
+
+// TODO: Test function.
+char TCS::getColorWithThreshold()
+{
+  if (colorThresholds == nullptr)
+  {
+    if (!CK::kusingROS)
+      Serial.println("The colors' thresholds aren't declared, getColorWithPrecision() will be used.");
+    return getColorWithPrecision();
+  }
+
+  // updateRGB();
+  updateRGBC();
+  
+  for (uint8_t i = 0; i < colorAmount; i++)
+  {
+    if (inRangeThreshold(colorThresholds[i][0], red, colorThresholds[i][1]) && inRangeThreshold(colorThresholds[i][2], green, colorThresholds[i][3]) && inRangeThreshold(colorThresholds[i][4], blue, colorThresholds[i][5]))
     {
       return colorList[i];
     }
@@ -278,7 +323,7 @@ void TCS::printColorList()
 {
   if (CK::kusingROS)
     return;
-    
+
   if (colorList == nullptr)
   {
     Serial.println("Color list is null.");
