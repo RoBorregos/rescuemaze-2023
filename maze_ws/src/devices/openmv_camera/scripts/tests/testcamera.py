@@ -5,10 +5,12 @@
 import rospy
 from openmv_camera.srv import *
 
+srv_name = 'openmv_camera_left' # 'openmv_camera_right'
+
 def camera_client():
-    rospy.wait_for_service('openmv_camera')
+    rospy.wait_for_service(srv_name)
     try:
-        get_camera = rospy.ServiceProxy('openmv_camera', CameraDetection)
+        get_camera = rospy.ServiceProxy(srv_name, CameraDetection)
         resp1 = get_camera()
         
         return resp1
