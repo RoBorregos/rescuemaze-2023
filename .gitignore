@@ -13,3 +13,4 @@ checkpoint.txt
 maze_ws/src/test_goals/
 sensors_simulation.py
 maze_ws/src/devices/openmv_camera/scripts/__pycache__
+maze_ws/src/devices/ydlidar/YDLidar-SDK/
