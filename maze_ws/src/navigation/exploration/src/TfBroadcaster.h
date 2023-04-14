@@ -47,8 +47,6 @@ private:
     double pitch;
     double yaw;
 
-
-
     double idealOrientation = 0.0;
 };
 
@@ -147,76 +145,10 @@ void TfBroadcaster::run()
         publishTransform();
     }
 }
-void TfBroadcaster::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
-{
-    return;
-}
-/*
-void TfBroadcaster::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
-{
-    xImu = msg->orientation.x;
-    yImu = msg->orientation.y;
-    zImu = msg->orientation.z;
-    wImu = msg->orientation.w;
-
-    // Roll, pitch, yaw
-    tf::Quaternion q(xImu, yImu, zImu, wImu);
-    tf::Matrix3x3 m(q);
-    m.getRPY(roll, pitch, yaw);
-
-    if (!started)
-    {
-        started = true;
-        northYaw = yaw;
-
-        tfb.setTransformYaw(yaw);
-
-        // Range: -pi to pi
-        // Clockwise gives smaller values
-        // Counter-clockwise gives larger values
-
-        ROS_INFO("northYaw: %f", northYaw);
-        // East
-        // eastYaw = (northYaw * (180 / M_PI) - 180) * M_PI / 180;
-
-        if (northYaw > -M_PI_2)
-            eastYaw = northYaw - M_PI_2;
-        else
-            eastYaw = northYaw + M_PI_2 * 3;
-
-        // South
-        if (northYaw > 0)
-            southYaw = northYaw - M_PI;
-        else
-            southYaw = northYaw + M_PI;
-        // if (northYaw > 0)
-        //     southYaw = northYaw - M_PI;
-        // else
-        //     southYaw = northYaw + M_PI;
-
-        // West
-        if (northYaw > M_PI_2)
-            westYaw = northYaw - M_PI_2 * 3;
-        else
-            westYaw = northYaw + M_PI_2;
-        // if (northYaw > 0)
-        //     westYaw = northYaw - M_PI_2 * 3;
-        // else
-        //     westYaw = northYaw + M_PI_2 * 3;
-    }
-
-    if (true)
-    {
-        // ROS_INFO("x: %f", xImu);
-        // ROS_INFO("y: %f", yImu);
-        // ROS_INFO("z: %f", zImu);
-        // ROS_INFO("w: %f", wImu);
-        // ROS_INFO("roll: %f", roll);
-        // ROS_INFO("pitch: %f", pitch);
-        ROS_INFO("yaw: %f", yaw);
-    }
-}
-*/
+// void TfBroadcaster::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
+// {
+//     return;
+// }
 
 void TfBroadcaster::idealOrientationCallback(const std_msgs::Float64::ConstPtr &msg)
 {

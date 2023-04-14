@@ -201,7 +201,7 @@ void calcPos(vector<int> &pos, string key, Map &mapa)
     if (!useros)
         rampDir = mapa.rampDirection(key);
     else
-        rampDir = -1;
+        rampDir = mapa.tile->rampa;
 
     if (key == "north")
     {
@@ -277,11 +277,11 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             goalResult = moveWest(xMaze, rDirection, mapa);
         }
 
-        if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
-        {
-            bridge->clearMap();
-            // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
-        }
+        // if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
+        // {
+        //     bridge->clearMap();
+        //     // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
+        // }
 
         // Change tile properties based on goal result
         if (goalResult == 0) // Black tile
@@ -289,15 +289,26 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             tile->black = true;
             return tile;
         }
-        else if (goalResult >= 2) // Obstacle tile
-        {
-            tile->weight = 100;
-        }
         else if (goalResult == 3) // Silver tile
         {
             calcPos(mapa.pos, key, mapa);
             // Update checkpoint position
             mapa.setRecovPos();
+
+            return tile->adjacentTiles[key];
+        }
+        else if (goalResult >= 2) // Obstacle tile
+        {
+            tile->weight = 100;
+        }
+
+        if (goalResult == 4) // down ramp tile 
+        {
+            tile->adjacentTiles[key]->rampa = rDirection + 2 % 4;
+        }
+        else if (goalResult == 5) // up ramp tile
+        {
+            tile->adjacentTiles[key]->rampa = rDirection;
         }
 
         calcPos(mapa.pos, key, mapa);
@@ -656,32 +667,36 @@ void printMap(Map &mapa)
 void explore(bool checkpoint, int argc, char **argv)
 {
     Map mapa;
+    Tile *startTile;
 
-    if (checkpoint)
+    // Cargar checkpoint
+    std::ifstream ifs("~/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
+    boost::archive::text_iarchive ia(ifs);
+
+    try
     {
-        ROS_INFO("Checkpoint");
-
-        // {
-        std::ifstream ifs("./checkpoint.txt");
-        boost::archive::text_iarchive ia(ifs);
         ia >> mapa;
+        ROS_INFO("Checkpoint loaded");
 
-        printMap(mapa);
-        cin.get();
-        //     ia >> mapa;
-        // }
+        // Se actualiza el mapa con la informacion del checkpoint
+        mapa.pos = mapa.recovpos;
+        mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
+        startTile = mapa.tiles.at(posvectorToString(vector<int>{0, 0, 0}));
     }
-    else
+    // Si no hay checkpoint, se crea un nuevo mapa
+    catch (const boost::archive::archive_exception &e)
     {
-        ROS_INFO("No checkpoint");
+        ROS_INFO("No checkpoint found");
+        
+        startTile = mapa.tile;
+        startTile->visited = true;
+        mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
     }
+
+    printMap(mapa);
 
     // mapa.printMaze(rDirection);
 
-    // ros::Duration(3).sleep();
-    Tile *startTile = mapa.tile;
-    startTile->visited = true;
-    mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
     Tile *newTile = nullptr;
     vector<string> keys = {"north", "east", "south", "west"};
 
@@ -706,6 +721,8 @@ void explore(bool checkpoint, int argc, char **argv)
         // publishIdealOrientation
 
         mapa.tile->visited = true;
+        
+        // Se revisan las casillas adyacentes 
         for (auto &&key : keys)
         {
             if (rosDebug)
@@ -755,7 +772,7 @@ void explore(bool checkpoint, int argc, char **argv)
                         // ROS_INFO("Wall detected");
                         mapa.tile->walls[key] = true;
                     }
-                    else if (useros && bridge->tcsdata == 'n' || !useros && c == 'n') // TODO: Check what initial corresponds to the color black
+                    else if (!useros && c == 'n') 
                     {
                         // ROS_INFO("Black tile detected");
                         mapa.tile->walls[key] = true;
@@ -791,13 +808,6 @@ void explore(bool checkpoint, int argc, char **argv)
             }
         }
 
-        {
-            std::ofstream ofs("./checkpoint.txt");
-            boost::archive::text_oarchive oa(ofs);
-            oa << mapa;
-
-            // ROS_INFO("Checkpoint saved");
-        }
 
         if (rosDebug)
         {
@@ -827,11 +837,21 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
         printTile(mapa.tile);
 
-        if (mapa.tile->victim != 0)
+        if (useros && checkVictims())
+
+        if (!useros && mapa.tile->victim != 0)
         {
             // ROS_INFO("Victim found");
             bridge->sendKit();
             mapa.tile->victim = 0;
+        }
+        
+        {
+            std::ofstream ofs("./checkpoint.txt");
+            boost::archive::text_oarchive oa(ofs);
+            oa << mapa;
+
+            // ROS_INFO("Checkpoint saved");
         }
 
         if (mapSimDebug)
@@ -865,7 +885,10 @@ int main(int argc, char **argv)
 
     bridge->pubDebug("Starting main algorithm");
 
-    ros::Duration(1.5).sleep();
+    while (!bridge->startAlgorithm)
+    {
+        ros::spinOnce();
+    }
 
     try
     {
