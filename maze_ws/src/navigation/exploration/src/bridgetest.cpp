@@ -7,10 +7,10 @@ int main(int argc, char **argv)
 
     ROSbridge bridge(n);
 
-    while (ros::ok() && !bridge.started)
-    {
-        ros::spinOnce();
-    }
+    // while (ros::ok() && !bridge.started)
+    // {
+    //     ros::spinOnce();
+    // }
 
     // int dir = 0;
     // bridge.publishIdealOrientation(dir);
