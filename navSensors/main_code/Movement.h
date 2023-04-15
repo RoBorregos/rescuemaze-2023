@@ -92,6 +92,13 @@ private:
   static constexpr double kIStraightFR = 3; // 55
   static constexpr double kDStraightFR = 2; // 40
 
+  // Control constants
+  static constexpr double kErrorVlxReading = 2; // Error to consider a reading as valid, in degrees.
+  static constexpr double minPitch = -10.0;
+  static constexpr double maxPitch = 10.0;
+  static constexpr double kRampDt = 3;
+  static constexpr double checkTCSTimer = 600; // Time to check TCS in ms.
+
   // Kinematics.
   Kinematics kinematics;
 
@@ -204,11 +211,11 @@ public:
 
   // Linear movement methods.
 
-  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs,
-  // but takes into account the error in degress from the 'perfect' trajectory .
+  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
+  // Use vlx or BNO for correction depending on flag.
   // @param RPMs The target speed in RPMs.
-  // @param errorD The error, in degrees, used to adjust speed of each motor.
-  void updateStraightPID(int RPMs, double errorD);
+  // @param useBNO True to use BNO, false to use VLX.
+  void updateStraightPID(int RPMs, bool useBNO);
 
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
@@ -222,15 +229,26 @@ public:
   // @param x Distance in meters
 
   // TODO: Adjust distance precision.
-  // Advance the specified distance using encoders. If rAngle is given, the error is used to
-  // make adjustments in the wheel velocity with respect to expected angle.
-  void advanceXMeters(double x, bool useAngleError = false);
+  // Advance the specified distance using vlx. The second argument specified which method
+  // should be used for straight PID.
+  double advanceXMeters(double x, int straightPidType, bool forceBackwards = false);
 
   // TODO: Test method.
   void advanceSlow(bool direction);
 
   // TODO: Implement this method.
   void traverseRamp(int option);
+
+  // Advance straight until the pitch is stable.
+  double stabilizePitch();
+
+  // Return true if robot is not straight in pitch axis.
+  bool outOfPitch();
+
+  bool checkColor();
+
+  // If error in yaw is greater than kErrorVlxReading, then use BNO to correct.
+  void rearrangeAngle();
 
   // TODO: Correct logic for this method.
   double getDistanceToCenter();

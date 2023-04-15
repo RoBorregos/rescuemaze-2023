@@ -438,133 +438,199 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
   motor[BACK_RIGHT].motorSpeedPID(rpm.motor4);
 }
 
-void Movement::updateStraightPID(int RPMs, double errorD)
+// Update PID with either VLX or BNO error.
+void Movement::updateStraightPID(int RPMs, bool useBNO)
 {
-  double factor = 10; // Increasing the factor increases the speed correction.
+  if (useBNO)
+  {
+    double errorD = getAngleError(dirToAngle(rDirection));
+    double factor = 10; // Increasing the factor increases the speed correction.
 
-  motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-  motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-  motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
-  motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+    motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * factor));
+    motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+  }
+  else
+  {
+    // Use VLX distance error to update target speeds.
+    // Serial.println("UpdateStraightPID");
+    if (millis() - lastUpdateVLX < 10)
+    {
+      motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
+      motor[BACK_LEFT].motorSpeedPID(RPMs, false);
+      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+      motor[BACK_RIGHT].motorSpeedPID(RPMs);
+      return;
+    }
+    double rightDistance = sensors->getVLXInfo(1);
+    double leftDistance = sensors->getVLXInfo(2);
+
+    lastUpdateVLX = millis();
+
+    while (rightDistance > 0.3)
+      rightDistance -= 0.3;
+    while (leftDistance > 0.3)
+      leftDistance -= 0.3;
+
+    double error = 10 * (rightDistance - leftDistance);
+
+    Serial.print("Error: ");
+    Serial.println(error);
+
+    if (error < 0.3 && error > -0.3)
+    {
+      // Use angle error to update target speeds.
+      motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
+      motor[BACK_LEFT].motorSpeedPID(RPMs, false);
+      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+      motor[BACK_RIGHT].motorSpeedPID(RPMs);
+    }
+    // Error > 0 means left side is closer to wall.
+    else if (error > 0)
+    {
+      Serial.print("Original RPMs: ");
+      Serial.print(RPMs);
+      Serial.print("   New Left RPMs: ");
+      Serial.print(RPMs * ((error + 1) * 0.8));
+      Serial.print("   New Right RPMs: ");
+      Serial.println(RPMs * ((error)*0.8));
+      // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
+      // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
+      // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
+      // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
+
+      motor[FRONT_LEFT].motorSpeedPID(RPMs);
+      motor[BACK_LEFT].motorSpeedPID(RPMs);
+      motor[FRONT_RIGHT].motorStop();
+      motor[BACK_RIGHT].motorStop();
+
+      delay(300);
+
+      motor[FRONT_LEFT].motorStop();
+      motor[BACK_LEFT].motorStop();
+      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+      motor[BACK_RIGHT].motorSpeedPID(RPMs);
+
+      delay(200);
+
+      stop();
+
+      return;
+    }
+    // Error < 0 means right side is closer to wall.
+    else if (error < 0)
+    {
+      Serial.print("Original RPMs: ");
+      Serial.print(RPMs);
+      Serial.print("   New Left RPMs: ");
+      Serial.print(RPMs * (error) * -0.8);
+      Serial.print("   New Right RPMs: ");
+      Serial.println(RPMs * ((error - 1) * -0.8));
+      // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
+      // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
+      // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
+      // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
+
+      motor[FRONT_LEFT].motorStop();
+      motor[BACK_LEFT].motorStop();
+      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+      motor[BACK_RIGHT].motorSpeedPID(RPMs);
+
+      delay(300);
+
+      motor[FRONT_LEFT].motorSpeedPID(RPMs);
+      motor[BACK_LEFT].motorSpeedPID(RPMs);
+      motor[FRONT_RIGHT].motorStop();
+      motor[BACK_RIGHT].motorStop();
+
+      delay(200);
+
+      stop();
+
+      return;
+    }
+  }
 }
 
-// A possitive errorD means that the robot must increase the speed of the right wheels.
+bool Movement::checkColor()
+{
+  char c = sensors->getTCSInfo();
+
+  return c == 'N';
+}
+
+// pass RPMs directly to PID.
 void Movement::updateStraightPID(int RPMs)
 {
-    //   // Use angle error to update target speeds.
-
-    // return;
-    
-  // Use VLX distance error to update target speeds.
-  // Serial.println("UpdateStraightPID");
-  if (millis() - lastUpdateVLX < 10)
-  {
-    motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-    motor[BACK_RIGHT].motorSpeedPID(RPMs);    
-    return;
-  }
-  double rightDistance = sensors->getVLXInfo(1);
-  double leftDistance = sensors->getVLXInfo(2);
-
-  lastUpdateVLX = millis();
-
-  while (rightDistance > 0.3)
-    rightDistance -= 0.3;
-  while (leftDistance > 0.3)
-    leftDistance -= 0.3;
-
-  double error = 10 * (rightDistance - leftDistance);
-
-  // Serial.print("Error: ");
-  // Serial.println(error);
-
-  if (error < 0.3 && error > -0.3)
-  {
-    // Use angle error to update target speeds.
-    motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-    motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-    motor[BACK_RIGHT].motorSpeedPID(RPMs);    
-  }  
-  // Error > 0 means left side is closer to wall.
-  else if (error > 0)
-  {
-    Serial.print("Original RPMs: ");
-    Serial.print(RPMs);
-    Serial.print("   New Left RPMs: ");
-    Serial.print(RPMs * ((error + 1) * 0.8));
-    Serial.print("   New Right RPMs: ");
-    Serial.println(RPMs * ((error) * 0.8));
-    // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
-    // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
-    // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
-    // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
-
-    motor[FRONT_LEFT].motorSpeedPID(RPMs);
-    motor[BACK_LEFT].motorSpeedPID(RPMs);
-    motor[FRONT_RIGHT].motorStop();
-    motor[BACK_RIGHT].motorStop();
-
-    delay(300);
-
-    motor[FRONT_LEFT].motorStop();
-    motor[BACK_LEFT].motorStop();
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-    motor[BACK_RIGHT].motorSpeedPID(RPMs);
-
-    delay(200);
-    
-    stop();
-
-    return;
-  }
-  // Error < 0 means right side is closer to wall.
-  else if (error < 0)
-  {
-    Serial.print("Original RPMs: ");
-    Serial.print(RPMs);
-    Serial.print("   New Left RPMs: ");
-    Serial.print(RPMs * (error) * -0.8);
-    Serial.print("   New Right RPMs: ");
-    Serial.println(RPMs * ((error - 1) * -0.8));
-    // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
-    // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
-    // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
-    // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
-
-    motor[FRONT_LEFT].motorStop();
-    motor[BACK_LEFT].motorStop();
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-    motor[BACK_RIGHT].motorSpeedPID(RPMs);
-
-    delay(300);
-
-    motor[FRONT_LEFT].motorSpeedPID(RPMs);
-    motor[BACK_LEFT].motorSpeedPID(RPMs);
-    motor[FRONT_RIGHT].motorStop();
-    motor[BACK_RIGHT].motorStop();
-
-    delay(200);
-    
-    stop();
-
-    return;
-  }
-
-
-  // // Use angle error to update target speeds.
-  // motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-  // motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-  // motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-  // motor[BACK_RIGHT].motorSpeedPID(RPMs);
-
-  // return;
-  
+  motor[FRONT_LEFT].motorSpeedPID(RPMs);
+  motor[BACK_LEFT].motorSpeedPID(RPMs);
+  motor[FRONT_RIGHT].motorSpeedPID(RPMs);
+  motor[BACK_RIGHT].motorSpeedPID(RPMs);
 }
 
-void Movement::advanceXMeters(double x, bool useAngleError)
+double Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
+{
+  double dist = sensors->getVLXInfo(vlx_front);
+
+  double initial = dist;
+  double target = dist - x;
+  double lastTCS = millis();
+
+  if (x > 0)
+  {
+    while (dist > target)
+    {
+      updateStraightPID(kMovementRPMs, straightPidType);
+
+      // Get dist reading after correcting angle.
+      rearrangeAngle();
+
+      if (outOfPitch())
+      {
+        double dt = stabilizePitch();
+        if (abs(dt) > kRampDt)
+          return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
+      }
+
+      if (millis() - lastTCS > checkTCSTimer)
+      {
+        lastTCS = millis();
+        if (checkColor())
+        {
+          return advanceXMeters(dist - initial, straightPidType, true);
+        }
+      }
+
+      dist = sensors->getVLXInfo(vlx_front);
+    }
+  }
+  else
+  {
+    while (dist < target)
+    {
+      updateStraightPID(-kMovementRPMs, straightPidType);
+
+      // Get dist reading after correcting angle.
+      rearrangeAngle();
+      dist = sensors->getVLXInfo(vlx_front);
+    }
+  }
+
+  stop();
+  resetEncoders();
+
+  // Indicate the robot went backwards because of black tile.
+  if (forceBackward)
+    return 0;
+
+  return 1;
+}
+
+/*
+
+
+void Movement::advanceXMetersEncoders(double x, bool useAngleError)
 {
   double dist = meanDistanceTraveled(); // Use encoders;
 
@@ -614,6 +680,8 @@ void Movement::advanceXMeters(double x, bool useAngleError)
   stop();
   resetEncoders();
 }
+*/
+
 /*
 Find best option to rotate given current and target angle.
 
@@ -654,6 +722,42 @@ double Movement::getAngleError(double expectedAngle)
       return 360 - angle;
   }
   return expectedAngle - angle;
+}
+
+double Movement::stabilizePitch()
+{
+  double start = millis();
+  double pitch = sensors->getAngleY();
+
+  bool sign = true;
+  if (pitch > maxPitch)
+  {
+    sign = true; // robot is moving up
+  }
+  else
+  {
+    sign = false; // robot is moving down
+  }
+  while (outOfPitch())
+  {
+    updateStraightPID(kMovementRPMs, false);
+  }
+  double dt = (millis() - start) / 1000.0;
+  dt = dt * (sign ? 1 : -1); // apply sign
+  return dt;                 // return dt in seconds.
+}
+
+bool Movement::outOfPitch()
+{
+  double pitch = sensors->getAngleY();
+  return pitch > maxPitch || pitch < minPitch;
+}
+
+void Movement::rearrangeAngle()
+{
+  double angleError = getAngleError(dirToAngle(rDirection));
+  if (abs(angleError) > kErrorVlxReading)
+    goToAngle(dirToAngle(rDirection));
 }
 
 double Movement::getDistanceToCenter()

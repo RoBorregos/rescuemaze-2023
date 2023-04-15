@@ -179,7 +179,16 @@ void GeneralChecks::log(const char *s, bool newLine)
 }
 
 void GeneralChecks::test()
-{
+{   
+    robot->motor[1].motorForward();
+    while (true){
+        //robot->motor[1].motorSpeedPID(90);
+        robot->motor[1].setPWM(0);
+        Serial.print("Motor backleft PWM: ");
+        Serial.println(robot->motor[1].getPWM());
+    }
+
+    /*
     while (true)
     {
         if (!CK::kusingROS)
@@ -189,6 +198,7 @@ void GeneralChecks::test()
         // delay(500);
         // s->printInfo(false, false, true, false);
     }
+    */
 
     for (int i = 0; i < 1000; i++)
     {
