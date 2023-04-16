@@ -33,9 +33,9 @@ void setup()
 
   initAll(&bno, true, true);
   GeneralChecks checks(robot);
-  // checks.checkWheelDirections();
-  // checks.checkAll();
-  checks.test();
+  //checks.checkWheelDirections();
+  checks.checkAll();
+  //checks.test();
   // checks.checkSensorData();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
