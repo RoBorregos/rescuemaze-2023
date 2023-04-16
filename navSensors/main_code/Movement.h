@@ -45,7 +45,11 @@ private:
   // Sensors
   Sensors *sensors;
 
+  // Straight PID with VLX.
   unsigned int lastUpdateVLX = millis();  
+  double correctionVLX = 0.0;
+  unsigned int kVlxErrorTimer = 250; // Wait x ms before next error calculation.
+
   int rDirection = 0; // 0 is north, 1 is east, 2 is south, and 3 is west.
 
   // Servo
@@ -61,7 +65,7 @@ private:
   static constexpr uint8_t kAnalogPinFrontLeftMotor = 10;
   static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {3, 49}; // A,B
 
-  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {32, 33};
+  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {33, 32};
   static constexpr uint8_t kAnalogPinBackLeftMotor = 12;
   static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {18, 47};
 
@@ -69,7 +73,7 @@ private:
   static constexpr uint8_t kAnalogPinFrontRightMotor = 11;
   static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {2, 48};
 
-  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
+  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {30, 31};
   static constexpr uint8_t kAnalogPinBackRightMotor = 13;
   static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
 
@@ -88,9 +92,16 @@ private:
 
   // PID
   static constexpr bool kUsingPID = true;
-  static constexpr double kPStraightFR = 7; // 60
-  static constexpr double kIStraightFR = 3; // 55
-  static constexpr double kDStraightFR = 2; // 40
+
+  // Control constants
+  static constexpr double kErrorVlxReading = 4; // Error to consider a reading as valid, in degrees.
+  static constexpr double minPitch = -10.0;
+  static constexpr double maxPitch = 10.0;
+  static constexpr double kRampDt = 3;
+  static constexpr double checkTCSTimer = 600; // Time to check TCS in ms.
+  static constexpr double kDistanceWall = 0.08; // Distance to consider detection as wall.
+  static constexpr int kMillisBackAccomodate = 700;
+  static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
 
   // Kinematics.
   Kinematics kinematics;
@@ -101,6 +112,8 @@ private:
   static constexpr int kMaxAngle = 360;
   static constexpr uint16_t kInterAngle = 180;
   static constexpr int kMinAngle = 0.0;
+
+  int angleDirs[4] = {0, 90, 180, 270};
 
 public:
   // Motor Array.
@@ -195,6 +208,12 @@ public:
   // Returns the robot's expected angle given its rdirection.
   int dirToAngle(int rdirection);
 
+  // Sets the current angle as the expected angle for given rDirection.
+  // Updates all angles accordingly.
+  void updateAngleReference();
+
+  void printAngleReference();
+
   // A positive error means that the robot must rotate to the right. Negative error -> left.
   double getAngleError(double expectedAngle);
 
@@ -204,11 +223,11 @@ public:
 
   // Linear movement methods.
 
-  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs,
-  // but takes into account the error in degress from the 'perfect' trajectory .
+  // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
+  // Use vlx or BNO for correction depending on flag.
   // @param RPMs The target speed in RPMs.
-  // @param errorD The error, in degrees, used to adjust speed of each motor.
-  void updateStraightPID(int RPMs, double errorD);
+  // @param useBNO True to use BNO, false to use VLX.
+  void updateStraightPID(int RPMs, bool useBNO);
 
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
@@ -222,15 +241,36 @@ public:
   // @param x Distance in meters
 
   // TODO: Adjust distance precision.
-  // Advance the specified distance using encoders. If rAngle is given, the error is used to
-  // make adjustments in the wheel velocity with respect to expected angle.
-  void advanceXMeters(double x, bool useAngleError = false);
+  // Advance the specified distance using vlx. The second argument specified which method
+  // should be used for straight PID.
+  // @param x the distance to travel.
+  // @param straigthPidType 1 for using BNO to move straight. 0 to use vlx.
+  // @param forceBackwards Param used internally for robot to move back if it detects a black tile.
+  double advanceXMeters(double x, int straightPidType, bool forceBackwards = false);
+
+  // Rotate the robot in the specified dir. 0 for left and 1 for right.
+  // Option specifies if the robot should move back to realign to wall.
+  // if option is 1, the robot aligns with back wall.
+  void rotateRobot(int option, int dir);
 
   // TODO: Test method.
   void advanceSlow(bool direction);
 
-  // TODO: Implement this method.
-  void traverseRamp(int option);
+  // Traverses a ramp. If option is 1, the robot will move dt ms forward and then call stabilizePitch.
+  double traverseRamp(int option);
+
+  // Advance straight until the pitch is stable.
+  // @param straightPidType 1 for using BNO to move straight. 0 to use vlx.
+  double stabilizePitch(int straightPidType);
+
+  // Return true if robot is not straight in pitch axis.
+  bool outOfPitch();
+
+  // Check if the color corresponds to the color black.
+  bool checkColor();
+
+  // If error in yaw is greater than kErrorVlxReading, then use BNO to correct.
+  void rearrangeAngle();
 
   // TODO: Correct logic for this method.
   double getDistanceToCenter();

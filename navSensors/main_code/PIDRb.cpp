@@ -29,7 +29,6 @@ PIDRb::PIDRb(const double kp, const double ki, const double kd)
 void PIDRb::computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
                          const double count_time_samples_in_one_second, const bool debug)
 {
-
   unsigned long timeDiff = millis() - timePassed;
 
   if (timeDiff < sampleTime)
