@@ -13,7 +13,9 @@
 
 using namespace std;
 
-#define simulateRos true
+// #define simulateRos true
+// #define useLidar false
+// #define useNavStack true
 
 #include "Tile.h"
 #include "Map.h"
@@ -100,8 +102,11 @@ void right(int &rDirection, Map &mapa)
 
     bridge->sendUnitGoal(1, rDirection);
     (rDirection == 3) ? rDirection = 0 : rDirection++;
+
+    #ifdef useNavStack
     bridge->publishIdealOrientation(rDirection);
 
+    #endif
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -143,7 +148,11 @@ void left(int &rDirection, Map &mapa)
 
     bridge->sendUnitGoal(3, rDirection);
     (rDirection == 0) ? rDirection = 3 : rDirection--;
+
+    #ifdef useNavStack
     bridge->publishIdealOrientation(rDirection);
+
+    #endif
 
     if (mapSimDebug)
     {
@@ -365,11 +374,15 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 
             bridge->pubDebug("Current pos: " + posvectorToString(mapa.pos));
 
-            if (simulateRos || !useros)
+            if (!useros)
             {
                 mapa.moveMaze(key);
                 mapa.moveMaze(key);
             }
+#ifdef simulateRos
+            mapa.moveMaze(key);
+            mapa.moveMaze(key);
+#endif
 
             if (path.size() > 1)
                 path.pop();
@@ -410,11 +423,15 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 
             bridge->pubDebug("New pos ramp: " + posvectorToString(mapa.pos));
 
-            if (simulateRos || !useros)
+            if (!useros)
             {
                 mapa.moveMaze(key);
                 mapa.moveMaze(key);
             }
+#ifdef simulateRos
+            mapa.moveMaze(key);
+            mapa.moveMaze(key);
+#endif
 
             if (path.size() > 1)
                 path.pop();
@@ -426,8 +443,12 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 
         calcPos(mapa.pos, key, mapa);
 
-        if (!useros || simulateRos)
+        if (!useros)
             mapa.moveMaze(key);
+
+#ifdef simulateRos
+        mapa.moveMaze(key);
+#endif
 
         return tile->adjacentTiles[key];
     }
@@ -493,6 +514,11 @@ bool isWall(string key, Map &mapa)
     return false;
 }
 
+vector<int> getWalls() // use ros
+{
+    return bridge->getWalls();
+}
+
 // Regresa true si el caracter en la posicion establecida por key es una rampa
 bool isRamp() // use ros
 {
@@ -535,25 +561,26 @@ int checkVictims(Map &mapa)
     return 0;
 }
 
-void defineTile(Tile *tile)
-{
-    if (bridge->tcsdata == 'a')
-    {
-        tile->weight = 100;
-    }
-    else if (false or false) // TODO: Implement bumper and stairs detection
-    {
-        tile->weight = 100;
-    }
-    else if (isRamp())
-    {
-        tile->weight = 150;
-    }
-    else if (checkVictims())
-    {
-        tile->victim = checkVictims();
-    }
-}
+
+// void defineTile(Tile *tile)
+// {
+//     if (bridge->tcsdata == 'a')
+//     {
+//         tile->weight = 100;
+//     }
+//     else if (false or false) // TODO: Implement bumper and stairs detection
+//     {
+//         tile->weight = 100;
+//     }
+//     else if (isRamp())
+//     {
+//         tile->weight = 150;
+//     }
+//     else if (checkVictims())
+//     {
+//         tile->victim = checkVictims();
+//     }
+// }
 
 // createTile ros
 Tile *createTile(vector<int> pos, string key, vector<int> &adjPos, Map &mapa)
@@ -817,7 +844,10 @@ void explore(bool checkpoint, int argc, char **argv)
     stack<string> path;
 
     int steps = 2;
+
+    #ifdef useNavStack
     bridge->publishIdealOrientation(0);
+    #endif
 
     do
     {
@@ -832,6 +862,8 @@ void explore(bool checkpoint, int argc, char **argv)
 
         mapa.tile->visited = true;
         mapa.setVisitedChar();
+
+        vector<int> walls = getWalls();
 
         // Se revisan las casillas adyacentes
         for (auto &&key : keys)
@@ -851,7 +883,7 @@ void explore(bool checkpoint, int argc, char **argv)
             }
             // ROS_INFO("Checking key: %s", key.c_str());
 
-            if (useros && isWall(key))
+            if (useros && walls[directions[key]] == 1 && !mapa.tile->walls[key])
             {
                 // ROS_INFO("Wall detected");
                 if (rosDebug)

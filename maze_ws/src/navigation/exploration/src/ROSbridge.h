@@ -5,6 +5,7 @@
 #include <std_msgs/Char.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int16.h>
+#include <std_msgs/Int8.h>
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include "actionlib/client/simple_action_client.h"
@@ -58,13 +59,15 @@ using namespace std;
 class ROSbridge
 {
 private:
-    double NOSEUP_PITCH;
-    double NOSEDOWN_PITCH;
-
     bool debugging;
-    bool debugmapgoals;
 
     ros::NodeHandle *nh;
+
+#ifdef useNavStack
+    bool debugmapgoals;
+
+    double NOSEUP_PITCH;
+    double NOSEDOWN_PITCH;
 
     geometry_msgs::TransformStamped transformStamped;
     tf::StampedTransform baselink_mapTransform;
@@ -89,8 +92,6 @@ private:
     double southYaw;
     double westYaw;
 
-    ClientScope scope;
-
     bool limitSwitchLeft;
     bool limitSwitchRight;
 
@@ -104,46 +105,26 @@ private:
     double pitch;
     double yaw;
 
-    // VLX data
-    double distVlx;
-    double distLidar;
-
     double transformYaw;
 
     double xdistCenter;
     double ydistCenter;
 
-    // ros::Publisher pub;
-
     // Subscribers
     ros::Subscriber tcssub;
     // TODO: Make callback and add to constructor
     ros::Subscriber limitswitchleftsub;
+    ros::Subscriber limitswitchrightsub;
     ros::Subscriber localizationsub;
     ros::Subscriber centersub;
     ros::Subscriber imusub;
-    ros::Subscriber vlxsub;
 
-    ros::Subscriber jetsonresultsub;
-    ros::Subscriber startsub;
-
-    // Publishers
-    ros::Publisher dispenserpub;
     ros::Publisher orientationpub;
-    ros::Publisher debugpub;
+
     // Twist Publisher
     ros::Publisher twistpub;
     ros::Publisher pitchpub;
     ros::Publisher yawpub;
-
-    ros::Publisher unitmovementpub;
-
-    // Transform broadcaster
-    // TfBroadcaster tfb;
-    // tf2_ros::TransformBroadcaster tfbr;
-
-    // Transform listenerString
-    tf::TransformListener tfl;
 
     // Service clients
     // ros::ServiceClient mapclient;
@@ -152,7 +133,9 @@ private:
 
     ros::ServiceClient wallsClient;
     ros::ServiceClient wallsDistClient;
-    ros::ServiceClient victimsClient;
+
+    // Transform listenerString
+    tf::TransformListener tfl;
 
     // Action clients
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac;
@@ -162,13 +145,8 @@ private:
     void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &msg);
     void localizationCallback(const geometry_msgs::Point::ConstPtr &msg);
     void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-    void vlxCallback(const sensor_msgs::Range::ConstPtr &msg);
-
-    void jetsonResultCallback(const std_msgs::Int16::ConstPtr &msg);
 
     void timerCallback(const ros::TimerEvent &event);
-
-    void startCallback(const std_msgs::Int16::ConstPtr &msg);
 
     // Action client callbacks
     void doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result);
@@ -185,7 +163,6 @@ private:
     // 1: Goal reached, white tile
     // 2: Goal reached, blue tile
     int sendMapGoalGOAT(int movement, int rDirection);
-    int sendGoalJetson(int movement, int rDirection);
 
     int checkUpRamp();
     int checkDownRamp();
@@ -194,21 +171,62 @@ private:
     void clearMap();
     void cancelGoal();
 
-    void sendKit();
-
-    double yawDifference(double yaw1, double yaw2);
-
     void goNorth();
     void goEast();
     void goSouth();
     void goWest();
+
+    double yawDifference(double yaw1, double yaw2);
+#else
+
+    ros::Subscriber jetsonresultsub;
+    ros::Publisher unitmovementpub;
+
+    void jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg);
+
+
+#endif
+
+    ClientScope scope;
+
+    // VLX data
+    double distVlxFront;
+    double distVlxRight;
+    double distVlxLeft;
+
+    double distLidar;
+
+    ros::Subscriber vlxfrontsub;
+    ros::Subscriber vlxrightsub;
+    ros::Subscriber vlxleftsub;
+
+    ros::Subscriber startsub;
+
+    // Publishers
+    ros::Publisher dispenserpub;
+    ros::Publisher debugpub;
+
+    ros::ServiceClient victimsClient;
+
+    void vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg);
+    void vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg);
+    void vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg);
+
+    void startCallback(const std_msgs::Int16::ConstPtr &msg);
+    int sendGoalJetson(int movement);
+
+    void sendKit();
 
 public:
 #ifdef simulateRos
     Map *mapa;
 #endif
 
+#ifdef useNavStack
     char tcsdata;
+
+    void publishIdealOrientation(int orientation);
+#endif
 
     bool startAlgorithm;
 
@@ -219,10 +237,10 @@ public:
     vector<int> getWalls();
     int getVictims();
 
-    void publishIdealOrientation(int orientation);
-
     void pubDebug(string msg);
 };
+
+#ifdef useNavStack
 
 ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
 {
@@ -256,7 +274,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
     tcssub = nh->subscribe("/sensor/tcs", 1000, &ROSbridge::tcscallback, this);
     centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
     imusub = nh->subscribe("/imu/data", 10, &ROSbridge::imuCallback, this);
-    vlxsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxCallback, this);
+    vlxfrontsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxFrontCallback, this);
+    vlxrightsub = nh->subscribe("/sensor/vlx/right", 10, &ROSbridge::vlxRightCallback, this);
+    vlxleftsub = nh->subscribe("/sensor/vlx/left", 10, &ROSbridge::vlxLeftCallback, this);
+
     jetsonresultsub = nh->subscribe("/control_feedback", 10, &ROSbridge::jetsonResultCallback, this);
     startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
 
@@ -269,7 +290,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
     pitchpub = nh->advertise<std_msgs::Float64>("/pitch", 1000);
     yawpub = nh->advertise<std_msgs::Float64>("/yaw", 1000);
 
-    unitmovementpub = nh->advertise<std_msgs::Int16>("/unit_movement", 1000);
+    unitmovementpub = nh->advertise<std_msgs::Int8>("/unit_movement", 1000);
 
     // // Transform broadcaster
     // transformStamped = geometry_msgs::TransformStamped();
@@ -291,7 +312,44 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
     // tfl.waitForTransform("base_link", "perfect_position", ros::Time(0), ros::Duration(10.0));
 }
 
+#else
+
+ROSbridge::ROSbridge(ros::NodeHandle *n)
+{
+    debugging = true;
+
+    distVlxFront = 0;
+    distVlxRight = 0;
+    distVlxLeft = 0;
+    distLidar = 0;
+
+    ROS_INFO("Creating ROSbridge");
+    nh = n;
+
+    ROS_INFO("Creating subscribers");
+
+    vlxfrontsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxFrontCallback, this);
+    vlxrightsub = nh->subscribe("/sensor/vlx/right", 10, &ROSbridge::vlxRightCallback, this);
+    vlxleftsub = nh->subscribe("/sensor/vlx/left", 10, &ROSbridge::vlxLeftCallback, this);
+    startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
+
+    jetsonresultsub = nh->subscribe("/control_feedback", 10, &ROSbridge::jetsonResultCallback, this);
+    
+    ROS_INFO("Created subscribers");
+
+    dispenserpub = nh->advertise<std_msgs::Int8>("/dispenser", 1000);
+    debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
+
+    unitmovementpub = nh->advertise<std_msgs::Int8>("/unit_movement", 1000);
+
+    victimsClient = nh->serviceClient<openmv_camera::BothCameras>("/get_victims");
+}
+
+#endif
+
 // Subscriber callbacks
+
+#ifdef useNavStack
 
 void ROSbridge::tcscallback(const std_msgs::Char::ConstPtr &msg)
 {
@@ -331,15 +389,11 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         startedImu = true;
         northYaw = yaw;
 
-        // tfb.setTransformYaw(yaw);
-
         // Range: -pi to pi
         // Clockwise gives smaller values
         // Counter-clockwise gives larger values
 
         ROS_INFO("northYaw: %f", northYaw);
-        // East
-        // eastYaw = (northYaw * (180 / M_PI) - 180) * M_PI / 180;
 
         if (northYaw > -M_PI_2)
             eastYaw = northYaw - M_PI_2;
@@ -351,10 +405,6 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
             southYaw = northYaw - M_PI;
         else
             southYaw = northYaw + M_PI;
-        // if (northYaw > 0)
-        //     southYaw = northYaw - M_PI;
-        // else
-        //     southYaw = northYaw + M_PI;
 
         // West
         if (northYaw > M_PI_2)
@@ -379,36 +429,6 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         ROS_INFO("Pitch: %f", pitch);
     }
 }
-
-void ROSbridge::vlxCallback(const sensor_msgs::Range::ConstPtr &msg)
-{
-    distVlx = msg->range;
-}
-
-void ROSbridge::jetsonResultCallback(const std_msgs::Int16::ConstPtr &msg)
-{
-    ROS_INFO("Jetson result: %d", msg->data);
-    scope.result = msg->data;
-    scope.resultReceived = true;
-    scope.startedGoal = false;
-}
-
-void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
-{
-    ROS_INFO("Start callback: %d", msg->data);
-    // startAlgorithm = msg->data;
-    startAlgorithm = true;
-}
-
-// Lidar callback
-// void ROSbridge::lidarCallback(const sensor_msgs::LaserScan::ConstPtr &msg)
-// {
-//     // ROS_INFO("Lidar callback");
-//     // ROS_INFO("Lidar callback: %d", scope.status);
-
-//     // Set distLidar to the distance to the front
-//     distLidar = msg->ranges[0];
-// }
 
 void ROSbridge::doneCb(const actionlib::SimpleClientGoalState &state, const move_base_msgs::MoveBaseResult::ConstPtr &result)
 {
@@ -632,7 +652,7 @@ int ROSbridge::checkUpRamp()
     ros::spinOnce();
 
     // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
-    if (distLidar < 0.3 && distLidar - distVlx < 0.1 && distLidar - distVlx > 0.05)
+    if (distLidar < 0.3 && distLidar - distVlxFront < 0.1 && distLidar - distVlxFront > 0.05)
     {
         ROS_INFO("Up ramp");
         // upRamp = true;
@@ -643,11 +663,43 @@ int ROSbridge::checkUpRamp()
     return 0;
 }
 
-// 1: forward
-// 2: left
+#else
+
+void ROSbridge::jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg)
+{
+    ROS_INFO("Jetson result: %d", msg->data);
+    scope.result = msg->data;
+    scope.resultReceived = true;
+    scope.startedGoal = false;
+}
+
+#endif
+
+void ROSbridge::vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg)
+{
+    distVlxFront = msg->range;
+}
+
+void ROSbridge::vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg)
+{
+    distVlxRight = msg->range;
+}
+
+void ROSbridge::vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg)
+{
+    distVlxLeft = msg->range;
+}
+
+void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
+{
+    ROS_INFO("Start callback: %d", msg->data);
+    // startAlgorithm = msg->data;
+    startAlgorithm = false;
+}
+
+// 0: forward
+// 1: left
 // 3: right
-// 4: forward (ramp)
-// 5: backward
 
 // Return values:
 // 0: Goal not reached, black tile
@@ -656,54 +708,54 @@ int ROSbridge::checkUpRamp()
 // 3: Goal reached, silver tile
 // 4: Goal reached, down ramp
 // 5: Goal reached, up ramp
-int ROSbridge::sendGoalJetson(int movement, int rDirection)
+int ROSbridge::sendGoalJetson(int movement)
 {
     ros::spinOnce();
 
-    // Call get_walls_dist service
-    nav_main::GetWallsDist walls;
+    // // Call get_walls_dist service
+    // nav_main::GetWallsDist walls;
 
-    wallsClient.call(walls);
+    // wallsClient.call(walls);
 
-    distLidar = walls.response.front;
+    // distLidar = walls.response.front;
 
-    std_msgs::Int16 movementmsg;
+    std_msgs::Int8 movementmsg;
     if (movement == 0)
     {
         ROS_INFO("Forward");
 
-        // Check if there's a ramp
-        if (checkUpRamp())
-        {
-            upRamp = true;
-            movementmsg.data = 4;
-        }
-        else
-        {
-            movementmsg.data = 1;
-        }
+        // // Check if there's a ramp
+        // if (checkUpRamp())
+        // {
+        //     upRamp = true;
+        //     movementmsg.data = 4;
+        // }
+        // else
+        // {
+        //     movementmsg.data = 1;
+        // }
 
         movementmsg.data = 1;
     }
     else if (movement == 1)
     {
         ROS_INFO("Turn right");
-        movementmsg.data = 3;
+        movementmsg.data = 1;
     }
     if (movement == 3)
     {
         ROS_INFO("Turn left");
-        movementmsg.data = 2;
+        movementmsg.data = 3;
     }
     // if (movement == 4)
     // {
     //     ROS_INFO("Forward (ramp)");
     //     movementmsg.data = 4;
     // }
-    if (movement == 5)
+    if (movement == 4)
     {
         ROS_INFO("Backward");
-        movementmsg.data = 5;
+        movementmsg.data = 4;
     }
 
     unitmovementpub.publish(movementmsg);
@@ -715,48 +767,50 @@ int ROSbridge::sendGoalJetson(int movement, int rDirection)
     {
         ros::spinOnce();
 
-        // check color
-        if (tcsdata == 'N' && !blackTile)
-        {
-            if (debugging)
-                ROS_INFO("Black tile, Cancelling goal");
 
-            blackTile = true;
-            // ac.cancelGoal();
-        }
-        else if (tcsdata == 'A')
-        {
-            if (debugging)
-                ROS_INFO("Blue tile detected");
 
-            blueTile = true;
-        }
-        else if (tcsdata == 'S' || tcsdata == 'M')
-        {
-            if (debugging)
-                ROS_INFO("Silver tile detected");
+        // // check color
+        // if (tcsdata == 'N' && !blackTile)
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Black tile, Cancelling goal");
 
-            silverTile = true;
-        }
+        //     blackTile = true;
+        //     // ac.cancelGoal();
+        // }
+        // else if (tcsdata == 'A')
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Blue tile detected");
 
-        // check pitch from imu
+        //     blueTile = true;
+        // }
+        // else if (tcsdata == 'S' || tcsdata == 'M')
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Silver tile detected");
 
-        if (!upRamp && pitch < NOSEUP_PITCH) // Found obstacle (bumper / stairs)
-        {
-            if (debugging)
-                ROS_INFO("Found obstacle");
+        //     silverTile = true;
+        // }
 
-            obstacle = true;
-        }
-        else if (pitch > NOSEDOWN_PITCH) // Down ramp
-        {
-            if (debugging)
-                ROS_INFO("Down ramp");
+        // // check pitch from imu
 
-            downRamp = true;
+        // if (!upRamp && pitch < NOSEUP_PITCH) // Found obstacle (bumper / stairs)
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Found obstacle");
 
-            // ac.cancelGoal();
-        }
+        //     obstacle = true;
+        // }
+        // else if (pitch > NOSEDOWN_PITCH) // Down ramp
+        // {
+        //     if (debugging)
+        //         ROS_INFO("Down ramp");
+
+        //     downRamp = true;
+
+        //     // ac.cancelGoal();
+        // }
         // // check if there's ramp and imu is close to 0
         // else if (upRamp && pitch > NOSEUP_PITCH && pitch < NOSEDOWN_PITCH)
         // {
@@ -767,45 +821,48 @@ int ROSbridge::sendGoalJetson(int movement, int rDirection)
         // }
     }
 
-    if (blackTile)
-    {
-        blackTile = false;
-        return 0;
-    }
-    else if (blueTile)
-    {
-        ros::Duration(5).sleep();
-        blueTile = false;
-        return 2;
-    }
-    else if (silverTile)
-    {
-        silverTile = false;
-        return 3;
-    }
-    else if (obstacle)
-    {
-        obstacle = false;
-        return 2;
-    }
-    else if (downRamp)
-    {
-        downRamp = false;
-        return 4;
-    }
-    else if (upRamp)
-    {
-        upRamp = false;
-        return 5;
-    }
-    else
-    {
-        return 1;
-    }
+    return scope.result;
+    
+    // if (blackTile)
+    // {
+    //     blackTile = false;
+    //     return 0;
+    // }
+    // else if (blueTile)
+    // {
+    //     ros::Duration(5).sleep();
+    //     blueTile = false;
+    //     return 2;
+    // }
+    // else if (silverTile)
+    // {
+    //     silverTile = false;
+    //     return 3;
+    // }
+    // else if (obstacle)
+    // {
+    //     obstacle = false;
+    //     return 2;
+    // }
+    // else if (downRamp)
+    // {
+    //     downRamp = false;
+    //     return 4;
+    // }
+    // else if (upRamp)
+    // {
+    //     upRamp = false;
+    //     return 5;
+    // }
+    // else
+    // {
+    //     return 1;
+    // }
 
-    return 0;
+    // return 0;
 }
 
+#ifdef useNavStack
 // Return values:
 // 0: Goal not reached, black tile
 // 1: Goal reached, white tile
@@ -839,7 +896,7 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
         pose.pose.orientation.w = 1;
 
         // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
-        if (distLidar < 0.3 && distLidar - distVlx < 0.1 && distLidar - distVlx > 0.05)
+        if (distLidar < 0.3 && distLidar - distVlxFront < 0.1 && distLidar - distVlxFront > 0.05)
         {
             ROS_INFO("Up ramp");
             // upRamp = true;
@@ -1009,6 +1066,8 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
     }
 }
 
+#endif
+
 // Return values:
 // 0: Goal not reached, black tile
 // 1: Goal reached, white tile
@@ -1026,10 +1085,10 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
     }
 
     map<int, string> invDirections = {
-    {0, "north"},
-    {1, "east"},
-    {2, "south"},
-    {3, "west"}};
+        {0, "north"},
+        {1, "east"},
+        {2, "south"},
+        {3, "west"}};
 
     char c = mapa->getChar(invDirections[rDirection]);
 
@@ -1049,13 +1108,17 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
     }
     else if (c == 'r') // rampa
     {
-        return (mapa->rampDirection(invDirections[rDirection]) == rDirection) ?  5 : 4;
+        return (mapa->rampDirection(invDirections[rDirection]) == rDirection) ? 5 : 4;
     }
 
     return 1;
 #else
 
-    if (true)
+#ifndef useNavStack
+    return sendGoalJetson(movement);
+#else
+
+    if (false)
     {
         return sendMapGoalGOAT(movement, rDirection);
     }
@@ -1292,10 +1355,11 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
     sendGoal(pose);
 
     return 0;
-
+#endif
 #endif
 }
 
+#ifdef useNavStack
 void ROSbridge::sendMapGoal(int movement, int rDirection)
 {
     if (debugmapgoals)
@@ -1510,6 +1574,8 @@ void ROSbridge::clearMap()
     ROS_INFO("Cleared map");
 }
 
+#endif
+
 #ifdef simulateRos
 
 vector<int> ROSbridge::getWalls()
@@ -1529,6 +1595,30 @@ vector<int> ROSbridge::getWalls()
 
 #else
 
+#ifndef useLidar
+
+vector<int> ROSbridge::getWalls()
+{
+    ros::spinOnce();
+    ROS_INFO("Getting walls");
+
+    // {front, right, back, left}
+    vector<int> wallsVector = {distVlxFront<0.15, distVlxRight> 0.15, 0, distVlxLeft > 0.15};
+
+    // Turn right to check back wall
+    sendGoalJetson(1);
+
+    ros::spinOnce();
+    wallsVector[2] = distVlxRight > 0.15;
+
+    // Turn left
+    sendGoalJetson(3);
+
+    return wallsVector;
+}
+
+#else
+
 vector<int> ROSbridge::getWalls()
 {
     ROS_INFO("Getting walls");
@@ -1542,6 +1632,8 @@ vector<int> ROSbridge::getWalls()
 
     return wallsVector;
 }
+
+#endif
 
 #endif
 
@@ -1619,7 +1711,7 @@ int ROSbridge::getVictims()
     if (bothCameras.response.left_cam == "H")
     {
         // Drop three kits to the left
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = -3;
         dispenserpub.publish(msg);
 
@@ -1630,7 +1722,7 @@ int ROSbridge::getVictims()
     else if (bothCameras.response.right_cam == "H")
     {
         // Drop three kits to the right
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = 3;
         dispenserpub.publish(msg);
 
@@ -1641,7 +1733,7 @@ int ROSbridge::getVictims()
     else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
     {
         // Drop two kits to the left
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = -2;
         dispenserpub.publish(msg);
 
@@ -1652,7 +1744,7 @@ int ROSbridge::getVictims()
     else if (bothCameras.response.right_cam == "S")
     {
         // Drop two kits to the right
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = 2;
         dispenserpub.publish(msg);
 
@@ -1663,7 +1755,7 @@ int ROSbridge::getVictims()
     else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
     {
         // Drop one kit to the left
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = -1;
         dispenserpub.publish(msg);
 
@@ -1674,7 +1766,7 @@ int ROSbridge::getVictims()
     else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
     {
         // Drop one kit to the right
-        std_msgs::Int16 msg;
+        std_msgs::Int8 msg;
         msg.data = 1;
         dispenserpub.publish(msg);
 
@@ -1699,6 +1791,8 @@ void ROSbridge::pubDebug(string m)
     }
 }
 
+#ifdef useNavStack
+
 double ROSbridge::yawDifference(double targetYaw, double originYaw)
 {
     // return fmod(yaw1 - yaw2 + M_PI, 2 * M_PI) - M_PI;
@@ -1721,6 +1815,8 @@ double ROSbridge::yawDifference(double targetYaw, double originYaw)
     return diff;
 }
 
+#endif
+
 #ifdef simulateRos
 
 void ROSbridge::publishIdealOrientation(int orientation)
@@ -1728,6 +1824,8 @@ void ROSbridge::publishIdealOrientation(int orientation)
 }
 
 #else
+
+#ifdef useNavStack
 
 void ROSbridge::publishIdealOrientation(int orientation)
 {
@@ -1776,6 +1874,10 @@ void ROSbridge::publishIdealOrientation(int orientation)
 }
 
 #endif
+
+#endif
+
+#ifdef useNavStack
 
 void ROSbridge::goNorth()
 {
@@ -1880,3 +1982,5 @@ void ROSbridge::goWest()
 
     movementClientAsync(goal);
 }
+
+#endif
