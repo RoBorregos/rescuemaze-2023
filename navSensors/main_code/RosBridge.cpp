@@ -6,23 +6,34 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
                                                                                velocity_subscriber("/cmd_vel", &RosBridge::cmdVelocityCallback, this),
                                                                                dispenser_subscriber("/dispenser", &RosBridge::dispenserCallback, this),
                                                                                test_subscriber("/testarduino", &RosBridge::testCallback, this),
+                                                                               cmd_movement_subscriber("/unit_movement", &RosBridge::cmdMovementCallback, this),
                                                                                test_publisher("/testpub", &testT),
                                                                                vlx_sensor_publisher_front("/sensor/vlx/front", &vlx_sensor_msgs_front),
                                                                                tcs_sensor_publisher("/sensor/tcs", &tcs_sensor_msgs),
                                                                                limit_switch_right_publisher("/limit_switch/right", &limit_switch_right_msgs),
-                                                                               limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs)
+                                                                               limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs),
+                                                                               cmd_movement_publisher("/control_feedback", &cmd_movement_response)
 {
 
   // Node Handle
-  nh->subscribe(velocity_subscriber);
-  nh->subscribe(dispenser_subscriber);
-  nh->subscribe(test_subscriber);
 
-  nh->advertise(test_publisher);
-  nh->advertise(vlx_sensor_publisher_front);
-  nh->advertise(tcs_sensor_publisher);
-  nh->advertise(limit_switch_right_publisher);
-  nh->advertise(limit_switch_left_publisher);
+  if (!CK::onlyCmdMovement)
+  {
+    nh->subscribe(velocity_subscriber);
+    nh->subscribe(dispenser_subscriber);
+    nh->subscribe(test_subscriber);
+
+    nh->advertise(test_publisher);
+    nh->advertise(vlx_sensor_publisher_front);
+    nh->advertise(tcs_sensor_publisher);
+    nh->advertise(limit_switch_right_publisher);
+    nh->advertise(limit_switch_left_publisher);
+    nh->advertise(test_publisher);
+  }
+
+  nh->subscribe(cmd_movement_subscriber);
+  nh->advertise(cmd_movement_publisher);
+
   nh->negotiateTopics();
 
   // Timers
@@ -60,6 +71,13 @@ void RosBridge::cmdVelocityCallback(const geometry_msgs::Twist &cmd_velocity)
 {
   robot->cmdVelocity(cmd_velocity.linear.x, cmd_velocity.linear.y, cmd_velocity.angular.z);
   watchdog_timer = millis();
+}
+
+void RosBridge::cmdMovementCallback(const std_msgs::Int16 &cmd_movement_req)
+{
+  double response = robot->cmdMovement(cmd_movement_req.data);
+  cmd_movement_response.data = response;
+  cmd_movement_publisher.publish(&cmd_movement_response);
 }
 
 void RosBridge::testCallback(const std_msgs::String &test_msg)
@@ -120,12 +138,15 @@ void RosBridge::publish()
   {
     odom_timer = currentTime;
 
-    // TCS sensor data
-    tcs_sensor_msgs.data = sensors->getTCSInfo();
-    tcs_sensor_publisher.publish(&tcs_sensor_msgs);
+    if (!CK::onlyCmdMovement)
+    {
+      // TCS sensor data
+      tcs_sensor_msgs.data = sensors->getTCSInfo();
+      tcs_sensor_publisher.publish(&tcs_sensor_msgs);
 
-    publishVLX();
-    publishLimitSwitches();
+      publishVLX();
+      publishLimitSwitches();
+    }
   }
 }
 

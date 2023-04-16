@@ -68,18 +68,19 @@ void Movement::setIndividualPID()
 
 void Movement::setMotors()
 {
+  // Motors were swapped. Check which motor corresponss to pins
   motor[FRONT_LEFT] = Motor(kDigitalPinsFrontLeftMotor[1], kDigitalPinsFrontLeftMotor[0],
                             kAnalogPinFrontLeftMotor, kEncoderPinsFrontLeftMotor[0],
                             kEncoderPinsFrontLeftMotor[1], MotorID::frontLeft);
-  motor[BACK_LEFT] = Motor(kDigitalPinsBackLeftMotor[1], kDigitalPinsBackLeftMotor[0],
-                           kAnalogPinBackLeftMotor, kEncoderPinsBackLeftMotor[0],
-                           kEncoderPinsBackLeftMotor[1], MotorID::backLeft);
+  motor[BACK_RIGHT] = Motor(kDigitalPinsBackLeftMotor[1], kDigitalPinsBackLeftMotor[0],
+                            kAnalogPinBackLeftMotor, kEncoderPinsBackLeftMotor[0],
+                            kEncoderPinsBackLeftMotor[1], MotorID::backLeft);
   motor[FRONT_RIGHT] = Motor(kDigitalPinsFrontRightMotor[1], kDigitalPinsFrontRightMotor[0],
                              kAnalogPinFrontRightMotor, kEncoderPinsFrontRightMotor[0],
                              kEncoderPinsBackRightMotor[1], MotorID::frontRight);
-  motor[BACK_RIGHT] = Motor(kDigitalPinsBackRightMotor[1], kDigitalPinsBackRightMotor[0],
-                            kAnalogPinBackRightMotor, kEncoderPinsBackRightMotor[0],
-                            kEncoderPinsBackRightMotor[1], MotorID::backRight);
+  motor[BACK_LEFT] = Motor(kDigitalPinsBackRightMotor[1], kDigitalPinsBackRightMotor[0],
+                           kAnalogPinBackRightMotor, kEncoderPinsBackRightMotor[0],
+                           kEncoderPinsBackRightMotor[1], MotorID::backRight);
 }
 
 // Constrains
@@ -345,43 +346,34 @@ int Movement::cmdMovement(const int action, const int option)
   switch (action)
   {
   case 1:
-    // Move forward 1 unit. TODO: add option of navigating with vlx distance.
+    // Move forward 1 unit.
     if (option == 1)
     {
-      advanceXMeters(0.3, true);
+      advanceXMeters(0.3, option);
     }
     else
     {
-      advanceXMeters(0.3, false);
+      advanceXMeters(0.3, option);
     }
     return 1;
     break;
 
   case 2:
     // Left turn
-    rDirection = getTurnDirection(0);
-    goToAngle(dirToAngle(rDirection));
+    rotateRobot(option, 0);
     return 1;
     break;
 
   case 3:
     // Right turn
-    rDirection = getTurnDirection(1);
-    goToAngle(dirToAngle(rDirection));
-
+    rotateRobot(option, 1);
     return 1;
     break;
 
   case 4:
     // Move back 1 unit
-    if (option == 1)
-    {
-      advanceXMeters(-0.3, true);
-    }
-    else
-    {
-      advanceXMeters(-0.3, false);
-    }
+    advanceXMeters(-0.3, option);
+
     return 1;
     break;
   case 5:
@@ -393,8 +385,7 @@ int Movement::cmdMovement(const int action, const int option)
 
   case 6:
     // Traverse ramp
-    traverseRamp(option);
-    return 1;
+    return traverseRamp(option);
     break;
 
   case 7:
@@ -405,12 +396,48 @@ int Movement::cmdMovement(const int action, const int option)
 
   case 8:
     // Update angle reference.
+    updateAngleReference();
     return 1;
     break;
 
   default:
     break;
   }
+}
+
+void Movement::rotateRobot(int option, int dir)
+{
+  bool reacomodate = false;
+
+  // Move robot backward if there is a wall back.
+  if (option == 1)
+  {
+    double dist = 100;
+    dist = (dir == 0) ? sensors->getVLXInfo(vlx_right) : sensors->getVLXInfo(vlx_left);
+    if (dist < kDistanceWall)
+      reacomodate = true;
+  }
+
+  // Dir 1 means right turn. O is for left turn.
+  rDirection = getTurnDirection(dir); // Obtain target direction based on input.
+  goToAngle(dirToAngle(rDirection));
+
+  if (reacomodate && option == 1)
+  {
+    if (!CK::kusingROS && CK::debugRotation)
+    {
+      Serial.println("Reacomodating");
+    }
+
+    // Align robot with back wall.
+    updateStraightPID(-kMovementRPMs);
+    delay(kMillisBackAccomodate);
+
+    // Move to center of tile
+    advanceXMeters(0.05, true);
+  }
+  stop();
+  resetEncoders();
 }
 
 void Movement::girarIzquierda()
@@ -455,100 +482,36 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
   {
     // Use VLX distance error to update target speeds.
     // Serial.println("UpdateStraightPID");
-    if (millis() - lastUpdateVLX < 10)
+    if (millis() - lastUpdateVLX > kVlxErrorTimer)
     {
-      motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-      motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-      motor[BACK_RIGHT].motorSpeedPID(RPMs);
-      return;
+      lastUpdateVLX = millis();
+      double rightDistance = sensors->getVLXInfo(1);
+      double leftDistance = sensors->getVLXInfo(2);
+
+      while (rightDistance > 0.3)
+        rightDistance -= 0.3;
+      while (leftDistance > 0.3)
+        leftDistance -= 0.3;
+
+      // A positive correction means that the robot must move to the right
+      this->correctionVLX = 100 * (rightDistance - leftDistance) * 2;
     }
-    double rightDistance = sensors->getVLXInfo(1);
-    double leftDistance = sensors->getVLXInfo(2);
 
-    lastUpdateVLX = millis();
+    motor[FRONT_LEFT].motorSpeedPID(RPMs + correctionVLX);
+    motor[BACK_LEFT].motorSpeedPID(RPMs + correctionVLX);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
 
-    while (rightDistance > 0.3)
-      rightDistance -= 0.3;
-    while (leftDistance > 0.3)
-      leftDistance -= 0.3;
-
-    double error = 10 * (rightDistance - leftDistance);
-
-    Serial.print("Error: ");
-    Serial.println(error);
-
-    if (error < 0.3 && error > -0.3)
+    if (!CK::kusingROS && CK::vlxPID)
     {
-      // Use angle error to update target speeds.
-      motor[FRONT_LEFT].motorSpeedPID(RPMs, false);
-      motor[BACK_LEFT].motorSpeedPID(RPMs, false);
-      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-      motor[BACK_RIGHT].motorSpeedPID(RPMs);
-    }
-    // Error > 0 means left side is closer to wall.
-    else if (error > 0)
-    {
-      Serial.print("Original RPMs: ");
-      Serial.print(RPMs);
-      Serial.print("   New Left RPMs: ");
-      Serial.print(RPMs * ((error + 1) * 0.8));
-      Serial.print("   New Right RPMs: ");
-      Serial.println(RPMs * ((error)*0.8));
-      // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
-      // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error + 1) * 0.8), false);
-      // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
-      // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error) * 0.8));
-
-      motor[FRONT_LEFT].motorSpeedPID(RPMs);
-      motor[BACK_LEFT].motorSpeedPID(RPMs);
-      motor[FRONT_RIGHT].motorStop();
-      motor[BACK_RIGHT].motorStop();
-
-      delay(300);
-
-      motor[FRONT_LEFT].motorStop();
-      motor[BACK_LEFT].motorStop();
-      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-      motor[BACK_RIGHT].motorSpeedPID(RPMs);
-
-      delay(200);
-
-      stop();
-
-      return;
-    }
-    // Error < 0 means right side is closer to wall.
-    else if (error < 0)
-    {
-      Serial.print("Original RPMs: ");
-      Serial.print(RPMs);
-      Serial.print("   New Left RPMs: ");
-      Serial.print(RPMs * (error) * -0.8);
-      Serial.print("   New Right RPMs: ");
-      Serial.println(RPMs * ((error - 1) * -0.8));
-      // motor[FRONT_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
-      // motor[BACK_LEFT].motorSpeedPID(RPMs * ((error) * -0.8), false);
-      // motor[FRONT_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
-      // motor[BACK_RIGHT].motorSpeedPID(RPMs * ((error - 1) * -0.8));
-
-      motor[FRONT_LEFT].motorStop();
-      motor[BACK_LEFT].motorStop();
-      motor[FRONT_RIGHT].motorSpeedPID(RPMs);
-      motor[BACK_RIGHT].motorSpeedPID(RPMs);
-
-      delay(300);
-
-      motor[FRONT_LEFT].motorSpeedPID(RPMs);
-      motor[BACK_LEFT].motorSpeedPID(RPMs);
-      motor[FRONT_RIGHT].motorStop();
-      motor[BACK_RIGHT].motorStop();
-
-      delay(200);
-
-      stop();
-
-      return;
+      Serial.print("Correction: ");
+      Serial.print(correctionVLX);
+      Serial.print(", Target rpm: left: ");
+      Serial.print(RPMs + correctionVLX);
+      Serial.print(", Target rpm: right: ");
+      Serial.print(RPMs + correctionVLX * -1);
+      Serial.print("Real Error: ");
+      Serial.println(correctionVLX / 100);
     }
   }
 }
@@ -588,7 +551,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       if (outOfPitch())
       {
-        double dt = stabilizePitch();
+        double dt = stabilizePitch(straightPidType);
         if (abs(dt) > kRampDt)
           return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
       }
@@ -603,10 +566,17 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       }
 
       dist = sensors->getVLXInfo(vlx_front);
+
+      if (!CK::kusingROS && CK::debugAdvanceX)
+      {
+        Serial.print("Distancia recorrida advanceXMeters: ");
+        Serial.println(initial - dist);
+      }
     }
   }
   else
   {
+    // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
       updateStraightPID(-kMovementRPMs, straightPidType);
@@ -614,6 +584,12 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       // Get dist reading after correcting angle.
       rearrangeAngle();
       dist = sensors->getVLXInfo(vlx_front);
+
+      if (!CK::kusingROS && CK::debugAdvanceX)
+      {
+        Serial.print("Distancia recorrida advanceXMeters: ");
+        Serial.println(initial - dist);
+      }
     }
   }
 
@@ -712,6 +688,42 @@ void Movement::advanceSlow(bool direction)
   }
 }
 
+void Movement::updateAngleReference()
+{
+  int currAngle = sensors->getAngleX();
+  int currRdir = rDirection;
+  angleDirs[currRdir] = currAngle;
+
+  for (int i = 0; i < 3; i++)
+  {
+    currRdir++;
+    currAngle += 90;
+
+    if (currRdir > 4)
+      currRdir = 0;
+    if (currAngle > 360)
+      currAngle -= 360;
+
+    angleDirs[currRdir] = currAngle;
+  }
+}
+
+void Movement::printAngleReference()
+{
+  if (CK::kusingROS)
+    return;
+
+  Serial.println("0 is north, 1 is east, 2 is south, 3 is west");
+
+  for (int i = 0; i < 4; i++)
+  {
+    Serial.print("Angle: ");
+    Serial.print(angleDirs[i]);
+    Serial.print(" Dir: ");
+    Serial.println(i);
+  }
+}
+
 double Movement::getAngleError(double expectedAngle)
 {
   double angle = sensors->getAngleX();
@@ -724,7 +736,7 @@ double Movement::getAngleError(double expectedAngle)
   return expectedAngle - angle;
 }
 
-double Movement::stabilizePitch()
+double Movement::stabilizePitch(int straightPidType)
 {
   double start = millis();
   double pitch = sensors->getAngleY();
@@ -740,8 +752,14 @@ double Movement::stabilizePitch()
   }
   while (outOfPitch())
   {
-    updateStraightPID(kMovementRPMs, false);
+    if (!CK::kusingROS && CK::debugRamp)
+    {
+      Serial.print("Robot out of stable pitch: ");
+      Serial.println(sensors->getAngleY());
+    }
+    updateStraightPID(kMovementRPMs, straightPidType);
   }
+
   double dt = (millis() - start) / 1000.0;
   dt = dt * (sign ? 1 : -1); // apply sign
   return dt;                 // return dt in seconds.
@@ -772,27 +790,48 @@ double Movement::getDistanceToCenter()
 
 void Movement::goToAngle(int targetAngle)
 {
-
-  double current_angle = bno->getAngleX();
-
-  double diff = bno->getAngleX() - targetAngle;
-
-  while (abs(diff) > 1)
+  if (CK::debugGoToAngle && !CK::kusingROS)
   {
+    Serial.println("Inside goToAngle");
+  }
 
+  double currentAngle = bno->getAngleX();
+
+  double diff = getAngleError(targetAngle);
+
+  while (abs(diff) > 0.1)
+  {
     bool turnRight = false;
-    if (diff > 0 && diff <= 180)
+    if (diff > 0 && diff < 180)
     {
-      turnRight = false;
+      turnRight = true;
     }
     else
     {
-      turnRight = true;
+      turnRight = false;
     }
 
     updateRotatePID(targetAngle, turnRight);
 
-    diff = bno->getAngleX() - targetAngle;
+    diff = getAngleError(targetAngle);
+
+    if (CK::debugGoToAngle && !CK::kusingROS)
+    {
+      Serial.print("Target angle: ");
+      Serial.print(targetAngle);
+      Serial.print(", Diff: ");
+      Serial.print(diff);
+      if (turnRight)
+      {
+        Serial.print(" turning right, angle: ");
+        Serial.println(bno->getAngleX());
+      }
+      else
+      {
+        Serial.print(" turning left, angle: ");
+        Serial.println(bno->getAngleX());
+      }
+    }
   }
 
   stop();
@@ -837,25 +876,25 @@ void Movement::dropDecider(int ros_sign_callback)
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
-void Movement::traverseRamp(int option)
+double Movement::traverseRamp(int option)
 {
   // Advance first if option is set to 1
+  long int start = millis();
 
   if (option == 1)
   {
-    updateStraightPID(kMovementRPMs);
-    delay(1000);
+    while (millis() - start < kAdvanceToRampTime)
+    {
+      updateStraightPID(kMovementRPMs, 0);
+    }
   }
-  double yAngle = sensors->getAngleY();
 
-  while (yAngle > 10 || yAngle < -10)
-  {
-    // double rightVlx =
-    // double leftVlx = sensors->();
-    // updateStraightPID(kMovementRPMs, vlx_right, vlx_left)
-  }
+  double dt = stabilizePitch(0);
 
   stop();
+  resetEncoders();
+
+  return dt;
 }
 
 void Movement::testMotor()
@@ -884,27 +923,7 @@ void Movement::testMotor()
 
 int Movement::dirToAngle(int rdirection)
 {
-  switch (rdirection)
-  {
-  case 0:
-    return 0; // North yaw
-    break;
-
-  case 1:
-    return 90; // East yaw
-    break;
-
-  case 2:
-    return 180; // South yaw
-    break;
-
-  case 3:
-    return 270; // West yaw
-    break;
-
-  default:
-    break;
-  }
+  return angleDirs[rdirection];
 }
 
 int Movement::getTurnDirection(int turn)

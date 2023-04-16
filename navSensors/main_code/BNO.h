@@ -27,6 +27,7 @@ public:
 
   void displaySensorDetails(void);
   void displaySensorStatus(void);
+  void displayCalStatus(void);
 
   void updateEvents();
   float getQuat_x();

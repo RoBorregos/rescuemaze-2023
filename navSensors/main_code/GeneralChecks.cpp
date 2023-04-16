@@ -109,52 +109,58 @@ void GeneralChecks::checkWheelDirections()
     log("Testing all motors");
     delay(1000);
 
+    robot->motor[FRONT_RIGHT].setPWM(100);
+    robot->motor[FRONT_LEFT].setPWM(100);
+    robot->motor[BACK_RIGHT].setPWM(100);
+    robot->motor[BACK_LEFT].setPWM(100);
+
     log("FRONT RIGHT - Forward");
-    robot->motor[FRONT_RIGHT].motorSpeedPID(90);
+    robot->motor[FRONT_RIGHT].motorForward();
     delay(2000);
-    robot->motor[FRONT_RIGHT].motorSpeedPID(0);
+    robot->motor[FRONT_RIGHT].motorStop();
     delay(1000);
 
     log("FRONT RIGHT - Backwards");
-    robot->motor[FRONT_RIGHT].motorSpeedPID(-90);
+    robot->motor[FRONT_RIGHT].motorBackward();
     delay(2000);
-    robot->motor[FRONT_RIGHT].motorSpeedPID(0);
+    robot->motor[FRONT_RIGHT].motorStop();
     delay(1000);
 
     log("FRONT LEFT - Forward");
-    robot->motor[FRONT_LEFT].motorSpeedPID(90);
+    robot->motor[FRONT_LEFT].motorForward();
     delay(2000);
-    robot->motor[FRONT_LEFT].motorSpeedPID(0);
+    robot->motor[FRONT_LEFT].motorStop();
     delay(1000);
 
     log("FRONT LEFT - Backwards");
-    robot->motor[FRONT_LEFT].motorSpeedPID(-90);
+    robot->motor[FRONT_LEFT].motorBackward();
     delay(2000);
-    robot->motor[FRONT_LEFT].motorSpeedPID(0);
+    robot->motor[FRONT_LEFT].motorStop();
     delay(1000);
 
     log("BACK LEFT - Forward");
-    robot->motor[BACK_LEFT].motorSpeedPID(90);
+    robot->motor[BACK_LEFT].motorForward();
     delay(2000);
-    robot->motor[BACK_LEFT].motorSpeedPID(0);
+    robot->motor[BACK_LEFT].motorStop();
     delay(1000);
 
     log("BACK LEFT - Backwards");
-    robot->motor[BACK_LEFT].motorSpeedPID(-90);
+    robot->motor[BACK_LEFT].motorBackward();
     delay(2000);
-    robot->motor[BACK_LEFT].motorSpeedPID(0);
+    robot->motor[BACK_LEFT].motorStop();
     delay(1000);
 
     log("BACK RIGHT - Forward");
-    robot->motor[BACK_RIGHT].motorSpeedPID(90);
+    robot->motor[BACK_RIGHT].motorForward();
     delay(2000);
-    robot->motor[BACK_RIGHT].motorSpeedPID(0);
+    robot->motor[BACK_RIGHT].motorStop();
     delay(1000);
 
     log("BACK RIGHT - Backwards");
-    robot->motor[BACK_RIGHT].motorSpeedPID(-90);
+    robot->motor[BACK_RIGHT].motorBackward();
     delay(2000);
-    robot->motor[BACK_RIGHT].motorSpeedPID(0);
+    robot->motor[BACK_RIGHT].motorStop();
+    ;
     delay(1000);
 }
 
@@ -179,73 +185,20 @@ void GeneralChecks::log(const char *s, bool newLine)
 }
 
 void GeneralChecks::test()
-{   
-    robot->motor[1].motorForward();
+{
+    Serial.println("Specific test");
     while (true){
-        //robot->motor[1].motorSpeedPID(90);
-        robot->motor[1].setPWM(0);
-        Serial.print("Motor backleft PWM: ");
-        Serial.println(robot->motor[1].getPWM());
+        robot->advanceXMeters(0.3, 0);
     }
+    robot->advanceXMeters(0.3, 0);
 
     /*
-    while (true)
-    {
-        if (!CK::kusingROS)
-            Serial.println(robot->sensors->getTCSInfo());
-        // s->rgbTCSClear();
-        // s->rgbTCS();
-        // delay(500);
-        // s->printInfo(false, false, true, false);
-    }
+    robot->cmdMovement(2, 1);
+    delay(1000);
+    robot->cmdMovement(3, 1);
+    end();
     */
-
-    for (int i = 0; i < 1000; i++)
-    {
-        robot->cmdMovement(1, 1);
-        delay(100);
-        robot->cmdMovement(5);
-        delay(100);
-        robot->cmdMovement(4, 1);
-        delay(100);
-        robot->cmdMovement(5);
-        delay(1000);
-    }
-
-    end();
-
-    // Go in circles
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(2, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(2, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(2, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-
-    robot->cmdMovement(2, 1);
-    delay(1000);
-    robot->cmdMovement(2, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(3, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(3, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    delay(1000);
-    robot->cmdMovement(3, 1);
-
-    end();
+   end();
 }
 
 void GeneralChecks::end()
