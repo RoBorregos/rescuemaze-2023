@@ -542,7 +542,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
   if (x > 0)
   {
-    while (dist > target)
+    while (dist > target && dist > 0.03)
     {
       updateStraightPID(kMovementRPMs, straightPidType);
 
