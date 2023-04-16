@@ -37,15 +37,23 @@
 #include <nav_main/GetWallsDist.h>
 #include <openmv_camera/BothCameras.h>
 
-#include "TfBroadcaster.h"
+// #include "TfBroadcaster.h"
 
 #include <string>
+#include <iostream>
 using namespace std;
 
 #include "ClientScope.h"
 
 #define sendMapGoals true
 // #define debugmapgoals true
+
+#ifdef simulateRos
+
+#include <map>
+#include "Map.h"
+
+#endif
 
 class ROSbridge
 {
@@ -75,11 +83,40 @@ private:
     // Timer
     ros::Timer timer;
 
+    bool startedImu;
+    double northYaw;
+    double eastYaw;
+    double southYaw;
+    double westYaw;
+
+    ClientScope scope;
+
+    bool limitSwitchLeft;
+    bool limitSwitchRight;
+
+    // Imu data
+    double xImu;
+    double yImu;
+    double zImu;
+    double wImu;
+    // Roll, pitch, yaw
+    double roll;
+    double pitch;
+    double yaw;
+
+    // VLX data
+    double distVlx;
+    double distLidar;
+
+    double transformYaw;
+
+    double xdistCenter;
+    double ydistCenter;
+
     // ros::Publisher pub;
 
     // Subscribers
     ros::Subscriber tcssub;
-    ros::Subscriber bnoxsub;
     // TODO: Make callback and add to constructor
     ros::Subscriber limitswitchleftsub;
     ros::Subscriber localizationsub;
@@ -102,7 +139,7 @@ private:
     ros::Publisher unitmovementpub;
 
     // Transform broadcaster
-    TfBroadcaster tfb;
+    // TfBroadcaster tfb;
     // tf2_ros::TransformBroadcaster tfbr;
 
     // Transform listenerString
@@ -122,7 +159,6 @@ private:
 
     // Subscriber callbacks
     void tcscallback(const std_msgs::Char::ConstPtr &msg);
-    void bnoxcallback(const std_msgs::Float64::ConstPtr &msg);
     void statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &msg);
     void localizationCallback(const geometry_msgs::Point::ConstPtr &msg);
     void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
@@ -142,54 +178,6 @@ private:
     // Action client functions
     void movementClientAsync(move_base_msgs::MoveBaseGoal goal);
     void sendGoal(geometry_msgs::Pose pose);
-    int sendGoalJetson(int movement, int rDirection);
-
-    int checkUpRamp();
-    int checkDownRamp();
-    int checkBumperStairs();
-
-    void cancelGoal();
-
-    double yawDifference(double yaw1, double yaw2);
-
-public:
-    ClientScope scope;
-    char tcsdata;
-    float bnoxdata;
-    bool limitSwitchLeft;
-    bool limitSwitchRight;
-
-    // Imu data
-    double xImu;
-    double yImu;
-    double zImu;
-    double wImu;
-    // Roll, pitch, yaw
-    double roll;
-    double pitch;
-    double yaw;
-
-    // VLX data
-    double distVlx;
-    double distLidar;
-
-    bool startedImu;
-    double northYaw;
-    double eastYaw;
-    double southYaw;
-    double westYaw;
-
-    double transformYaw;
-
-    double xdistCenter;
-    double ydistCenter;
-
-    bool startAlgorithm;
-
-    ROSbridge(ros::NodeHandle *n);
-
-    void clearMap();
-    int sendUnitGoal(int movement, int rDirection);
     void sendMapGoal(int movement, int rDirection);
 
     // Return values:
@@ -197,23 +185,46 @@ public:
     // 1: Goal reached, white tile
     // 2: Goal reached, blue tile
     int sendMapGoalGOAT(int movement, int rDirection);
+    int sendGoalJetson(int movement, int rDirection);
+
+    int checkUpRamp();
+    int checkDownRamp();
+    int checkBumperStairs();
+
+    void clearMap();
+    void cancelGoal();
+
+    void sendKit();
+
+    double yawDifference(double yaw1, double yaw2);
 
     void goNorth();
     void goEast();
     void goSouth();
     void goWest();
 
+public:
+#ifdef simulateRos
+    Map *mapa;
+#endif
+
+    char tcsdata;
+
+    bool startAlgorithm;
+
+    ROSbridge(ros::NodeHandle *n);
+
+    int sendUnitGoal(int movement, int rDirection);
+
     vector<int> getWalls();
-    void sendKit();
     int getVictims();
 
-    void publishTransform();
     void publishIdealOrientation(int orientation);
 
     void pubDebug(string msg);
 };
 
-ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
+ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
 {
     NOSEUP_PITCH = -0.1;
     NOSEDOWN_PITCH = 0.1;
@@ -243,7 +254,6 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true), tfb(n)
     ROS_INFO("Creating subscribers");
 
     tcssub = nh->subscribe("/sensor/tcs", 1000, &ROSbridge::tcscallback, this);
-    bnoxsub = nh->subscribe("/sensor/bno/x", 1000, &ROSbridge::bnoxcallback, this);
     centersub = nh->subscribe("/center_location", 10, &ROSbridge::localizationCallback, this);
     imusub = nh->subscribe("/imu/data", 10, &ROSbridge::imuCallback, this);
     vlxsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxCallback, this);
@@ -290,12 +300,6 @@ void ROSbridge::tcscallback(const std_msgs::Char::ConstPtr &msg)
     // tcsdata = 'b';
 }
 
-void ROSbridge::bnoxcallback(const std_msgs::Float64::ConstPtr &msg)
-{
-    ROS_INFO("BNO x: %f", msg->data);
-    bnoxdata = msg->data;
-}
-
 void ROSbridge::statusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr &msg)
 {
     ROS_INFO("StatusCallback: %d", msg->status_list[0].status);
@@ -327,7 +331,7 @@ void ROSbridge::imuCallback(const sensor_msgs::Imu::ConstPtr &msg)
         startedImu = true;
         northYaw = yaw;
 
-        tfb.setTransformYaw(yaw);
+        // tfb.setTransformYaw(yaw);
 
         // Range: -pi to pi
         // Clockwise gives smaller values
@@ -392,7 +396,8 @@ void ROSbridge::jetsonResultCallback(const std_msgs::Int16::ConstPtr &msg)
 void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
 {
     ROS_INFO("Start callback: %d", msg->data);
-    startAlgorithm = msg->data;
+    // startAlgorithm = msg->data;
+    startAlgorithm = true;
 }
 
 // Lidar callback
@@ -625,7 +630,7 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
 int ROSbridge::checkUpRamp()
 {
     ros::spinOnce();
-    
+
     // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
     if (distLidar < 0.3 && distLidar - distVlx < 0.1 && distLidar - distVlx > 0.05)
     {
@@ -634,6 +639,8 @@ int ROSbridge::checkUpRamp()
 
         return 1;
     }
+
+    return 0;
 }
 
 // 1: forward
@@ -991,6 +998,8 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
     }
     else if (upRamp)
     {
+        clearMap();
+
         upRamp = false;
         return 5;
     }
@@ -1000,8 +1009,52 @@ int ROSbridge::sendMapGoalGOAT(int movement, int rDirection)
     }
 }
 
+// Return values:
+// 0: Goal not reached, black tile
+// 1: Goal reached, white tile
+// 2: Goal reached, blue tile / obstacle
+// 3: Goal reached, silver tile
+// 4: Goal reached, down ramp
+// 5: Goal reached, up ramp
 int ROSbridge::sendUnitGoal(int movement, int rDirection)
 {
+#ifdef simulateRos
+
+    if (movement != 0)
+    {
+        return 1;
+    }
+
+    map<int, string> invDirections = {
+    {0, "north"},
+    {1, "east"},
+    {2, "south"},
+    {3, "west"}};
+
+    char c = mapa->getChar(invDirections[rDirection]);
+
+    if (c == 'a') // casilla azul
+    {
+        return 2;
+    }
+    else if (c == 'n')
+        return 0;
+    else if (c == 'b') // bumper
+    {
+        return 2;
+    }
+    else if (c == '/') // escaleras
+    {
+        return 2;
+    }
+    else if (c == 'r') // rampa
+    {
+        return (mapa->rampDirection(invDirections[rDirection]) == rDirection) ?  5 : 4;
+    }
+
+    return 1;
+#else
+
     if (true)
     {
         return sendMapGoalGOAT(movement, rDirection);
@@ -1034,24 +1087,24 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
         // use the center location to adjust the goal, using the direction of the robot
         pubDebug("xDist: " + std::to_string(xdistCenter) + " yDist: " + std::to_string(ydistCenter) + " rDir: " + std::to_string(rDirection));
 
-        switch (rDirection)
-        {
-        case 0: // North
-            tfb.setTransformYaw(yawDifference(northYaw, yaw));
-            break;
-        case 1: // East
-            tfb.setTransformYaw(yawDifference(eastYaw, yaw));
-            break;
-        case 2: // South
-            tfb.setTransformYaw(yawDifference(southYaw, yaw));
-            break;
-        case 3: // West
-            tfb.setTransformYaw(yawDifference(westYaw, yaw));
-            break;
-        default:
-            tfb.setTransformYaw(yawDifference(northYaw, yaw));
-            break;
-        }
+        // switch (rDirection)
+        // {
+        // case 0: // North
+        //     tfb.setTransformYaw(yawDifference(northYaw, yaw));
+        //     break;
+        // case 1: // East
+        //     tfb.setTransformYaw(yawDifference(eastYaw, yaw));
+        //     break;
+        // case 2: // South
+        //     tfb.setTransformYaw(yawDifference(southYaw, yaw));
+        //     break;
+        // case 3: // West
+        //     tfb.setTransformYaw(yawDifference(westYaw, yaw));
+        //     break;
+        // default:
+        //     tfb.setTransformYaw(yawDifference(northYaw, yaw));
+        //     break;
+        // }
 
         if (rDirection == 0) // North
         {
@@ -1115,24 +1168,24 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
         //     yawAngle = northYaw - yaw;
         // }
 
-        switch (rDirection)
-        {
-        case 0: // North
-            tfb.setTransformYaw(yawDifference(eastYaw, yaw));
-            break;
-        case 1: // East
-            tfb.setTransformYaw(yawDifference(southYaw, yaw));
-            break;
-        case 2: // South
-            tfb.setTransformYaw(yawDifference(westYaw, yaw));
-            break;
-        case 3: // West
-            tfb.setTransformYaw(yawDifference(northYaw, yaw));
-            break;
+        // switch (rDirection)
+        // {
+        // case 0: // North
+        //     tfb.setTransformYaw(yawDifference(eastYaw, yaw));
+        //     break;
+        // case 1: // East
+        //     tfb.setTransformYaw(yawDifference(southYaw, yaw));
+        //     break;
+        // case 2: // South
+        //     tfb.setTransformYaw(yawDifference(westYaw, yaw));
+        //     break;
+        // case 3: // West
+        //     tfb.setTransformYaw(yawDifference(northYaw, yaw));
+        //     break;
 
-        default:
-            break;
-        }
+        // default:
+        //     break;
+        // }
 
         pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
@@ -1182,43 +1235,43 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
         pose.position.z = 0;
         // pose.orientation = tf::createQuaternionMsgFromYaw(M_PI / 2);
 
-        switch (rDirection)
+        // switch (rDirection)
+        // {
+        // case 0: // North
+        //     tfb.setTransformYaw(yawDifference(westYaw, yaw));
+        //     break;
+        // case 1: // East
+        //     tfb.setTransformYaw(yawDifference(northYaw, yaw));
+        //     break;
+        // case 2: // South
+        //     tfb.setTransformYaw(yawDifference(eastYaw, yaw));
+        //     break;
+        // case 3: // West
+        //     tfb.setTransformYaw(yawDifference(southYaw, yaw));
+        //     break;
+        // }
+
+        // // Calculate angle to get 90 degree turn
+        double yawAngle;
+
+        if (rDirection == 0) // North
         {
-        case 0: // North
-            tfb.setTransformYaw(yawDifference(westYaw, yaw));
-            break;
-        case 1: // East
-            tfb.setTransformYaw(yawDifference(northYaw, yaw));
-            break;
-        case 2: // South
-            tfb.setTransformYaw(yawDifference(eastYaw, yaw));
-            break;
-        case 3: // West
-            tfb.setTransformYaw(yawDifference(southYaw, yaw));
-            break;
+            yawAngle = westYaw;
+        }
+        else if (rDirection == 1) // East
+        {
+            yawAngle = northYaw;
+        }
+        else if (rDirection == 2) // South
+        {
+            yawAngle = eastYaw;
+        }
+        else if (rDirection == 3) // West
+        {
+            yawAngle = southYaw;
         }
 
-        // Calculate angle to get 90 degree turn
-        /*   double yawAngle;
-
-          if (rDirection == 0) // North
-          {
-              yawAngle = westYaw;
-          }
-          else if (rDirection == 1) // East
-          {
-              yawAngle = northYaw;
-          }
-          else if (rDirection == 2) // South
-          {
-              yawAngle = eastYaw;
-          }
-          else if (rDirection == 3) // West
-          {
-              yawAngle = southYaw;
-          }
-
-      //    */
+        //    */
         pose.orientation = tf::createQuaternionMsgFromYaw(0);
     }
 
@@ -1239,6 +1292,8 @@ int ROSbridge::sendUnitGoal(int movement, int rDirection)
     sendGoal(pose);
 
     return 0;
+
+#endif
 }
 
 void ROSbridge::sendMapGoal(int movement, int rDirection)
@@ -1437,6 +1492,291 @@ void ROSbridge::sendMapGoal(int movement, int rDirection)
     movementClientAsync(goal);
 }
 
+void ROSbridge::cancelGoal()
+{
+    ac.cancelAllGoals();
+}
+
+void ROSbridge::clearMap()
+{
+    ROS_INFO("Clearing map");
+
+    std_srvs::Empty empty;
+    std_srvs::Trigger trigger;
+
+    moveBaseMapResetClient.call(empty);
+    hsMapReset.call(trigger);
+
+    ROS_INFO("Cleared map");
+}
+
+#ifdef simulateRos
+
+vector<int> ROSbridge::getWalls()
+{
+    ROS_INFO("Getting walls");
+
+    // {front, right, back, left}
+    vector<int> wallsVector = {0, 0, 0, 0};
+
+    wallsVector[0] = (mapa->getChar("north") == '#') ? 1 : 0;
+    wallsVector[1] = (mapa->getChar("east") == '#') ? 1 : 0;
+    wallsVector[2] = (mapa->getChar("south") == '#') ? 1 : 0;
+    wallsVector[3] = (mapa->getChar("west") == '#') ? 1 : 0;
+
+    return wallsVector;
+}
+
+#else
+
+vector<int> ROSbridge::getWalls()
+{
+    ROS_INFO("Getting walls");
+
+    nav_main::GetWalls walls;
+    wallsClient.call(walls);
+
+    ROS_INFO("Got walls front:%d, right: %d, back: %d, left: %d", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+
+    vector<int> wallsVector = {walls.response.front, walls.response.right, walls.response.back, walls.response.left};
+
+    return wallsVector;
+}
+
+#endif
+
+void ROSbridge::sendKit()
+{
+    ROS_INFO("Sending kit");
+
+    std_msgs::String msg;
+    msg.data = "1";
+    dispenserpub.publish(msg);
+}
+
+/* void ROSbridge::publishTransform()
+{
+ros::spinOnce();
+transformStamped.header.stamp = ros::Time::now();
+// if (xdistCenter != 31)
+// {
+//     transformStamped.transform.translation.x = xdistCenter * 0.01;
+// }
+// else
+// {
+//     transformStamped.transform.translation.x = 0;
+// }
+// if (ydistCenter != 31)
+// {
+//     transformStamped.transform.translation.y = ydistCenter * 0.01;
+// }
+// else
+// {
+//     transformStamped.transform.translation.y = 0;
+// }
+// transformStamped.transform.translation.z = 0.0;
+
+transformStamped.transform.translation.x = 0;
+transformStamped.transform.translation.y = 0;
+transformStamped.transform.translation.z = 0.0;
+
+ROS_INFO("Yaw: %f, transformYaw: %f", yaw, transformYaw);
+
+if (true)
+{
+    transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(transformYaw - yaw);
+}
+// else
+// {
+//     transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(yaw - transformYaw);
+// }
+
+tfbr.sendTransform(transformStamped);
+} */
+
+#ifdef simulateRos
+
+int ROSbridge::getVictims()
+{
+    // Get victims from current position in map
+    if (mapa->getCurrentChar() == 'H' || mapa->getCurrentChar() == 'S')
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+#else
+
+int ROSbridge::getVictims()
+{
+    // Normal tile, check victim
+    openmv_camera::BothCameras bothCameras;
+
+    victimsClient.call(bothCameras);
+
+    if (bothCameras.response.left_cam == "H")
+    {
+        // Drop three kits to the left
+        std_msgs::Int16 msg;
+        msg.data = -3;
+        dispenserpub.publish(msg);
+
+        ros::Duration(6).sleep();
+
+        return 3;
+    }
+    else if (bothCameras.response.right_cam == "H")
+    {
+        // Drop three kits to the right
+        std_msgs::Int16 msg;
+        msg.data = 3;
+        dispenserpub.publish(msg);
+
+        ros::Duration(6).sleep();
+
+        return 3;
+    }
+    else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
+    {
+        // Drop two kits to the left
+        std_msgs::Int16 msg;
+        msg.data = -2;
+        dispenserpub.publish(msg);
+
+        ros::Duration(4).sleep();
+
+        return 2;
+    }
+    else if (bothCameras.response.right_cam == "S")
+    {
+        // Drop two kits to the right
+        std_msgs::Int16 msg;
+        msg.data = 2;
+        dispenserpub.publish(msg);
+
+        ros::Duration(4).sleep();
+
+        return 2;
+    }
+    else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
+    {
+        // Drop one kit to the left
+        std_msgs::Int16 msg;
+        msg.data = -1;
+        dispenserpub.publish(msg);
+
+        ros::Duration(2).sleep();
+
+        return 1;
+    }
+    else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
+    {
+        // Drop one kit to the right
+        std_msgs::Int16 msg;
+        msg.data = 1;
+        dispenserpub.publish(msg);
+
+        ros::Duration(2).sleep();
+
+        return 1;
+    }
+
+    return 0;
+}
+
+#endif
+
+void ROSbridge::pubDebug(string m)
+{
+    if (debugging)
+    {
+        cout << m << endl;
+        // std_msgs::String msg;
+        // msg.data = m;
+        // debugpub.publish(msg);
+    }
+}
+
+double ROSbridge::yawDifference(double targetYaw, double originYaw)
+{
+    // return fmod(yaw1 - yaw2 + M_PI, 2 * M_PI) - M_PI;
+    // return fmod(targetYaw - originYaw + M_PI, 2 * M_PI) - M_PI;
+
+    // return yaw1 - yaw2;
+    // return targetYaw - originYaw;
+
+    double diff = targetYaw - originYaw;
+    // return atan2(sin(diff), cos(diff));
+
+    // if (diff > M_PI)
+    // {
+    //     diff -= 2 * M_PI;
+    // }
+    // else if (diff < -M_PI)
+    // {
+    //     diff += 2 * M_PI;
+    // }
+    return diff;
+}
+
+#ifdef simulateRos
+
+void ROSbridge::publishIdealOrientation(int orientation)
+{
+}
+
+#else
+
+void ROSbridge::publishIdealOrientation(int orientation)
+{
+    double radians = 0;
+    /* switch (orientation)
+    {
+        case 0: // north
+            radians = northYaw;
+            break;
+
+        case 1: // east
+            radians = eastYaw;
+            break;
+
+        case 2: // south
+            radians = southYaw;
+            break;
+
+        case 3: // west
+            radians = westYaw;
+            break;
+
+        default:
+            break;
+    } */
+    switch (orientation)
+    {
+    case 0: // north
+        radians = 0;
+        break;
+    case 1: // east
+        radians = -M_PI / 2;
+        break;
+    case 2: // south
+        radians = M_PI;
+        break;
+    case 3: // west
+        radians = M_PI / 2;
+        break;
+    }
+    std_msgs::Float64 msg;
+    msg.data = radians;
+    orientationpub.publish(msg);
+    // Log Ideal Orientation
+    ROS_INFO("Ideal Orientation: %f", radians);
+}
+
+#endif
+
 void ROSbridge::goNorth()
 {
     ROS_INFO("Going north");
@@ -1539,240 +1879,4 @@ void ROSbridge::goWest()
     goal.target_pose.pose.orientation = tf::createQuaternionMsgFromYaw(northYaw);
 
     movementClientAsync(goal);
-}
-
-void ROSbridge::cancelGoal()
-{
-    ac.cancelAllGoals();
-}
-
-void ROSbridge::clearMap()
-{
-    ROS_INFO("Clearing map");
-
-    std_srvs::Empty empty;
-    std_srvs::Trigger trigger;
-
-    moveBaseMapResetClient.call(empty);
-    hsMapReset.call(trigger);
-
-    ROS_INFO("Cleared map");
-}
-
-vector<int> ROSbridge::getWalls()
-{
-    ROS_INFO("Getting walls");
-
-    nav_main::GetWalls walls;
-    wallsClient.call(walls);
-
-    ROS_INFO("Got walls front:%d, right: %d, back: %d, left: %d", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
-
-    vector<int> wallsVector = {walls.response.front, walls.response.right, walls.response.back, walls.response.left};
-
-    return wallsVector;
-}
-
-void ROSbridge::sendKit()
-{
-    ROS_INFO("Sending kit");
-
-    std_msgs::String msg;
-    msg.data = "1";
-    dispenserpub.publish(msg);
-}
-
-/* void ROSbridge::publishTransform()
-{
-ros::spinOnce();
-transformStamped.header.stamp = ros::Time::now();
-// if (xdistCenter != 31)
-// {
-//     transformStamped.transform.translation.x = xdistCenter * 0.01;
-// }
-// else
-// {
-//     transformStamped.transform.translation.x = 0;
-// }
-// if (ydistCenter != 31)
-// {
-//     transformStamped.transform.translation.y = ydistCenter * 0.01;
-// }
-// else
-// {
-//     transformStamped.transform.translation.y = 0;
-// }
-// transformStamped.transform.translation.z = 0.0;
-
-transformStamped.transform.translation.x = 0;
-transformStamped.transform.translation.y = 0;
-transformStamped.transform.translation.z = 0.0;
-
-ROS_INFO("Yaw: %f, transformYaw: %f", yaw, transformYaw);
-
-if (true)
-{
-    transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(transformYaw - yaw);
-}
-// else
-// {
-//     transformStamped.transform.rotation = tf::createQuaternionMsgFromYaw(yaw - transformYaw);
-// }
-
-tfbr.sendTransform(transformStamped);
-} */
-
-int ROSbridge::getVictims()
-{
-    // Normal tile, check victim
-    openmv_camera::BothCameras bothCameras;
-
-    victimsClient.call(bothCameras);
-
-    if (bothCameras.response.left_cam == "H")
-    {
-        // Drop three kits to the left
-        std_msgs::Int16 msg;
-        msg.data = -3;
-        dispenserpub.publish(msg);
-
-        ros::Duration(6).sleep();
-
-        return 3;
-    }
-    else if (bothCameras.response.right_cam == "H")
-    {
-        // Drop three kits to the right
-        std_msgs::Int16 msg;
-        msg.data = 3;
-        dispenserpub.publish(msg);
-
-        ros::Duration(6).sleep();
-
-        return 3;
-    }
-    else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
-    {
-        // Drop two kits to the left
-        std_msgs::Int16 msg;
-        msg.data = -2;
-        dispenserpub.publish(msg);
-
-        ros::Duration(4).sleep();
-
-        return 2;
-    }
-    else if (bothCameras.response.right_cam == "S")
-    {
-        // Drop two kits to the right
-        std_msgs::Int16 msg;
-        msg.data = 2;
-        dispenserpub.publish(msg);
-
-        ros::Duration(4).sleep();
-
-        return 2;
-    }
-    else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
-    {
-        // Drop one kit to the left
-        std_msgs::Int16 msg;
-        msg.data = -1;
-        dispenserpub.publish(msg);
-
-        ros::Duration(2).sleep();
-
-        return 1;
-    }
-    else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
-    {
-        // Drop one kit to the right
-        std_msgs::Int16 msg;
-        msg.data = 1;
-        dispenserpub.publish(msg);
-
-        ros::Duration(2).sleep();
-
-        return 1;
-    }
-
-    return 0;
-}
-
-void ROSbridge::pubDebug(string m)
-{
-    if (debugging)
-    {
-        std_msgs::String msg;
-        msg.data = m;
-        debugpub.publish(msg);
-    }
-}
-
-double ROSbridge::yawDifference(double targetYaw, double originYaw)
-{
-    // return fmod(yaw1 - yaw2 + M_PI, 2 * M_PI) - M_PI;
-    // return fmod(targetYaw - originYaw + M_PI, 2 * M_PI) - M_PI;
-
-    // return yaw1 - yaw2;
-    // return targetYaw - originYaw;
-
-    double diff = targetYaw - originYaw;
-    // return atan2(sin(diff), cos(diff));
-
-    // if (diff > M_PI)
-    // {
-    //     diff -= 2 * M_PI;
-    // }
-    // else if (diff < -M_PI)
-    // {
-    //     diff += 2 * M_PI;
-    // }
-    return diff;
-}
-
-void ROSbridge::publishIdealOrientation(int orientation)
-{
-    double radians = 0;
-    /* switch (orientation)
-    {
-        case 0: // north
-            radians = northYaw;
-            break;
-
-        case 1: // east
-            radians = eastYaw;
-            break;
-
-        case 2: // south
-            radians = southYaw;
-            break;
-
-        case 3: // west
-            radians = westYaw;
-            break;
-
-        default:
-            break;
-    } */
-    switch (orientation)
-    {
-    case 0: // north
-        radians = 0;
-        break;
-    case 1: // east
-        radians = -M_PI / 2;
-        break;
-    case 2: // south
-        radians = M_PI;
-        break;
-    case 3: // west
-        radians = M_PI / 2;
-        break;
-    }
-    std_msgs::Float64 msg;
-    msg.data = radians;
-    orientationpub.publish(msg);
-    // Log Ideal Orientation
-    ROS_INFO("Ideal Orientation: %f", radians);
 }

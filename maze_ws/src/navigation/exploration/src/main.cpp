@@ -1,4 +1,4 @@
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include <iostream>
 #include <vector>
 #include <utility>
@@ -13,16 +13,9 @@
 
 using namespace std;
 
-// Move Base
-#include "move_base_msgs/MoveBaseAction.h"
-#include "actionlib/client/simple_action_client.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-#include "tf/transform_datatypes.h"
+#define simulateRos true
 
 #include "Tile.h"
-// #include "Movement.h"
 #include "Map.h"
 #include "Dijkstra.h"
 #include "ROSbridge.h"
@@ -30,7 +23,7 @@ using namespace std;
 // 0: north, 1: east, 2: south, 3: west
 int rDirection = 0;
 
-#define mapSimDebug false
+#define mapSimDebug true
 #define useros true
 #define rosDebug true
 #define canMoveBackward false
@@ -49,13 +42,36 @@ map<int, string> invDirections = {
     {2, "south"},
     {3, "west"}};
 
+void printTile(Tile *tile)
+{
+    if (!rosDebug)
+        return;
+
+    bridge->pubDebug(" ");
+    bridge->pubDebug("Tile: " + posvectorToString(tile->pos) + "       Adjacent Tiles:");
+
+    for (auto i : tile->adjacentTiles)
+    {
+        if (!i.second)
+            continue;
+
+        bridge->pubDebug("    Tile: " + i.first + ", " + to_string(i.second->pos[0]) + ", " + to_string(i.second->pos[1]) + ", " + to_string(i.second->pos[2]));
+        // ROS_INFO("Tile: %s, %d, %d, %d", i.first.c_str(), i.second->pos[0], i.second->pos[1], i.second->pos[2]);
+    }
+}
+
 int moveForward(int &rDirection, Map &mapa)
 {
     // cout << "forward" << endl;
     ROS_INFO("Move: ");
     ROS_INFO("         forward");
 
+#ifndef simulateRos
+
     ros::Duration(1).sleep();
+
+#endif
+
     int result = bridge->sendUnitGoal(0, rDirection);
     // bridge->publishIdealOrientation(rDirection);
 
@@ -75,8 +91,13 @@ void right(int &rDirection, Map &mapa)
     // cout << "right" << endl;
     ROS_INFO("right");
 
-    // bridge->publishIdealOrientation(rDirection);
+// bridge->publishIdealOrientation(rDirection);
+#ifndef simulateRos
+
     ros::Duration(1).sleep();
+
+#endif
+
     bridge->sendUnitGoal(1, rDirection);
     (rDirection == 3) ? rDirection = 0 : rDirection++;
     bridge->publishIdealOrientation(rDirection);
@@ -113,8 +134,13 @@ void left(int &rDirection, Map &mapa)
     ROS_INFO(" Move: ");
     ROS_INFO("      left");
 
-    // bridge->publishIdealOrientation(rDirection);
+// bridge->publishIdealOrientation(rDirection);
+#ifndef simulateRos
+
     ros::Duration(1).sleep();
+
+#endif
+
     bridge->sendUnitGoal(3, rDirection);
     (rDirection == 0) ? rDirection = 3 : rDirection--;
     bridge->publishIdealOrientation(rDirection);
@@ -185,7 +211,7 @@ int moveEast(int &xMaze, int &rDirection, Map &mapa)
 // Mueve el robot hacia el oeste
 int moveWest(int &xMaze, int &rDirection, Map &mapa)
 {
-    // cout << "moveWest" << endl;
+    cout << "moveWest" << endl;
 
     if (canMoveBackward && rDirection == 1)
         moveBackward(rDirection, mapa);
@@ -201,7 +227,8 @@ void calcPos(vector<int> &pos, string key, Map &mapa)
     if (!useros)
         rampDir = mapa.rampDirection(key);
     else
-        rampDir = mapa.tile->rampa;
+        rampDir = -1;
+    // rampDir = mapa.tiles[posvectorToString(pos)]->rampDirection(key);
 
     if (key == "north")
     {
@@ -254,8 +281,9 @@ void calcPos(vector<int> &pos, string key, Map &mapa)
 }
 
 // Mueve el robot hacia la direccion indicada por key y regresa el tile al que se movio
-Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map &mapa)
+Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map &mapa, stack<string> &path)
 {
+    printTile(tile);
     if (tile->adjacentTiles[key])
     {
         int goalResult = 0;
@@ -283,6 +311,8 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
         //     // ros::ServiceClient client = n.serviceClient<std_srvs::Trigger>("reset_map");
         // }
 
+        bridge->pubDebug("Goal result: " + to_string(goalResult));
+
         // Change tile properties based on goal result
         if (goalResult == 0) // Black tile
         {
@@ -302,23 +332,107 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             tile->weight = 100;
         }
 
-        if (goalResult == 4) // down ramp tile 
+        if (goalResult == 4) // down ramp tile
         {
-            tile->adjacentTiles[key]->rampa = rDirection + 2 % 4;
+            bridge->pubDebug("Down ramp");
+
+            if (!tile->adjacentTiles[key]->defined)
+            {
+                tile->adjacentTiles[key]->rampa = (rDirection + 2) % 4;
+
+                // Check if there's a tile on the other side of the ramp
+                vector<int> newPos = tile->adjacentTiles[key]->pos;
+                calcPos(newPos, key, mapa);
+
+                newPos[2]--;
+
+                if (mapa.tiles.count(posvectorToString(newPos)))
+                {
+                    tile->adjacentTiles[key]->appendTile(mapa.tiles[posvectorToString(newPos)], key);
+                }
+                else
+                {
+                    Tile *newTile = new Tile();
+                    newTile->pos = newPos;
+
+                    mapa.tiles.insert({posvectorToString(newPos), newTile});
+
+                    tile->adjacentTiles[key]->appendTile(newTile, key);
+                }
+            }
+
+            mapa.pos = tile->adjacentTiles[key]->adjacentTiles[key]->pos;
+
+            bridge->pubDebug("Current pos: " + posvectorToString(mapa.pos));
+
+            if (simulateRos || !useros)
+            {
+                mapa.moveMaze(key);
+                mapa.moveMaze(key);
+            }
+
+            if (path.size() > 1)
+                path.pop();
+
+            return tile->adjacentTiles[key]->adjacentTiles[key];
         }
         else if (goalResult == 5) // up ramp tile
         {
-            tile->adjacentTiles[key]->rampa = rDirection;
+            bridge->pubDebug("Up ramp");
+
+            if (!tile->adjacentTiles[key]->defined)
+            {
+                tile->adjacentTiles[key]->rampa = rDirection;
+
+                // Check if there's a tile on the other side of the ramp
+                vector<int> newPos = tile->adjacentTiles[key]->pos;
+                calcPos(newPos, key, mapa);
+
+                newPos[2]++;
+
+                if (mapa.tiles.count(posvectorToString(newPos)))
+                {
+                    tile->adjacentTiles[key]->appendTile(mapa.tiles[posvectorToString(newPos)], key);
+                }
+                else
+                {
+                    Tile *newTile = new Tile();
+                    newTile->pos = newPos;
+
+                    mapa.tiles.insert({posvectorToString(newPos), newTile});
+
+                    tile->adjacentTiles[key]->appendTile(newTile, key);
+                }
+            }
+
+            bridge->pubDebug("Current pos ramp: " + posvectorToString(mapa.pos));
+            mapa.pos = tile->adjacentTiles[key]->adjacentTiles[key]->pos;
+
+            bridge->pubDebug("New pos ramp: " + posvectorToString(mapa.pos));
+
+            if (simulateRos || !useros)
+            {
+                mapa.moveMaze(key);
+                mapa.moveMaze(key);
+            }
+
+            if (path.size() > 1)
+                path.pop();
+
+            return tile->adjacentTiles[key]->adjacentTiles[key];
         }
+
+        tile->adjacentTiles[key]->defined = true;
 
         calcPos(mapa.pos, key, mapa);
 
-        if (!useros)
+        if (!useros || simulateRos)
             mapa.moveMaze(key);
 
         return tile->adjacentTiles[key];
     }
 
+    bridge->pubDebug("No tile in that direction");
     return nullptr;
 }
 
@@ -349,6 +463,15 @@ int getDistance(string key, Map &mapa)
 
 bool isWall(string key) // use ros
 {
+#ifdef simulateRos
+    if (bridge->getWalls()[directions[key]])
+    {
+        return true;
+    }
+
+    return false;
+#else
+
     int index = (directions[key] - rDirection); // Correct according to robot direction
 
     while (index < 0)
@@ -358,6 +481,8 @@ bool isWall(string key) // use ros
         return true;
 
     return false;
+
+#endif
 }
 
 bool isWall(string key, Map &mapa)
@@ -387,10 +512,10 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 {
     while (!path.empty())
     {
-        tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa);
+        bridge->pubDebug("Move to the: " + path.top());
+        tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa, path);
         // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
         // ROS_INFO("Move to the: %s", path.top().c_str());
-        bridge->pubDebug("Move to the: " + path.top());
         path.pop();
     }
 
@@ -628,24 +753,6 @@ void printMapRos(const Map &map)
     }
 }
 
-void printTile(Tile *tile)
-{
-    if (!rosDebug)
-        return;
-
-    bridge->pubDebug(" ");
-    bridge->pubDebug("Tile: " + posvectorToString(tile->pos) + "       Adjacent Tiles:");
-
-    for (auto i : tile->adjacentTiles)
-    {
-        if (!i.second)
-            continue;
-
-        bridge->pubDebug("    Tile: " + i.first + ", " + to_string(i.second->pos[0]) + ", " + to_string(i.second->pos[1]) + ", " + to_string(i.second->pos[2]));
-        // ROS_INFO("Tile: %s, %d, %d, %d", i.first.c_str(), i.second->pos[0], i.second->pos[1], i.second->pos[2]);
-    }
-}
-
 void printMap(Map &mapa)
 {
     if (!rosDebug)
@@ -669,12 +776,11 @@ void explore(bool checkpoint, int argc, char **argv)
     Map mapa;
     Tile *startTile;
 
-    // Cargar checkpoint
-    std::ifstream ifs("~/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
-    boost::archive::text_iarchive ia(ifs);
-
     try
     {
+        // Cargar checkpoint
+        std::ifstream ifs("~/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
+        boost::archive::text_iarchive ia(ifs);
         ia >> mapa;
         ROS_INFO("Checkpoint loaded");
 
@@ -687,11 +793,15 @@ void explore(bool checkpoint, int argc, char **argv)
     catch (const boost::archive::archive_exception &e)
     {
         ROS_INFO("No checkpoint found");
-        
+
         startTile = mapa.tile;
         startTile->visited = true;
         mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
     }
+
+#ifdef simulateRos
+    bridge->mapa = &mapa;
+#endif
 
     printMap(mapa);
 
@@ -721,8 +831,9 @@ void explore(bool checkpoint, int argc, char **argv)
         // publishIdealOrientation
 
         mapa.tile->visited = true;
-        
-        // Se revisan las casillas adyacentes 
+        mapa.setVisitedChar();
+
+        // Se revisan las casillas adyacentes
         for (auto &&key : keys)
         {
             if (rosDebug)
@@ -772,7 +883,7 @@ void explore(bool checkpoint, int argc, char **argv)
                         // ROS_INFO("Wall detected");
                         mapa.tile->walls[key] = true;
                     }
-                    else if (!useros && c == 'n') 
+                    else if (!useros && c == 'n')
                     {
                         // ROS_INFO("Black tile detected");
                         mapa.tile->walls[key] = true;
@@ -808,7 +919,6 @@ void explore(bool checkpoint, int argc, char **argv)
             }
         }
 
-
         if (rosDebug)
         {
             bridge->pubDebug("Unvisited tiles: " + to_string(mapa.unvisited.size()));
@@ -837,15 +947,15 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
         printTile(mapa.tile);
 
-        if (useros && checkVictims())
+        if (useros && mapa.tile->victim == 0 && checkVictims())
+        {
+            mapa.tile->victim = 1;
+        }
 
         if (!useros && mapa.tile->victim != 0)
         {
-            // ROS_INFO("Victim found");
-            bridge->sendKit();
-            mapa.tile->victim = 0;
         }
-        
+
         {
             std::ofstream ofs("./checkpoint.txt");
             boost::archive::text_oarchive oa(ofs);
@@ -854,13 +964,13 @@ void explore(bool checkpoint, int argc, char **argv)
             // ROS_INFO("Checkpoint saved");
         }
 
-        if (mapSimDebug)
+        if (false)
             mapa.printMaze(rDirection);
         // system("pause");
         // cin.get();
 
-        if (useros)
-            printMapRos(mapa);
+        // if (useros)
+        //     printMapRos(mapa);
 
         if (mapa.unvisited.empty())
         {
@@ -878,131 +988,25 @@ void explore(bool checkpoint, int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "mainAlgorithm");
-    ros::NodeHandle *n = new ros::NodeHandle();
-
-    bridge = new ROSbridge(n);
-
-    bridge->pubDebug("Starting main algorithm");
-
-    while (!bridge->startAlgorithm)
-    {
-        ros::spinOnce();
-    }
-
     try
     {
-        if (bridge->tcsdata == 1) // Checkpoint
-        {
-            explore(false, argc, argv);
-            // explore(true, argc, argv);
-        }
-        else
-        {
-            explore(false, argc, argv);
-        }
+        ros::init(argc, argv, "mainAlgorithm");
+        ros::NodeHandle *n = new ros::NodeHandle();
+
+        bridge = new ROSbridge(n);
+
+        bridge->pubDebug("Starting main algorithm");
+
+        // while (!bridge->startAlgorithm)
+        // {
+        //     ros::spinOnce();
+        // }
+        explore(false, argc, argv);
     }
-    catch (const std::exception &e)
+    catch (const ros::Exception &e)
     {
         std::cerr << e.what() << '\n';
     }
-
-    // ros::ServiceServer service = n.advertiseService("trigger", sendInstruction);
-    // ROS_INFO("Ready to send instruction.");
-
-    // curInstruction = "";
-
-    /*     vector<Tile *> unvisited;
-        Tile *tile = new Tile(vector<int>{0, 0, 0}, 1, 0);
-
-        // InstructionServer server(argc, argv);
-
-        printMaze(rDirection);
-        // explore(tile, unvisited, server);
-
-        Tile *startTile = tile;
-        Tile *newTile = nullptr;
-        vector<string> keys = {"north", "east", "south", "west"};
-
-        vector<int> pos = {0, 0, 0};
-        vector<int> newPos = pos;
-
-        map<string, Tile *> tiles = {{posvectorToString(pos), startTile}};
-
-        char c;
-
-        stack<string> path;
-
-        int steps = 2;
-
-        do
-        {
-            tile->visited = true;
-            for (auto &&key : keys)
-            {
-                newPos = pos;
-
-                if (tile->adjacentTiles[key] == nullptr && !tile->walls[key])
-                {
-                    c = getChar(key);
-
-                    calcPos(newPos, key);
-
-                    if (tiles.count(posvectorToString(newPos)))
-                    {
-                        newTile = tiles.at(posvectorToString(newPos)); // Ya existe una tile para esa casilla
-
-                        tile->appendTile(newTile, key);
-                    }
-                    else // no existe tile
-                    {
-                        if (isWall(key))
-                        {
-                            tile->walls[key] = true;
-                        }
-                        else if (c == 'n')
-                        {
-                            tile->walls[key] = true;
-                        }
-                        else
-                        {
-                            newTile = createTile(newPos, c, key, pos);
-                            tile->appendTile(newTile, key);
-                            unvisited.push_back(newTile);
-
-                            tiles.insert({posvectorToString(newPos), newTile});
-                            if (newTile->rampa != -1)
-                            {
-                                newPos[2] = pos[2];
-                                tiles.insert({posvectorToString(newPos), newTile});
-                            }
-
-                            steps = 2;
-                        }
-                    }
-                }
-            }
-
-            path = bestUnvisited(tile, unvisited, tiles, keys);
-            tile = followPath(path, tile, pos);
-
-            if (DEBUG)
-                printMaze(rDirection);
-            // system("pause");
-            // cin.get();
-
-            if (unvisited.empty())
-            {
-                steps--;
-            }
-
-        } while (ros::ok() && steps > 0);
-
-        unvisited.push_back(startTile);
-        path = bestUnvisited(tile, unvisited, tiles, keys);
-        tile = followPath(path, tile, pos);
-
-        printMaze(rDirection); */
 
     return 0;
 }
