@@ -335,7 +335,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 int Movement::cmdMovement(const int action, const int option)
 {
-  if (firstMove)
+  if (firstMove && !CK::kusingROS)
   {
     firstMove = false;
     updateAngleReference();

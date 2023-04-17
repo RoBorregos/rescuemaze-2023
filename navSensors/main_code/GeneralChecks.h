@@ -18,6 +18,8 @@ private:
     Movement *robot;
     bool publishRos;
 
+    double dtToS(long int dt);
+
 public:
     // Constructor
     // @param *robot Pointer to the Movement instance that will be used to control the robot.
@@ -36,6 +38,9 @@ public:
 
     // Run basic unitary movements using cmd Movement.
     void checkUnitaryMovements();
+
+    // Print the time it takes to execute commands.
+    void checkDT();
 
     // Run the basic tests.
     void checkAll();
