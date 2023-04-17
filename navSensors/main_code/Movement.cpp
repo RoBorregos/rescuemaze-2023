@@ -162,14 +162,6 @@ void Movement::initRobot()
   }
 
   dispenser.initServo();
-
-  initLeds();
-}
-
-void Movement::initLeds()
-{
-  pinMode(kDigitalPinsLEDS[0], OUTPUT);
-  pinMode(kDigitalPinsLEDS[1], OUTPUT);
 }
 
 // Encoder Functions
@@ -343,19 +335,18 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 int Movement::cmdMovement(const int action, const int option)
 {
+  if (firstMove)
+  {
+    firstMove = false;
+    updateAngleReference();
+    Serial.println("Updated angle reference");
+  }
+
   switch (action)
   {
   case 1:
     // Move forward 1 unit.
-    if (option == 1)
-    {
-      advanceXMeters(0.3, option);
-    }
-    else
-    {
-      advanceXMeters(0.3, option);
-    }
-    return 1;
+    return advanceXMeters(0.3, option);
     break;
 
   case 2:
@@ -372,9 +363,8 @@ int Movement::cmdMovement(const int action, const int option)
 
   case 4:
     // Move back 1 unit
-    advanceXMeters(-0.3, option);
+    return advanceXMeters(-0.3, option);
 
-    return 1;
     break;
   case 5:
     // Rearrange in tile. Use VLX and BNO.
@@ -434,7 +424,7 @@ void Movement::rotateRobot(int option, int dir)
     delay(kMillisBackAccomodate);
 
     // Move to center of tile
-    advanceXMeters(0.05, true);
+    advanceXMeters(0.03, true);
   }
   stop();
   resetEncoders();
@@ -518,8 +508,11 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
 
 bool Movement::checkColor()
 {
+  sensors->toggleRightLed();
   char c = sensors->getTCSInfo();
-
+  Serial.print("TCS info:");
+  Serial.println(c);
+  sensors->toggleRightLed();
   return c == 'N';
 }
 
@@ -542,7 +535,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
   if (x > 0)
   {
-    while (dist > target)
+    while (dist > target && dist > 0.03)
     {
       updateStraightPID(kMovementRPMs, straightPidType);
 
@@ -556,12 +549,15 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
           return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
       }
 
-      if (millis() - lastTCS > checkTCSTimer)
+      if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
       {
         lastTCS = millis();
         if (checkColor())
         {
-          return advanceXMeters(dist - initial, straightPidType, true);
+          dist = sensors->getVLXInfo(vlx_front);
+          stop();
+          return 0;
+          // return advanceXMeters(dist - initial, straightPidType, true);
         }
       }
 
@@ -576,6 +572,10 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   }
   else
   {
+    // Use to check if robot is stuck.
+    double changeT = millis();
+    double prevDist = dist;
+
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
@@ -583,6 +583,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       // Get dist reading after correcting angle.
       rearrangeAngle();
+
       dist = sensors->getVLXInfo(vlx_front);
 
       if (!CK::kusingROS && CK::debugAdvanceX)
@@ -590,11 +591,32 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
         Serial.print("Distancia recorrida advanceXMeters: ");
         Serial.println(initial - dist);
       }
+
+      // If robot hasn't moved significantly in backStuckTimer, break.
+      if (millis() - changeT > backStuckTimer)
+      {
+        if (abs(prevDist - dist) < 0.02)
+        {
+          break;
+        }
+        else
+        {
+          changeT = millis();
+        }
+      }
+
+      prevDist = dist;
     }
   }
 
   stop();
   resetEncoders();
+
+  if (!CK::kusingROS && CK::debugAdvanceX)
+  {
+    Serial.print("Distancia final recorrida advanceXMeters: ");
+    Serial.println(initial - dist);
+  }
 
   // Indicate the robot went backwards because of black tile.
   if (forceBackward)
@@ -863,7 +885,7 @@ void Movement::updateRotatePID(int targetAngle, bool right)
 // Gets sign which refers to where should a kit be dropped
 void Movement::dropDecider(int ros_sign_callback)
 {
-  digitalWrite(kDigitalPinsLEDS[1], HIGH);
+  sensors->toggleRightLed();
 
   double time = millis();
 
@@ -873,7 +895,7 @@ void Movement::dropDecider(int ros_sign_callback)
   while (((millis() - time) / 1000.0) < 5)
     delay(0.1);
 
-  digitalWrite(kDigitalPinsLEDS[1], LOW);
+  sensors->toggleRightLed();
 }
 
 double Movement::traverseRamp(int option)

@@ -6,13 +6,12 @@ BNO::BNO()
 
 void BNO::init()
 {
+
   if (!bno.begin())
   {
     if (!CK::kusingROS)
       Serial.println("ERROR BNO");
   }
-
-  bno.setExtCrystalUse(true);
 }
 
 float BNO::getAngleX()
@@ -183,29 +182,52 @@ void BNO::displaySensorStatus(void)
   }
 }
 
+bool BNO::isCalibrated()
+{
+
+  return bno.isFullyCalibrated();
+}
+
 void BNO::displayCalStatus(void)
 {
-  /* Get the four calibration values (0..3) */
-  /* Any sensor data reporting 0 should be ignored, */
-  /* 3 means 'fully calibrated" */
-  uint8_t system, gyro, accel, mag;
-  system = gyro = accel = mag = 0;
+  if (CK::kusingROS)
+    return;
+
+  /* Display calibration status for each sensor. */
+  uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag);
-
-  /* The data should be ignored until the system calibration is > 0 */
-  Serial.print("\t");
-  if (!system)
-  {
-    Serial.print("! ");
-  }
-
-  /* Display the individual values */
-  Serial.print("Sys:");
+  Serial.print("CALIBRATION: Sys=");
   Serial.print(system, DEC);
-  Serial.print(" G:");
+  Serial.print(" Gyro=");
   Serial.print(gyro, DEC);
-  Serial.print(" A:");
+  Serial.print(" Accel=");
   Serial.print(accel, DEC);
-  Serial.print(" M:");
+  Serial.print(" Mag=");
   Serial.println(mag, DEC);
+}
+
+void BNO::restoreCalibration()
+{
+  // Object to load to bno
+  adafruit_bno055_offsets_t calibrationData;
+  
+  // Fill calibrationData with info obtained with SaveBnoCal.ino. Check navSensors/other
+  calibrationData.accel_offset_x = -22;
+  calibrationData.accel_offset_y = -33;
+  calibrationData.accel_offset_z = -17;
+
+  calibrationData.gyro_offset_x = -2;
+  calibrationData.gyro_offset_y = -2;
+  calibrationData.gyro_offset_z = 0;
+
+  calibrationData.mag_offset_x = 48;
+  calibrationData.mag_offset_y = 213;
+  calibrationData.mag_offset_z = 272;
+  calibrationData.accel_radius = 1000;
+  calibrationData.mag_radius = 349;
+
+  // Load calibrationData to bno
+  bno.setSensorOffsets(calibrationData);
+
+  bno.setExtCrystalUse(true);
 }

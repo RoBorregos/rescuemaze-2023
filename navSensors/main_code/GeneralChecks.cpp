@@ -186,19 +186,45 @@ void GeneralChecks::log(const char *s, bool newLine)
 
 void GeneralChecks::test()
 {
-    Serial.println("Specific test");
-    while (true){
-        robot->advanceXMeters(0.3, 0);
-    }
-    robot->advanceXMeters(0.3, 0);
+    /* Meaning of #actions, options and return values of cmdMovement:
 
+    Action  Description                     Options                           Returns
+    1       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
+    2       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+    3       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+    4       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
+    5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
+    6       Traverse ramp                   None / ignored                    Estimated length of ramp.
+    7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
+    8       Update angle reference          TODO, would help to reduce error given by physical field.
+    */
+
+    Serial.println("Specific test");
+    
+    while (true)
+    {
+        robot->cmdMovement(1, 0);
+        robot->sensors->toggleBothLeds();
+        delay(1000);
+        robot->sensors->toggleBothLeds();
+    }
+
+    robot->cmdMovement(4, 0);
+    end();
+    while (true){
+        
+        delay(500);
+    }   
+    
+    end();
+    delay(1000);
+    robot->cmdMovement(3, 1);
     /*
-    robot->cmdMovement(2, 1);
     delay(1000);
     robot->cmdMovement(3, 1);
     end();
     */
-   end();
+    end();
 }
 
 void GeneralChecks::end()

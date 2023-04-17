@@ -45,11 +45,76 @@ void Sensors::initSensors()
   tcs.setMux(kMuxTCS);
   tcs.setPrecision(kTCSPrecision);
   Wire.begin();
-  tcs.init(colors, colorAmount, colorList);
+  tcs.init(colors, colorAmount, colorList, colorThresholds);
 
   initSwitches();
+  initLeds();
 
-  // BNO init (Not needed, because initialized before sending pointer)
+  if (CK::calibrateBNO)
+  {
+    bothLedOn();
+    
+    if (!CK::kusingROS && CK::debugBNOCalibration)
+    {
+      Serial.println("Calibrating BNO");
+    }
+
+    bno->restoreCalibration(); // Load offsets
+
+    long int initialT = millis();
+
+    // Calibrate Magnetometer by moving robot.
+    while (!bno->isCalibrated())
+    {
+      if (!CK::kusingROS && CK::debugBNOCalibration)
+        bno->displayCalStatus();
+
+      if (millis() - initialT > maxBNOTime)
+      {
+        if (!CK::kusingROS && CK::debugBNOCalibration)
+          Serial.println("BNO calibration timed out.");
+        
+        // Led blink to indicate that BNO calibration timed out.
+        bothLedOff();
+        delay(100);
+
+        bothLedOn();
+        delay(100);
+
+        bothLedOff();
+        delay(100);
+        break;
+      }
+    }
+
+    if (!CK::kusingROS && CK::debugBNOCalibration){
+      if (bno->isCalibrated())
+        Serial.println("BNO calibration finished.");
+      else
+        Serial.println("BNO calibration failed.");
+    }
+      
+
+    // Give some time to place robot on the ground. The initial position will be
+    // considered as north.
+    double timeToPlaceRobot = 3000; // 3 seconds
+    initialT = millis();
+    toggleRightLed();
+
+    while (millis() - initialT < timeToPlaceRobot)
+    {
+      toggleBothLeds();
+      if (!CK::kusingROS && CK::debugBNOCalibration)
+      {
+        Serial.print("Place robot on the ground in ");
+        Serial.print((timeToPlaceRobot - (millis() - initialT)) / 1000);
+        Serial.println(" seconds.");
+      }
+      delay(100);
+    }
+
+    bothLedOff();
+  }
 }
 
 // Sensor Methods
@@ -57,7 +122,10 @@ void Sensors::initSensors()
 void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 {
   if (bno && usingBNO)
+  {
     this->bno->anglesInfo();
+    this->bno->displayCalStatus();
+  }
 
   if (vlx && usingVLX && !CK::kusingROS)
   {
@@ -75,11 +143,13 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
   {
     Serial.print("TCS sensor  ");
     this->tcs.printRGB();
-    this->tcs.printColor();
+    Serial.println(getTCSInfo());
   }
 
   if (limitSwitches)
     debugLimitSwitches();
+
+  delay(50);
 }
 
 float Sensors::getVLXInfo(int posVLX)
@@ -91,6 +161,12 @@ float Sensors::getVLXInfo(int posVLX)
   }
 
   return vlx[posVLX].getDistance();
+}
+
+void Sensors::initLeds()
+{
+  pinMode(kDigitalPinsLEDS[0], OUTPUT);
+  pinMode(kDigitalPinsLEDS[1], OUTPUT);
 }
 
 float Sensors::getQuatX()
@@ -160,8 +236,8 @@ float Sensors::getAngleZ()
 
 char Sensors::getTCSInfo()
 {
-  // return tcs.getColorWithThresholds();
-  return tcs.getColorWithPrecision();
+  return tcs.getColorWithThresholds();
+  //return tcs.getColorWithPrecision();
 }
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
@@ -222,7 +298,7 @@ int Sensors::rightLimitSwitch()
 void Sensors::debugLimitSwitches()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[0]);
-  
+
   if (CK::kusingROS)
     return;
 
@@ -249,4 +325,56 @@ void Sensors::initSwitches()
 {
   pinMode(kDigitalPinsLimitSwitch[0], INPUT);
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
+}
+
+// LED Methods
+
+void Sensors::toggleRightLed()
+{
+  if (rightLedOn)
+  {
+    rightLedOn = false;
+    digitalWrite(kDigitalPinsLEDS[1], LOW);
+  }
+  else
+  {
+    rightLedOn = true;
+    digitalWrite(kDigitalPinsLEDS[1], HIGH);
+  }
+}
+
+void Sensors::toggleLeftLed()
+{
+  if (leftLedOn)
+  {
+    leftLedOn = false;
+    digitalWrite(kDigitalPinsLEDS[0], LOW);
+  }
+  else
+  {
+    leftLedOn = true;
+    digitalWrite(kDigitalPinsLEDS[0], HIGH);
+  }
+}
+
+void Sensors::toggleBothLeds()
+{
+  toggleLeftLed();
+  toggleRightLed();
+}
+
+void Sensors::bothLedOn()
+{
+  leftLedOn = true;
+  rightLedOn = true;
+  digitalWrite(kDigitalPinsLEDS[0], HIGH);
+  digitalWrite(kDigitalPinsLEDS[1], HIGH);
+}
+
+void Sensors::bothLedOff()
+{
+  leftLedOn = false;
+  rightLedOn = false;
+  digitalWrite(kDigitalPinsLEDS[0], LOW);
+  digitalWrite(kDigitalPinsLEDS[1], LOW);
 }

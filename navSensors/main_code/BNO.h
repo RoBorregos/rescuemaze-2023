@@ -7,6 +7,7 @@
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 #include "CommonK.h"
+#include <EEPROM.h>
 
 #define BNO_ADDR 0x28
 
@@ -28,6 +29,8 @@ public:
   void displaySensorDetails(void);
   void displaySensorStatus(void);
   void displayCalStatus(void);
+  bool isCalibrated();
+  void restoreCalibration();
 
   void updateEvents();
   float getQuat_x();

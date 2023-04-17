@@ -70,6 +70,7 @@ void TCS::updateRGB()
 }
 
 // RGB results differ from getRGB(). If .getRawData() is used, the results of getRGB are altered until next tcs restart.
+// RGBC results are more disperse between colors.
 void TCS::updateRGBC()
 {
   mux.tcaSelect();
@@ -85,7 +86,8 @@ void TCS::updateRGBC()
 
 void TCS::printRGB()
 {
-  updateRGB();
+  updateRGBC();
+  // updateRGBC();
   if (!CK::kusingROS)
   {
     Serial.print("R: ");
@@ -213,7 +215,7 @@ char TCS::getColorWithPrecision()
 }
 
 // TODO: Test function.
-char TCS::getColorWithThreshold()
+char TCS::getColorWithThresholds()
 {
   if (colorThresholds == nullptr)
   {

@@ -117,7 +117,7 @@ public:
   char getColorWithPrecision();
 
   // Returns color letter detected with the use of precision ranges.
-  char getColorWithThreshold();
+  char getColorWithThresholds();
 
   // Return the mode obtained after sampleSize detections, if the probability is above
   // the specified threshold.

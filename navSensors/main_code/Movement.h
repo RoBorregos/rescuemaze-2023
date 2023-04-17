@@ -45,6 +45,8 @@ private:
   // Sensors
   Sensors *sensors;
 
+  bool firstMove = true; // Used to update angles after the first movement.
+
   // Straight PID with VLX.
   unsigned int lastUpdateVLX = millis();  
   double correctionVLX = 0.0;
@@ -54,9 +56,6 @@ private:
 
   // Servo
   static constexpr uint8_t kServoPin = 0; // TODO: check pin
-
-  // Leds
-  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42}; // TODO: check pins
 
   // Motor.
   static constexpr int kMotorCount = 4;
@@ -98,17 +97,19 @@ private:
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
   static constexpr double kRampDt = 3;
-  static constexpr double checkTCSTimer = 600; // Time to check TCS in ms.
+  static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
   static constexpr double kDistanceWall = 0.08; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
   static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
+  static constexpr double distToCheck = 0.05;
+  static constexpr double backStuckTimer = 100000;
 
   // Kinematics.
   Kinematics kinematics;
 
   // Cmd movement constants
   // TODO: Check maximum rpms of motors in field, and in function of battery available.
-  static constexpr int kMovementRPMs = 80; // Value reduced from 100.
+  static constexpr int kMovementRPMs = 40; // Value reduced from 100.
   static constexpr int kMaxAngle = 360;
   static constexpr uint16_t kInterAngle = 180;
   static constexpr int kMinAngle = 0.0;
@@ -150,9 +151,6 @@ public:
   // Sets pins for all motors.
   void setMotors();
 
-  // Initializes indicator leds.
-  void initLeds();
-
   // Encoder Methods
   // @return The motor's mean distance traveled.
   double meanDistanceTraveled();
@@ -181,10 +179,10 @@ public:
   /* Meaning of #actions, options and return values of cmdMovement:
 
   Action  Description                     Options                           Returns
-  1       Move forward 1 unit (30 cms)    1 (use degrees as error)          1 -> successful, 0 -> move aborted
-  2       Left turn (-90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
-  3       Right turn (90 deg)             None / ignored                    1 -> successful, 0 -> move aborted
-  4       Move backward 1 unit (30 cms)   1 (use degrees as error)          1 -> successful, 0 -> move aborted
+  1       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
+  2       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  3       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  4       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
   5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
   6       Traverse ramp                   None / ignored                    Estimated length of ramp.
   7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted

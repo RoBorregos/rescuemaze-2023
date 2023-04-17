@@ -13,6 +13,8 @@ namespace CK
     const bool debugRotation = true;
     const bool vlxPID = true;
     const bool onlyCmdMovement = true;
+    const bool debugBNOCalibration = true;
+    const bool calibrateBNO = false;
 }
 
 #endif

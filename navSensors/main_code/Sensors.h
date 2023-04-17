@@ -19,7 +19,7 @@
 class Sensors
 {
   friend class GeneralChecks;
-  
+
   // Sensors Count
   static constexpr int kBNOCount = 10;                                   // BNO sensor data count
   static constexpr int kVLXCount = 4;                                    // VLX sensors data count
@@ -38,18 +38,21 @@ class Sensors
   // Each row represents the upper and lower limits for detecting a color.
   // colorThresholds[0] = {redMin, redmax, greenMin, greenMax, blueMin, blueMax}
   static constexpr int colorThresholds[colorAmount][6] = {
-      {0, 0, 0, 0, 0, 0},
-      {0, 0, 0, 0, 0, 0}
-  };
-
+      {0, 160, 0, 150, 0, 150},
+      {200, 280, 330, 405, 370, 450}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
+
+  long int maxBNOTime = 10000; // Max time for BNO to calibrate.
+  double timeToPlaceRobot = 3000; // Time to place robot after BNO calibration.
 
   // Sensors.
   BNO *bno;
   VLX vlx[3];
   TCS tcs;
+  bool rightLedOn = false;
+  bool leftLedOn = false;
 
   int kMuxVLX = 3;
   // Sensor Pins.
@@ -63,6 +66,8 @@ class Sensors
 
   // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches
+  // Leds
+  static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
 
 public:
   String vlxNames[3] = {"Front", "Right", "Left"};
@@ -92,6 +97,17 @@ public:
   int rightLimitSwitch();
   int leftLimitSwitch();
   void getLimitSwitches(int &right, int &left); // Returns limit switches data.
+
+  // Initializes indicator leds.
+  void initLeds();
+
+  // LED methods
+  void toggleRightLed();
+  void toggleLeftLed();
+  void toggleBothLeds();
+
+  void bothLedOn();
+  void bothLedOff();
 
   // BNO data
 
