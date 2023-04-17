@@ -12,7 +12,7 @@
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-# define kusingROS true
+#define kusingROS false
 
 #define useleftvlx true
 #define userightvlx true
@@ -33,10 +33,10 @@ void setup()
 
   initAll(&bno, true, true);
   GeneralChecks checks(robot);
-  //checks.checkWheelDirections();
-  checks.checkAll();
-  //checks.test();
-  // checks.checkSensorData();
+  // checks.checkWheelDirections();
+  // checks.checkAll();
+  // checks.test();
+  checks.checkSensorData();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
@@ -45,18 +45,7 @@ void loop()
 {
 }
 
-// Inicializar todos los sensores.
-void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
-{
-  static Sensors sensors(bno, useVLX);
-  s = &sensors;
-
-  static Movement movement(bno, s, setIndividualConstants);
-  robot = &movement;
-}
-
 #else
-
 
 // Implementation without ROS.
 
@@ -93,6 +82,8 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
+  initAll(&bno, true, true);
+
   bno.init();
 }
 
@@ -111,19 +102,19 @@ void exploreDFS()
 
   if (distancefront > 0.15)
   {
-    if (forwardTile())
+    if (forward())
     {
       exploreDFS();
-      backwardTile();
+      backward();
     }
   }
   if (distanceright > 0.15)
   {
     turnRight();
-    if (forwardTile())
+    if (forward())
     {
       exploreDFS();
-      backwardTile();
+      backward();
     }
 
     turnLeft();
@@ -131,10 +122,10 @@ void exploreDFS()
   if (distanceleft > 0.15)
   {
     turnLeft();
-    if (forwardTile())
+    if (forward())
     {
       exploreDFS();
-      backwardTile();
+      backward();
     }
     turnRight();
   }
@@ -149,14 +140,14 @@ void exploreFollowerWall()
     distanceright = getRightDistance();
     distanceleft = getLeftDistance();
 
-    if (distanceright > 0.15)
+    if (distancefront > 0.15)
     {
-      forward();
-      turnRight();
+      Serial.println("forward");
       forward();
     }
-    else if (distancefront < 0.08)
+    else if (distanceright < 0.15)
     {
+      Serial.println("left");
       turnLeft();
     }
     // else if (distancefront < 0.07)
@@ -165,7 +156,9 @@ void exploreFollowerWall()
     // }
     else
     {
-      forward();
+      Serial.println("right");
+      // forward(1);
+      turnRight();
     }
   }
 }
@@ -262,23 +255,45 @@ double getRightDistance()
   return 0;
 }
 
-void forward()
+int forward()
 {
-  robot->advanceXMeters(0.3, dirToAngle(rDirection));
+  // robot->advanceXMeters(0.3, 0);
+  return robot->cmdMovement(1);
 }
 
-void backward()
+int backward()
 {
-  robot->advanceXMeters(-0.3, dirToAngle(rDirection));
+  return robot->cmdMovement(4);
+  // robot->advanceXMeters(-0.3, dirToAngle(rDirection));
+}
+
+void forward(int times)
+{
+  for (int i = 0; i < times; i++)
+  {
+    robot->advanceXMeters(0.01, 0);
+  }
+}
+
+void backward(int times)
+{
+  for (int i = 0; i < times; i++)
+  {
+    robot->advanceXMeters(-0.01, dirToAngle(rDirection));
+  }
 }
 
 void turnLeft()
 {
+
+  robot->cmdMovement(2, 1);
+  return;
+
   // Check if there's a wall to the right
   bool wallRight = (getRightDistance() < 0.15);
 
   // Turn left
-  robot->goToAngle(dirToAngle(getTurnDirection(0)), false);
+  robot->goToAngle(dirToAngle(getTurnDirection(0)));
 
   if (wallRight)
     backward(10);
@@ -295,11 +310,15 @@ void turnLeft()
 
 void turnRight()
 {
+
+  robot->cmdMovement(3, 1);
+  return;
+
   // Check if there's a wall
   bool wallLeft = (getLeftDistance() < 0.15);
 
   // Turn right
-  robot->goToAngle(dirToAngle(getTurnDirection(1)), true);
+  robot->goToAngle(dirToAngle(getTurnDirection(1)));
 
   if (rDirection == 3)
   {
@@ -330,10 +349,12 @@ void relativeTurn(double angle, bool goRight)
 
 int checkVictims()
 {
-  if (Serial.Avaliable())
+  // return;
+
+  if (Serial.available() > 0)
   {
     char buffer[32];
-    int numBytes = Serial.readBytesUntil('.', buffer, 32);
+    int numBytes = Serial.readBytesUntil('\n', buffer, 32);
 
     // process the incoming data as needed
     // for example, split the data into individual values and convert them from strings to integers
@@ -356,19 +377,37 @@ int checkVictims()
       }
     }
 
-    while (values[0] > 0)
-    {
-      robot->dispenser.leftDrop();
+    // values[0] gives the number of kits to drop
+    // values[1] gives the side of the victim
 
-      values[0]--;
+    int victims = 0;
+
+    if (values[1] == 0) // left
+    {
+      victims = values[0] * -1;
+      // Serial.print("Left");
+      // Serial.println(victims);
+    }
+    else // right
+    {
+      victims = values[0];
+      // Serial.print("Right");
+      // Serial.println(victims);
     }
 
-    while (values[1] > 0)
-    {
-      robot->dispenser.rightDrop();
+    if (victims != 0)
+      robot->cmdMovement(7, victims);
+    // while (values[0] > 0) {
+    //   robot->dispenser.leftDrop();
 
-      values[1]--;
-    }
+    //   values[0]--;
+    // }
+
+    // while (values[1] > 0) {
+    //   robot->dispenser.rightDrop();
+
+    //   values[1]--;
+    // }
   }
 }
 
@@ -516,3 +555,13 @@ void shiftAngles(int error)
 }
 
 #endif
+
+// Inicializar todos los sensores.
+void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
+{
+  static Sensors sensors(bno, useVLX);
+  s = &sensors;
+
+  static Movement movement(bno, s, setIndividualConstants);
+  robot = &movement;
+}
