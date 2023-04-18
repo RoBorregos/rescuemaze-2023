@@ -4,7 +4,7 @@
 #include "MotorID.h"
 #include "MUX2C.h"
 #include "BNO.h"
-#include "GeneralChecks.h"
+// #include "GeneralChecks.h"
 #include "Plot.h"
 #include "CommonK.h"
 
@@ -24,22 +24,68 @@ BNO bno; // X is yaw, Y is pitch, and Z is roll.
 
 #if kusingROS
 
+#include <ros.h>
+#include "RosBridge.h"
+
 // Setup de todos los sensores. Set pins en Sensors.h
 void setup()
 {
-  Serial.begin(115200);
+Serial.begin(57600);
 
-  bno.init();
+  // Setup options
 
-  initAll(&bno, true, true);
-  GeneralChecks checks(robot);
+  // Set some sensor or i2c device
+  bool setTcs = false;
+  bool seti2c = false;
+  bool setVLX = false;
+
+  // Set a specific test
+  bool doSpecificTest = false;
+
+  // General options
+  bool useVLX = true;
+  bool setIndividualConstants = true;
+
+  ros::NodeHandle nh;
+  nh.initNode();
+  
+  while (!nh.connected())
+  {
+    nh.spinOnce();
+  }
+
+  // Without ROS
+
+  initAllRos(&nh, useVLX, setIndividualConstants);
+
+  nh.loginfo("Arduino node initialized");
+
+  RosBridge rosbridge(robot, s, &nh);
+  rosbridge.run();
+
+  // Serial.begin(57600);
+
+  // bno.init();
+
+  // initAll(&bno, true, true);
+  // GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkAll();
-   checks.test();
-  //checks.checkSensorData();
+  // checks.test();
+  // checks.checkSensorData();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
+
+void initAllRos(ros::NodeHandle *nh, bool useVLX, bool setIndividualConstants)
+{
+  static Sensors sensors(useVLX);
+  s = &sensors;
+
+  static Movement movement(nh, s, setIndividualConstants);
+  robot = &movement;
+}
+
 
 void loop()
 {
@@ -91,7 +137,8 @@ int newAngle = 0;
 
 void loop()
 {
-  exploreFollowerWall();
+  s->printInfo(false, true, true, true);
+  // forward();
 }
 
 void exploreDFS()

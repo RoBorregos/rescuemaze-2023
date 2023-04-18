@@ -76,7 +76,6 @@ private:
     bool blackTile;
     bool silverTile;
 
-    bool upRamp;
     bool downRamp;
 
     bool obstacle;
@@ -132,7 +131,6 @@ private:
     ros::ServiceClient hsMapReset;
 
     ros::ServiceClient wallsClient;
-    ros::ServiceClient wallsDistClient;
 
     // Transform listenerString
     tf::TransformListener tfl;
@@ -164,7 +162,6 @@ private:
     // 2: Goal reached, blue tile
     int sendMapGoalGOAT(int movement, int rDirection);
 
-    int checkUpRamp();
     int checkDownRamp();
     int checkBumperStairs();
 
@@ -184,10 +181,11 @@ private:
 
     void jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg);
 
-
 #endif
 
     ClientScope scope;
+
+    bool upRamp;
 
     // VLX data
     double distVlxFront;
@@ -207,6 +205,9 @@ private:
     ros::Publisher debugpub;
 
     ros::ServiceClient victimsClient;
+    ros::ServiceClient wallsDistClient;
+
+    int checkUpRamp();
 
     void vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg);
     void vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg);
@@ -647,6 +648,18 @@ void ROSbridge::sendGoal(geometry_msgs::Pose pose)
     movementClientAsync(goal);
 }
 
+#else
+
+void ROSbridge::jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg)
+{
+    ROS_INFO("Jetson result: %d", msg->data);
+    scope.result = msg->data;
+    scope.resultReceived = true;
+    scope.startedGoal = false;
+}
+
+#endif
+
 int ROSbridge::checkUpRamp()
 {
     ros::spinOnce();
@@ -662,18 +675,6 @@ int ROSbridge::checkUpRamp()
 
     return 0;
 }
-
-#else
-
-void ROSbridge::jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg)
-{
-    ROS_INFO("Jetson result: %d", msg->data);
-    scope.result = msg->data;
-    scope.resultReceived = true;
-    scope.startedGoal = false;
-}
-
-#endif
 
 void ROSbridge::vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg)
 {
@@ -712,16 +713,21 @@ int ROSbridge::sendGoalJetson(int movement)
 {
     ros::spinOnce();
 
-    // // Call get_walls_dist service
-    // nav_main::GetWallsDist walls;
+    // Call get_walls_dist service
+    nav_main::GetWallsDist walls;
 
-    // wallsClient.call(walls);
+    wallsDistClient.call(walls);
 
-    // distLidar = walls.response.front;
+    distLidar = walls.response.front;
+
 
     std_msgs::Int8 movementmsg;
     if (movement == 0)
     {
+        if (checkUpRamp())
+        {
+            upRamp = true;
+        }
         ROS_INFO("Forward");
 
         // // Check if there's a ramp
@@ -819,6 +825,25 @@ int ROSbridge::sendGoalJetson(int movement)
 
         //     upRamp = true;
         // }
+    }
+
+    if (upRamp)
+    {
+        upRamp = false;
+        return 5;
+    }
+
+    if (scope.result == 4)
+    {
+        // turn right and check if there's a ramp
+        sendGoalJetson(1);
+        if (checkUpRamp())
+        {
+            // if there was a ramp, turn left and return the value 
+            sendGoalJetson(3);
+            return 4;
+        }
+
     }
 
     return scope.result;
@@ -1817,6 +1842,9 @@ double ROSbridge::yawDifference(double targetYaw, double originYaw)
 
 #endif
 
+
+#ifdef useNavStack
+
 #ifdef simulateRos
 
 void ROSbridge::publishIdealOrientation(int orientation)
@@ -1825,7 +1853,6 @@ void ROSbridge::publishIdealOrientation(int orientation)
 
 #else
 
-#ifdef useNavStack
 
 void ROSbridge::publishIdealOrientation(int orientation)
 {

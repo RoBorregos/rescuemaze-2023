@@ -9,6 +9,7 @@
 #include <sensor_msgs/Range.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int16.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
@@ -36,7 +37,7 @@ public:
 private:
   // Dispenser Subscriber
   // Receives dispenser drop position
-  void dispenserCallback(const std_msgs::Int16 &dispenser_sign);
+  void dispenserCallback(const std_msgs::Int8 &dispenser_sign);
 
   // Velocity Subscriber
   // Receives velocity commands.
@@ -44,7 +45,7 @@ private:
 
   // Movement Subscriber
   // Receives movement commands.
-  void cmdMovementCallback(const std_msgs::Int16 &cmd_movement);
+  void cmdMovementCallback(const std_msgs::Int8 &cmd_movement);
 
   // Lidar dist subscriber
   // Update distances to walls.
@@ -73,9 +74,9 @@ private:
   // Suscribers
 
   ros::Subscriber<geometry_msgs::Twist, RosBridge> velocity_subscriber;
-  ros::Subscriber<std_msgs::Int16, RosBridge> cmd_movement_subscriber;
-  ros::Subscriber<std_msgs::Int16, RosBridge> dispenser_subscriber;
   ros::Subscriber<geometry_msgs::Quaternion, RosBridge> dist_subscriber;
+  ros::Subscriber<std_msgs::Int8, RosBridge> cmd_movement_subscriber;
+  ros::Subscriber<std_msgs::Int8, RosBridge> dispenser_subscriber;
   ros::Subscriber<std_msgs::String, RosBridge> test_subscriber;
 
   static constexpr uint16_t kWatchdogPeriod = 500;
@@ -84,6 +85,8 @@ private:
   ros::Publisher cmd_movement_publisher;
   ros::Publisher req_dist_publisher; // Ask for distance to wall from lidar.
   ros::Publisher vlx_sensor_publisher_front;
+  ros::Publisher vlx_sensor_publisher_right;
+  ros::Publisher vlx_sensor_publisher_left;
   ros::Publisher tcs_sensor_publisher;
   ros::Publisher limit_switch_right_publisher; // Right limit switch
   ros::Publisher limit_switch_left_publisher;  // Left limit switch
@@ -91,13 +94,15 @@ private:
 
   // Messages
   sensor_msgs::Range vlx_sensor_msgs_front; // TOF sensor
+  sensor_msgs::Range vlx_sensor_msgs_right; // TOF sensor
+  sensor_msgs::Range vlx_sensor_msgs_left; // TOF sensor
   std_msgs::Char tcs_sensor_msgs;           // Color sensor
   std_msgs::String testT;
-  std_msgs::Int16 limit_switch_right_msgs; // Right limit switch
-  std_msgs::Int16 limit_switch_left_msgs;  // Right limit switch
+  std_msgs::Int8 limit_switch_right_msgs; // Right limit switch
+  std_msgs::Int8 limit_switch_left_msgs;  // Right limit switch
 
-  std_msgs::Int16 cmd_movement_input;  // Right limit switch
-  std_msgs::Int16 cmd_movement_response;  // Right limit switch
+  std_msgs::Int8 cmd_movement_input;  // Right limit switch
+  std_msgs::Int8 cmd_movement_response;  // Right limit switch
 
   static constexpr uint8_t kOdomPeriod = 40;
 

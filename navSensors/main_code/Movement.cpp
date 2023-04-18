@@ -344,24 +344,24 @@ int Movement::cmdMovement(const int action, const int option)
 
   switch (action)
   {
-  case 1:
+  case 0:
     // Move forward 1 unit.
     return advanceXMeters(0.3, option);
     break;
 
-  case 2:
+  case 3:
     // Left turn
     rotateRobot(option, 0);
     return 1;
     break;
 
-  case 3:
+  case 1:
     // Right turn
     rotateRobot(option, 1);
     return 1;
     break;
 
-  case 4:
+  case 2:
     // Move back 1 unit
     return advanceXMeters(-0.3, option);
 
