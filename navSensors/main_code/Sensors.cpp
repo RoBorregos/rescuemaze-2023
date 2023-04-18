@@ -53,7 +53,7 @@ void Sensors::initSensors()
   if (CK::calibrateBNO)
   {
     bothLedOn();
-    
+
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
       Serial.println("Calibrating BNO");
@@ -73,7 +73,7 @@ void Sensors::initSensors()
       {
         if (!CK::kusingROS && CK::debugBNOCalibration)
           Serial.println("BNO calibration timed out.");
-        
+
         // Led blink to indicate that BNO calibration timed out.
         bothLedOff();
         delay(100);
@@ -87,13 +87,13 @@ void Sensors::initSensors()
       }
     }
 
-    if (!CK::kusingROS && CK::debugBNOCalibration){
+    if (!CK::kusingROS && CK::debugBNOCalibration)
+    {
       if (bno->isCalibrated())
         Serial.println("BNO calibration finished.");
       else
         Serial.println("BNO calibration failed.");
     }
-      
 
     // Give some time to place robot on the ground. The initial position will be
     // considered as north.
@@ -114,6 +114,8 @@ void Sensors::initSensors()
     }
 
     bothLedOff();
+  } else {
+    bno->setExtCUse();
   }
 }
 
@@ -161,6 +163,23 @@ float Sensors::getVLXInfo(int posVLX)
   }
 
   return vlx[posVLX].getDistance();
+}
+
+void Sensors::updateDistLidar(float front, float back, float left, float right)
+{
+  if (this->rosBridge == nullptr)
+    return;
+  // Values weren't updated
+  if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right){
+    // Call updateDistances again
+    rosBridge->updateDistLidar();
+    return; 
+  }
+
+  wallDistances[0] = front;
+  wallDistances[1] = back;
+  wallDistances[2] = left;
+  wallDistances[3] = right;
 }
 
 void Sensors::initLeds()
@@ -237,7 +256,7 @@ float Sensors::getAngleZ()
 char Sensors::getTCSInfo()
 {
   return tcs.getColorWithThresholds();
-  //return tcs.getColorWithPrecision();
+  // return tcs.getColorWithPrecision();
 }
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
@@ -325,6 +344,11 @@ void Sensors::initSwitches()
 {
   pinMode(kDigitalPinsLimitSwitch[0], INPUT);
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
+}
+
+void Sensors::setRosBridge(RosBridge *rosBridge)
+{
+  this->rosBridge = rosBridge;
 }
 
 // LED Methods

@@ -30,17 +30,7 @@ BNO bno; // X is yaw, Y is pitch, and Z is roll.
 // Setup de todos los sensores. Set pins en Sensors.h
 void setup()
 {
-Serial.begin(57600);
-
-  // Setup options
-
-  // Set some sensor or i2c device
-  bool setTcs = false;
-  bool seti2c = false;
-  bool setVLX = false;
-
-  // Set a specific test
-  bool doSpecificTest = false;
+  Serial.begin(57600);
 
   // General options
   bool useVLX = true;
@@ -48,19 +38,22 @@ Serial.begin(57600);
 
   ros::NodeHandle nh;
   nh.initNode();
-  
+
   while (!nh.connected())
   {
     nh.spinOnce();
   }
 
   // Without ROS
-
-  initAllRos(&nh, useVLX, setIndividualConstants);
+  bno.init();
+  initAllRos(&nh, &bno, useVLX, setIndividualConstants);
 
   nh.loginfo("Arduino node initialized");
 
   RosBridge rosbridge(robot, s, &nh);
+
+  s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+
   rosbridge.run();
 
   // Serial.begin(57600);
@@ -77,15 +70,14 @@ Serial.begin(57600);
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }
 
-void initAllRos(ros::NodeHandle *nh, bool useVLX, bool setIndividualConstants)
+void initAllRos(ros::NodeHandle *nh, BNO *bno, bool useVLX, bool setIndividualConstants)
 {
-  static Sensors sensors(useVLX);
+  static Sensors sensors(bno, useVLX);
   s = &sensors;
 
-  static Movement movement(nh, s, setIndividualConstants);
+  static Movement movement(nh, bno, s, setIndividualConstants);
   robot = &movement;
 }
-
 
 void loop()
 {

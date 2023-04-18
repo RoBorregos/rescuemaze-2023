@@ -231,3 +231,8 @@ void BNO::restoreCalibration()
 
   bno.setExtCrystalUse(true);
 }
+
+// Call in case bno isn't calibrated.
+void BNO::setExtCUse(){
+  bno.setExtCrystalUse(true);
+}

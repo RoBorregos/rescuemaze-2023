@@ -45,6 +45,7 @@ public:
   float getLinAcc_z();
 
   void anglesInfo();
+  void setExtCUse();
   void getAll(float &x, float &y, float &z);
   float getAngleX();
   float getAngleY();
