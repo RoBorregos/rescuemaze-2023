@@ -12,7 +12,7 @@
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-#define kusingROS false
+#define kusingROS true
 
 #define useleftvlx true
 #define userightvlx true
@@ -27,7 +27,7 @@ BNO bno; // X is yaw, Y is pitch, and Z is roll.
 // Setup de todos los sensores. Set pins en Sensors.h
 void setup()
 {
-  Serial.begin(57600);
+  Serial.begin(115200);
 
   bno.init();
 
@@ -35,8 +35,8 @@ void setup()
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkAll();
-  // checks.test();
-  checks.checkSensorData();
+   checks.test();
+  //checks.checkSensorData();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.
 }

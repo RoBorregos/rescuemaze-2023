@@ -19,6 +19,7 @@ private:
   Adafruit_VL53L0X vlx = Adafruit_VL53L0X();
   MUX2C mux;
   VL53L0X_RangingMeasurementData_t measure;
+  double prevDist = 0;
 
   // Unit conversion
   const float kMm_in_M = 0.001;

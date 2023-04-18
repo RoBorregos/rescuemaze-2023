@@ -129,7 +129,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 
   if (vlx && usingVLX && !CK::kusingROS)
   {
-    for (int i = 0; i < kMuxVLX; i++)
+    for (int i = 0; i < 3; i++)
     {
       Serial.print(" VLX sensor ");
       Serial.print(i + 1);
