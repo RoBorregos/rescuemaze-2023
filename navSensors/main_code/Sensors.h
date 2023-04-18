@@ -7,6 +7,7 @@
 #include "VLX.h"
 #include "TCS.h"
 #include "CommonK.h"
+#include "RosBridge.h"
 
 // SENSOR DATA
 
@@ -14,6 +15,8 @@
 #define vlx_left 2
 #define vlx_front 0
 #define vlx_back 3
+
+class RosBridge; // Forward declaration of RosBridge
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
@@ -49,10 +52,14 @@ class Sensors
 
   // Sensors.
   BNO *bno;
+  RosBridge *rosBridge = nullptr;
   VLX vlx[3];
   TCS tcs;
   bool rightLedOn = false;
   bool leftLedOn = false;
+
+  // Lidar distances
+  double wallDistances[4] = {0, 0, 0, 0};
 
   int kMuxVLX = 3;
   // Sensor Pins.
@@ -88,6 +95,8 @@ public:
   void initSensors();
 
   void initSwitches();
+
+  void setRosBridge(RosBridge *rosBridge);
 
   // Sensor Methods
 
@@ -161,6 +170,8 @@ public:
 
   // Print the rgbc values detected by the tcs.
   void rgbTCSClear();
+
+  void updateDistLidar(float front, float back, float left, float right);
 
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.

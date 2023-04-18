@@ -6,11 +6,13 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
                                                                                velocity_subscriber("/cmd_vel", &RosBridge::cmdVelocityCallback, this),
                                                                                dispenser_subscriber("/dispenser", &RosBridge::dispenserCallback, this),
                                                                                test_subscriber("/testarduino", &RosBridge::testCallback, this),
+                                                                               dist_subscriber("/dist_walls", &RosBridge::updateDistLidarCallback, this),
                                                                                cmd_movement_subscriber("/unit_movement", &RosBridge::cmdMovementCallback, this),
                                                                                test_publisher("/testpub", &testT),
                                                                                vlx_sensor_publisher_front("/sensor/vlx/front", &vlx_sensor_msgs_front),
                                                                                vlx_sensor_publisher_right("/sensor/vlx/right", &vlx_sensor_msgs_right),
                                                                                vlx_sensor_publisher_left("/sensor/vlx/left", &vlx_sensor_msgs_left),
+                                                                               req_dist_publisher("/dist_request", &dist_req),
                                                                                tcs_sensor_publisher("/sensor/tcs", &tcs_sensor_msgs),
                                                                                limit_switch_right_publisher("/limit_switch/right", &limit_switch_right_msgs),
                                                                                limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs),
@@ -29,6 +31,7 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
     nh->advertise(limit_switch_right_publisher);
     nh->advertise(limit_switch_left_publisher);
     nh->advertise(test_publisher);
+    nh->advertise(vlx_sensor_publisher_left);
   }
   else
   {
@@ -36,10 +39,15 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
     nh->advertise(cmd_movement_publisher);
   }
 
+  nh->subscribe(velocity_subscriber);
+
   nh->advertise(vlx_sensor_publisher_front);
   nh->advertise(vlx_sensor_publisher_right);
-  nh->advertise(vlx_sensor_publisher_left);
   nh->subscribe(dispenser_subscriber);
+
+  // Subscriber and publisher for distance to walls
+  nh->subscribe(dist_subscriber);
+  nh->advertise(req_dist_publisher);
 
   nh->negotiateTopics();
 
@@ -102,6 +110,17 @@ void RosBridge::watchdog()
   }
 }
 
+void RosBridge::updateDistLidarCallback(const geometry_msgs::Quaternion &dist)
+{
+  sensors->updateDistLidar(dist.x, dist.y, dist.z, dist.w);
+}
+
+void RosBridge::updateDistLidar()
+{
+  req_dist_publisher.publish(&dist_req);
+  nh->spinOnce();
+}
+
 void RosBridge::publishVLX()
 {
   // VLX sensor data
@@ -162,7 +181,7 @@ void RosBridge::run()
 {
   while (1)
   {
-    watchdog();
+    // watchdog(); // use with cmd_vel
     publish();
     nh->spinOnce();
   }

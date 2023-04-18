@@ -30,6 +30,8 @@
 #define vlx_front 0
 #define vlx_back 3
 
+class Sensors;
+
 class Movement
 {
   // Give GeneralChecks full access.

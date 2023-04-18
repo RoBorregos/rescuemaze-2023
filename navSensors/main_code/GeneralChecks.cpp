@@ -106,38 +106,40 @@ void GeneralChecks::checkSensorData(int iterations)
 }
 
 void GeneralChecks::checkDT(){
+    if (CK::kusingROS)
+        return;
     log("Checking DT");
 
     log("Cmd movement(1,1): ", false);
     long int initialTime = millis();
     robot->cmdMovement(1,1);
 
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
     log("Cmd movement(3,1): ", false);
     initialTime = millis();
     robot->cmdMovement(3,1);
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
     log("Cmd movement(2,1): ", false);
     initialTime = millis();
     robot->cmdMovement(2,1);
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
     log("robot->sensors->getTCSInfo(): ", false);
     initialTime = millis();
     robot->sensors->getTCSInfo();
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
     log("sensors->getVLXInfo(1): ", false);
     initialTime = millis();
     robot->sensors->getVLXInfo(1);
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
     log("getAngleX(): ", false);
     initialTime = millis();
     robot->sensors->getAngleX();
-    log(dtToS(millis() - initialTime));
+    Serial.println(dtToS(millis() - initialTime));
 
 }
 
@@ -224,6 +226,7 @@ void GeneralChecks::log(const char *s, bool newLine)
             Serial.print(s);
     }
 }
+
 
 void GeneralChecks::test()
 {

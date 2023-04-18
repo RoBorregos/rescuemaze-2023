@@ -10,6 +10,7 @@
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Empty.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
@@ -22,6 +23,9 @@
 #include "Sensors.h"
 #include "CommonK.h"
 
+class Sensors; // Forward declaration of Sensors
+class Movement; // Forward declaration of Movement
+
 class RosBridge
 {
   friend class GeneralChecks;
@@ -29,6 +33,8 @@ class RosBridge
 public:
   // Constructor
   RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh);
+
+  void updateDistLidar(); // Publishes to topic to request lidar update.
 
   // Run
   // Calls watchdog and publish.
@@ -49,7 +55,7 @@ private:
 
   // Lidar dist subscriber
   // Update distances to walls.
-  void updateDistLidar(const geometry_msgs::Quaternion &dist);
+  void updateDistLidarCallback(const geometry_msgs::Quaternion &dist);
 
   // Subscriber to make tests
   void testCallback(const std_msgs::String &test_msg);
@@ -101,8 +107,9 @@ private:
   std_msgs::Int8 limit_switch_right_msgs; // Right limit switch
   std_msgs::Int8 limit_switch_left_msgs;  // Right limit switch
 
-  std_msgs::Int8 cmd_movement_input;  // Right limit switch
-  std_msgs::Int8 cmd_movement_response;  // Right limit switch
+  std_msgs::Empty dist_req;  // Dist req msg
+  std_msgs::Int8 cmd_movement_input;  
+  std_msgs::Int8 cmd_movement_response;  
 
   static constexpr uint8_t kOdomPeriod = 40;
 
