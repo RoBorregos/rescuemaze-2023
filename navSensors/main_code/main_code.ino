@@ -12,7 +12,7 @@
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-#define kusingROS false
+#define kusingROS true
 
 #define useleftvlx true
 #define userightvlx true

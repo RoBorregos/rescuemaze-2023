@@ -556,8 +556,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
         {
           dist = sensors->getVLXInfo(vlx_front);
           stop();
-          return 0;
-          // return advanceXMeters(dist - initial, straightPidType, true);
+          //return 0;
+          return advanceXMeters(dist - initial, straightPidType, true);
         }
       }
 

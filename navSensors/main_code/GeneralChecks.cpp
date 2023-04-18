@@ -1,5 +1,6 @@
 #include "GeneralChecks.h"
 
+
 GeneralChecks::GeneralChecks(Movement *robot, bool publishRos) : robot(robot), publishRos(publishRos)
 {
 }
@@ -240,13 +241,31 @@ void GeneralChecks::test()
     */
 
     Serial.println("Specific test");
-    
+    SingleEMAFilter<float> singleEMAFilter(0.6);
+
+    while (true){
+        double rawMeasure = robot->sensors->getVLXInfo(0);
+
+		// Calcular filtro
+		singleEMAFilter.AddValue(rawMeasure);
+
+		// Mostrar resultados
+		// Emplear Serial Plotter para visualización gráfica
+		Serial.print(rawMeasure);
+		Serial.print(",\t");
+		Serial.print(singleEMAFilter.GetLowPass());
+		Serial.print(",\t");
+		Serial.println(singleEMAFilter.GetHighPass());
+    }
+
     while (true)
     {
-        robot->cmdMovement(1, 0);
-        robot->sensors->toggleBothLeds();
-        delay(1000);
-        robot->sensors->toggleBothLeds();
+        robot->sensors->printInfo(false, true, false, false);
+        delay(100);
+        //robot->cmdMovement(1, 1);
+        //robot->sensors->toggleBothLeds();
+        //delay(1000);
+        //robot->sensors->toggleBothLeds();
     }
 
     robot->cmdMovement(4, 0);

@@ -58,6 +58,7 @@ def detect_walls_dist(req):
 
     # Get the range values from the laser scan message
     ranges = scan_msg.ranges
+    print(len(ranges))
 
     # Define the indices corresponding to north, east, south, and west directions
     # This assumes len(ranges) >= 360. The indices of directions change according to lidar orientation
@@ -74,10 +75,10 @@ def detect_walls_dist(req):
     front_dist = ranges[west_idx] # Front of the robot
 
     # Substract distance from lidar to robot's wall (get distance from robot's footprint to walls)
-    left_dist -= 0.1
-    back_dist -= 0.1
-    right_dist -= 0.1
-    front_dist -= 0.1
+    #left_dist -= 0.1
+    #back_dist -= 0.1
+    #right_dist -= 0.1
+    #front_dist -= 0.1
     
     if True:
         rospy.loginfo("Front: " + str (front_dist))
@@ -85,7 +86,7 @@ def detect_walls_dist(req):
         rospy.loginfo("Left: " + str (left_dist))
         rospy.loginfo("Right: " + str (right_dist))
 
-    return GetWallsResponse(front_dist, back_dist, left_dist, right_dist)
+    return GetWallsDistResponse(front_dist, back_dist, left_dist, right_dist)
     
 
 def scan_callback(scan_msg_in):
