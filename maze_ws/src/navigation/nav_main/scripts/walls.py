@@ -82,10 +82,16 @@ def get_dist():
     global front_dist
 
     # Get distance to nearest wall in each direction
-    left_dist = ranges[north_idx] # Left of the robot
-    back_dist = ranges[east_idx] # Back of the robot
-    right_dist = ranges[south_idx] # Right of the robot
-    front_dist = ranges[west_idx] # Front of the robot
+    #left_dist = ranges[north_idx] # Left of the robot
+    #back_dist = ranges[east_idx] # Back of the robot
+    #right_dist = ranges[south_idx] # Right of the robot
+    #front_dist = ranges[west_idx] # Front of the robot
+
+    left_dist = ranges[443] # Left of the robot
+    back_dist = ranges[571] # Back of the robot
+    right_dist = ranges[108] # Right of the robot
+    front_dist = ranges[288] # Front of the robot
+
 
 
 def scan_callback(scan_msg_in):

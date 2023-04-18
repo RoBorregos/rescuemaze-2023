@@ -182,6 +182,16 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
   wallDistances[3] = right;
 }
 
+void Sensors::getLidarDistances(double &front, double &back, double &left, double &right){
+  if (rosBridge == nullptr)
+    return;
+
+  front = wallDistances[0];
+  back = wallDistances[1];
+  left = wallDistances[2];
+  right = wallDistances[3];
+}
+
 void Sensors::initLeds()
 {
   pinMode(kDigitalPinsLEDS[0], OUTPUT);

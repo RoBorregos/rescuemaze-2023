@@ -184,6 +184,8 @@ public:
 
   void bnoPrint();
 
+  void getLidarDistances(double &front, double &back, double &left, double &right);
+
   // Make general checks to ensure TCS is working correctly.
   void checkTCS();
 };

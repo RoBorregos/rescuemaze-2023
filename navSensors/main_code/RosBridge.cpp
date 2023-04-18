@@ -186,3 +186,32 @@ void RosBridge::run()
     nh->spinOnce();
   }
 }
+
+void RosBridge::rosBridgeTest()
+{
+  while (true)
+  {
+    long int initialT = millis();
+    nh->loginfo("Requesting lidar data");
+    updateDistLidar();
+    nh->loginfo("Request flidar finished in ");
+    logNumber(millis() - initialT);
+    nh->loginfo(" ms");
+    double front, back, left, right;
+    sensors->getLidarDistances(front, back, left, right);
+    nh->loginfo("Distances obtained (front, back, left, right):");
+    logNumber(front);
+    logNumber(back);
+    logNumber(left);
+    logNumber(right);
+
+    delay(5000);
+  }
+}
+
+// Helper function to log numbers.
+void RosBridge::logNumber(double number){
+  String str = String(number);
+  const char* message = str.c_str();
+  nh->loginfo(message);
+}

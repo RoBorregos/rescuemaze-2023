@@ -40,6 +40,8 @@ public:
   // Calls watchdog and publish.
   void run();
 
+  void rosBridgeTest();
+
 private:
   // Dispenser Subscriber
   // Receives dispenser drop position
@@ -56,6 +58,10 @@ private:
   // Lidar dist subscriber
   // Update distances to walls.
   void updateDistLidarCallback(const geometry_msgs::Quaternion &dist);
+
+  
+
+  void logNumber(double number);
 
   // Subscriber to make tests
   void testCallback(const std_msgs::String &test_msg);

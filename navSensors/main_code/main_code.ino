@@ -4,7 +4,7 @@
 #include "MotorID.h"
 #include "MUX2C.h"
 #include "BNO.h"
-// #include "GeneralChecks.h"
+#include "GeneralChecks.h"
 #include "Plot.h"
 #include "CommonK.h"
 
@@ -38,7 +38,7 @@ void setup()
 
   ros::NodeHandle nh;
   nh.initNode();
-
+  
   while (!nh.connected())
   {
     nh.spinOnce();
@@ -54,7 +54,8 @@ void setup()
 
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
 
-  rosbridge.run();
+  rosbridge.rosBridgeTest();
+  // rosbridge.run();
 
   // Serial.begin(57600);
 
