@@ -200,12 +200,9 @@ void RosBridge::rosBridgeTest()
     double front, back, left, right;
     sensors->getLidarDistances(front, back, left, right);
     nh->loginfo("Distances obtained (front, back, left, right):");
-    logNumber(front);
-    logNumber(back);
-    logNumber(left);
-    logNumber(right);
+    logDist(front, back, left, right);
 
-    delay(5000);
+    delay(100);
   }
 }
 
@@ -213,5 +210,12 @@ void RosBridge::rosBridgeTest()
 void RosBridge::logNumber(double number){
   String str = String(number);
   const char* message = str.c_str();
+  nh->loginfo(message);
+}
+
+// Helper function to log distances.
+void RosBridge::logDist(double front, double back, double left, double right){
+  String all = String(front) + " " + String(back) + " " + String(left) + " " + String(right);
+  const char* message = all.c_str();
   nh->loginfo(message);
 }

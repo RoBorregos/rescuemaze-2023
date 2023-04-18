@@ -6,11 +6,12 @@
 # TODO: Check if it would be relevant to confirm the robot's orientation before sending
 #       response (i.e. check if robot is parallel to walls).
 
-import rospy
+import rospy, math
 from sensor_msgs.msg import LaserScan
 from nav_main.srv import GetWalls, GetWallsResponse, GetWallsDist, GetWallsDistResponse
 from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Empty
+
 
 debug = False
 
@@ -86,12 +87,63 @@ def get_dist():
     #back_dist = ranges[east_idx] # Back of the robot
     #right_dist = ranges[south_idx] # Right of the robot
     #front_dist = ranges[west_idx] # Front of the robot
+    angle_threshold = 0.1
+    
+    new_left_dist = get_valid_number(443, angle_threshold) # Left of the robot
+    new_back_dist = get_valid_number(571, angle_threshold) # Back of the robot
+    new_right_dist = get_valid_number(108, angle_threshold) # Right of the robot
+    new_front_dist = get_valid_number(288, angle_threshold) # Front of the robot
 
-    left_dist = ranges[443] # Left of the robot
-    back_dist = ranges[571] # Back of the robot
-    right_dist = ranges[108] # Right of the robot
-    front_dist = ranges[288] # Front of the robot
+    # Update distances if they are valid. Else, leave them as they are.
+    if new_left_dist is not None:
+        left_dist = new_left_dist
+    if new_back_dist is not None:
+        back_dist = new_back_dist
+    if new_right_dist is not None:
+        right_dist = new_right_dist
+    if new_front_dist is not None:
+        front_dist = new_front_dist
 
+# TODO: debug function
+def get_valid_number(angle_id, angle_threshold):
+    global scan_msg
+    laserscan_msg = scan_msg
+
+    """
+    Returns a valid number within the angle threshold of the given angle id in the Laserscan message.
+
+    Args:
+        angle_id (int): The id of Laserscan.ranges representing the angle.
+        angle_threshold (float): The angle threshold in radians.
+
+    Returns:
+        float: A valid number within the angle threshold, or None if no valid number found.
+    """
+    ranges = laserscan_msg.ranges
+    num_ranges = len(ranges)
+    if angle_id >= num_ranges:
+        print("Angle ID is out of range.")
+        return None
+    
+    angle_rad = laserscan_msg.angle_min + angle_id * laserscan_msg.angle_increment
+    angle_deg = math.degrees(angle_rad)
+    valid_number = None
+
+    # Check for valid number in clockwise direction
+    for i in range(angle_id, num_ranges):
+        if ranges[i] > 0.11:
+            valid_number = ranges[i]
+            if abs(angle_deg - math.degrees(laserscan_msg.angle_min + i * laserscan_msg.angle_increment)) <= math.degrees(angle_threshold):
+                return valid_number
+
+    # Check for valid number in counterclockwise direction
+    for i in range(angle_id, -1, -1):
+        if ranges[i] > 0.11:
+            valid_number = ranges[i]
+            if abs(angle_deg - math.degrees(laserscan_msg.angle_min + i * laserscan_msg.angle_increment)) <= math.degrees(angle_threshold):
+                return valid_number
+
+    return None
 
 
 def scan_callback(scan_msg_in):

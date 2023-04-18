@@ -62,6 +62,8 @@ private:
   
 
   void logNumber(double number);
+  
+  void logDist(double front, double back, double right, double left);
 
   // Subscriber to make tests
   void testCallback(const std_msgs::String &test_msg);
