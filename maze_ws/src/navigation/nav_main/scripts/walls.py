@@ -87,12 +87,22 @@ def get_dist():
     #back_dist = ranges[east_idx] # Back of the robot
     #right_dist = ranges[south_idx] # Right of the robot
     #front_dist = ranges[west_idx] # Front of the robot
-    angle_threshold = 0.1
+    angle_threshold = 0.1 
     
     new_left_dist = get_valid_number(443, angle_threshold) # Left of the robot
     new_back_dist = get_valid_number(571, angle_threshold) # Back of the robot
     new_right_dist = get_valid_number(108, angle_threshold) # Right of the robot
     new_front_dist = get_valid_number(288, angle_threshold) # Front of the robot
+
+    if debug:
+        print("Data from specific selections:")
+        print("Left: " + str(ranges[443]) + " Back: " + str(ranges[571]) + " Right: " + str(ranges[108]) + " Front: " + str(ranges[288]))
+        print("5 Data points above and below selections:")
+        print("Left: " + str(ranges[443-5:443+5]))
+        print("Back: " + str(ranges[571-5:571+5]))
+        print("Right: " + str(ranges[108-5:108+5]))
+        print("Front: " + str(ranges[288-5:288+5]))
+        
 
     # Update distances if they are valid. Else, leave them as they are.
     if new_left_dist is not None:
@@ -168,6 +178,13 @@ def dist_callback(_):
     dist_msg.y = back_dist
     dist_msg.z = left_dist
     dist_msg.w = right_dist
+
+    if debug:
+        print("Distances returned:")
+        print("Front: " + str (front_dist))
+        print("Back: " + str (back_dist))
+        print("Left: " + str (left_dist))
+        print("Right: " + str (right_dist))
 
     dist_publisher.publish(dist_msg)
     
