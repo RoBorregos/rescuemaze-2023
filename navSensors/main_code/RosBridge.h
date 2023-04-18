@@ -46,6 +46,10 @@ private:
   // Receives movement commands.
   void cmdMovementCallback(const std_msgs::Int16 &cmd_movement);
 
+  // Lidar dist subscriber
+  // Update distances to walls.
+  void updateDistLidar(const geometry_msgs::Quaternion &dist);
+
   // Subscriber to make tests
   void testCallback(const std_msgs::String &test_msg);
 
@@ -71,12 +75,14 @@ private:
   ros::Subscriber<geometry_msgs::Twist, RosBridge> velocity_subscriber;
   ros::Subscriber<std_msgs::Int16, RosBridge> cmd_movement_subscriber;
   ros::Subscriber<std_msgs::Int16, RosBridge> dispenser_subscriber;
+  ros::Subscriber<geometry_msgs::Quaternion, RosBridge> dist_subscriber;
   ros::Subscriber<std_msgs::String, RosBridge> test_subscriber;
 
   static constexpr uint16_t kWatchdogPeriod = 500;
 
   // Publishers
   ros::Publisher cmd_movement_publisher;
+  ros::Publisher req_dist_publisher; // Ask for distance to wall from lidar.
   ros::Publisher vlx_sensor_publisher_front;
   ros::Publisher tcs_sensor_publisher;
   ros::Publisher limit_switch_right_publisher; // Right limit switch
