@@ -56,7 +56,7 @@ void Sensors::initSensors()
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
-      Serial.println("Calibrating BNO");
+      // Serial.println("Calibrating BNO");
     }
 
     bno->restoreCalibration(); // Load offsets
@@ -71,9 +71,10 @@ void Sensors::initSensors()
 
       if (millis() - initialT > maxBNOTime)
       {
+        /*
         if (!CK::kusingROS && CK::debugBNOCalibration)
           Serial.println("BNO calibration timed out.");
-
+*/
         // Led blink to indicate that BNO calibration timed out.
         bothLedOff();
         delay(100);
@@ -89,10 +90,12 @@ void Sensors::initSensors()
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
+      /*
       if (bno->isCalibrated())
         Serial.println("BNO calibration finished.");
       else
         Serial.println("BNO calibration failed.");
+        */
     }
 
     // Give some time to place robot on the ground. The initial position will be
@@ -106,9 +109,11 @@ void Sensors::initSensors()
       toggleBothLeds();
       if (!CK::kusingROS && CK::debugBNOCalibration)
       {
+        /*
         Serial.print("Place robot on the ground in ");
         Serial.print((timeToPlaceRobot - (millis() - initialT)) / 1000);
         Serial.println(" seconds.");
+        */
       }
       delay(100);
     }
@@ -135,19 +140,19 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
   {
     for (int i = 0; i < 3; i++)
     {
-      Serial.print(" VLX sensor ");
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.print(float(getVLXInfo(i)), 4);
+      // Serial.print(" VLX sensor ");
+      // Serial.print(i + 1);
+      // Serial.print(": ");
+      // Serial.print(float(getVLXInfo(i)), 4);
     }
-    Serial.println();
+    // Serial.println();
   }
 
   if (tcs && !CK::kusingROS)
   {
-    Serial.print("TCS sensor  ");
+    // Serial.print("TCS sensor  ");
     this->tcs.printRGB();
-    Serial.println(getTCSInfo());
+    // Serial.println(getTCSInfo());
   }
 
   if (limitSwitches)
@@ -160,7 +165,7 @@ float Sensors::getVLXInfo(int posVLX)
 {
   if (!usingVLX && !CK::kusingROS)
   {
-    Serial.println("WARNING: invalid method call, VLX marked as not used.");
+    // Serial.println("WARNING: invalid method call, VLX marked as not used.");
     return -1;
   }
 
@@ -317,7 +322,7 @@ void Sensors::bnoAngles(float &x, float &y, float &z)
 {
   if (!usingBNO && !CK::kusingROS)
   {
-    Serial.println("WARNING: invalid method call, BNO marked as not used.");
+    // Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
   }
   bno->getAll(x, y, z);
@@ -327,7 +332,7 @@ void Sensors::bnoPrint()
 {
   if (!usingBNO && !CK::kusingROS)
   {
-    Serial.println("WARNING: invalid method call, BNO marked as not used.");
+    // Serial.println("WARNING: invalid method call, BNO marked as not used.");
     return;
   }
   bno->anglesInfo();
@@ -377,20 +382,20 @@ void Sensors::debugLimitSwitches()
 
   if (val == HIGH)
   {
-    Serial.println("Switch 0 is open");
+    // Serial.println("Switch 0 is open");
   }
   else
   {
-    Serial.println("Switch 0 is closed");
+    // Serial.println("Switch 0 is closed");
   }
   int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
   if (val2 == HIGH)
   {
-    Serial.println("Switch 1 is open");
+    // Serial.println("Switch 1 is open");
   }
   else
   {
-    Serial.println("Switch 1 is closed");
+    // Serial.println("Switch 1 is closed");
   }
 }
 

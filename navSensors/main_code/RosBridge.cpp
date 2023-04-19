@@ -40,8 +40,6 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
     nh->advertise(cmd_movement_publisher);
   }
 
-  nh->subscribe(velocity_subscriber);
-
   nh->advertise(robot_init_publisher);
 
   nh->advertise(vlx_sensor_publisher_front);
@@ -49,8 +47,8 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
   nh->subscribe(dispenser_subscriber);
 
   // Subscriber and publisher for distance to walls
-  nh->subscribe(dist_subscriber);
-  nh->advertise(req_dist_publisher);
+  // nh->subscribe(dist_subscriber);
+  // nh->advertise(req_dist_publisher);
 
   nh->negotiateTopics();
 
@@ -132,7 +130,7 @@ void RosBridge::cmdMovementCallback(const std_msgs::Int8 &cmd_movement_req)
         // ramp not detected
         response = 2;
       }
-    }    
+    }
   }
 
   cmd_movement_response.data = response;
@@ -174,8 +172,8 @@ void RosBridge::publishVLX()
   vlx_sensor_msgs_right.range = sensors->getVLXInfo(vlx_right);
   vlx_sensor_publisher_right.publish(&vlx_sensor_msgs_right);
 
-  vlx_sensor_msgs_left.range = sensors->getVLXInfo(vlx_left);
-  vlx_sensor_publisher_left.publish(&vlx_sensor_msgs_left);
+  // vlx_sensor_msgs_left.range = sensors->getVLXInfo(vlx_left);
+  // vlx_sensor_publisher_left.publish(&vlx_sensor_msgs_left);
 }
 
 void RosBridge::publishLimitSwitches()
@@ -210,15 +208,19 @@ void RosBridge::publishLimitSwitches()
 void RosBridge::publishRobotInit()
 {
   bool motorStatus = sensors->readMotorInit();
-  if (motorStatus != motor_init){
+  if (motorStatus != motor_init)
+  {
     motor_init = motorStatus;
     // Pub robot init
-    if (motor_init){
+    if (motor_init)
+    {
       robot_init_msgs.data = 1;
-    } else {
+    }
+    else
+    {
       robot_init_msgs.data = 0;
     }
-    robot_init_publisher.publish(&robot_init_msgs);  
+    robot_init_publisher.publish(&robot_init_msgs);
   }
 }
 
@@ -235,10 +237,10 @@ void RosBridge::publish()
       // tcs_sensor_msgs.data = sensors->getTCSInfo();
       // tcs_sensor_publisher.publish(&tcs_sensor_msgs);
 
-      publishVLX();
-      publishRobotInit();
       // publishLimitSwitches();
     }
+    publishVLX();
+    publishRobotInit();
   }
 }
 
@@ -250,6 +252,14 @@ void RosBridge::run()
     // watchdog(); // use with cmd_vel
     publish();
     nh->spinOnce();
+
+    // long int initialT = millis();
+    delay(10000);
+    /*
+    while (delay){
+      long int t= millis();
+      logNumber(t - initialT);
+    }*/
   }
 }
 

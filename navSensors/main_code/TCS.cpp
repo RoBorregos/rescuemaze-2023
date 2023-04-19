@@ -23,8 +23,8 @@ void TCS::init()
   mux.tcaSelect();
   if (!tcs.begin())
   {
-    if (!CK::kusingROS)
-      Serial.println("TCS Error.");
+    // if (!CK::kusingROS)
+    //   Serial.println("TCS Error.");
   }
 }
 
@@ -90,12 +90,12 @@ void TCS::printRGB()
   // updateRGBC();
   if (!CK::kusingROS)
   {
-    Serial.print("R: ");
-    Serial.print(red);
-    Serial.print("  G: ");
-    Serial.print(green);
-    Serial.print("  B: ");
-    Serial.println(blue);
+    // Serial.print("R: ");
+    // Serial.print(red);
+    // Serial.print("  G: ");
+    // Serial.print(green);
+    // Serial.print("  B: ");
+    // Serial.println(blue);
   }
 }
 
@@ -106,14 +106,14 @@ void TCS::printRGBC()
 
   if (!CK::kusingROS)
   {
-    Serial.print("Time: ");
-    Serial.println(millis() - (t)); // Prints around integration time in ms
-    Serial.print("R: ");
-    Serial.print(red);
-    Serial.print("  G: ");
-    Serial.print(green);
-    Serial.print("  B: ");
-    Serial.println(blue);
+    // Serial.print("Time: ");
+    // Serial.println(millis() - (t)); // Prints around integration time in ms
+    // Serial.print("R: ");
+    // Serial.print(red);
+    // Serial.print("  G: ");
+    // Serial.print(green);
+    // Serial.print("  B: ");
+    // Serial.println(blue);
   }
 }
 
@@ -122,9 +122,9 @@ void TCS::printColor()
   if (CK::kusingROS)
     return;
 
-  Serial.print("Color: ");
+  // Serial.print("Color: ");
   char color = (colors) ? getColorWithPrecision() : getColor();
-  Serial.println(color);
+  // Serial.println(color);
 }
 
 void TCS::setMux(uint8_t posMux)
@@ -182,8 +182,8 @@ char TCS::getColorWithPrecision()
 {
   if (colors == nullptr)
   {
-    if (!CK::kusingROS)
-      Serial.println("The colors aren't declared, getColor() will be used.");
+    // if (!CK::kusingROS)
+    //   Serial.println("The colors aren't declared, getColor() will be used.");
     return getColor();
   }
 
@@ -219,8 +219,8 @@ char TCS::getColorWithThresholds()
 {
   if (colorThresholds == nullptr)
   {
-    if (!CK::kusingROS)
-      Serial.println("The colors' thresholds aren't declared, getColorWithPrecision() will be used.");
+    // if (!CK::kusingROS)
+    //   Serial.println("The colors' thresholds aren't declared, getColorWithPrecision() will be used.");
     return getColorWithPrecision();
   }
 
@@ -308,17 +308,17 @@ void TCS::printColorMatrix()
 
   if (colors == nullptr)
   {
-    Serial.println("Color matrix is null.");
+    // Serial.println("Color matrix is null.");
     return;
   }
 
-  Serial.println("Printing color matrix:");
+  // Serial.println("Printing color matrix:");
 
-  for (uint8_t i = 0; i < colorAmount; i++)
-  {
-    Serial.println(String(colors[i][0]) + " " + String(colors[i][1]) + " " + String(colors[i][2]));
-  }
-  Serial.println(" ");
+  // for (uint8_t i = 0; i < colorAmount; i++)
+  // {
+  //   Serial.println(String(colors[i][0]) + " " + String(colors[i][1]) + " " + String(colors[i][2]));
+  // }
+  // Serial.println(" ");
 }
 
 void TCS::printColorList()
@@ -326,18 +326,18 @@ void TCS::printColorList()
   if (CK::kusingROS)
     return;
 
-  if (colorList == nullptr)
-  {
-    Serial.println("Color list is null.");
-    return;
-  }
+  // if (colorList == nullptr)
+  // {
+  //   Serial.println("Color list is null.");
+  //   return;
+  // }
 
-  Serial.println("Printing color list:");
+  // Serial.println("Printing color list:");
 
-  for (uint8_t i = 0; i < colorAmount; i++)
-  {
-    Serial.print(colorList[i]);
-    Serial.print(" ");
-  }
-  Serial.println(" ");
+  // for (uint8_t i = 0; i < colorAmount; i++)
+  // {
+  //   Serial.print(colorList[i]);
+  //   Serial.print(" ");
+  // }
+  // Serial.println(" ");
 }

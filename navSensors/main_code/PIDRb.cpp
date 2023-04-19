@@ -66,13 +66,13 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   if (debug && !CK::kusingROS)
   {
-    Serial.println("Time diff: " + String(timeDiff));
-    Serial.println("Input: " + String(input));
-    Serial.println("Error: " + String(error));
-    Serial.println("ErrorPre: " + String(errorPre));
-    Serial.println("Derivative: " + String(derivative));
-    Serial.println("ErrorSum: " + String(errorSum));
-    Serial.println("Output: " + String(output));
+    // Serial.println("Time diff: " + String(timeDiff));
+    // Serial.println("Input: " + String(input));
+    // Serial.println("Error: " + String(error));
+    // Serial.println("ErrorPre: " + String(errorPre));
+    // Serial.println("Derivative: " + String(derivative));
+    // Serial.println("ErrorSum: " + String(errorSum));
+    // Serial.println("Output: " + String(output));
   }
 }
 

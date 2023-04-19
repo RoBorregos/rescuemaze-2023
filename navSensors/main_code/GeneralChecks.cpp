@@ -1,6 +1,5 @@
 #include "GeneralChecks.h"
 
-
 GeneralChecks::GeneralChecks(Movement *robot, bool publishRos) : robot(robot), publishRos(publishRos)
 {
 }
@@ -18,7 +17,7 @@ void GeneralChecks::checkAll()
     }
     else
     {
-        Serial.println("Running general checks in Arduino.");
+        //Serial.println("Running general checks in Arduino.");
     }
     checkSensorData();
     checkWheelDirections();
@@ -104,25 +103,26 @@ void GeneralChecks::checkSensorData(int iterations)
     }
 }
 
-void GeneralChecks::checkDT(){
+void GeneralChecks::checkDT()
+{
     if (CK::kusingROS)
         return;
     log("Checking DT");
 
     log("Cmd movement(1,1): ", false);
     long int initialTime = millis();
-    robot->cmdMovement(1,1);
+    robot->cmdMovement(1, 1);
 
     Serial.println(dtToS(millis() - initialTime));
 
     log("Cmd movement(3,1): ", false);
     initialTime = millis();
-    robot->cmdMovement(3,1);
+    robot->cmdMovement(3, 1);
     Serial.println(dtToS(millis() - initialTime));
 
     log("Cmd movement(2,1): ", false);
     initialTime = millis();
-    robot->cmdMovement(2,1);
+    robot->cmdMovement(2, 1);
     Serial.println(dtToS(millis() - initialTime));
 
     log("robot->sensors->getTCSInfo(): ", false);
@@ -139,11 +139,11 @@ void GeneralChecks::checkDT(){
     initialTime = millis();
     robot->sensors->getAngleX();
     Serial.println(dtToS(millis() - initialTime));
-
 }
 
-double GeneralChecks::dtToS(long int dt){
-    return dt/1000.0;
+double GeneralChecks::dtToS(long int dt)
+{
+    return dt / 1000.0;
 }
 
 void GeneralChecks::checkWheelDirections()
@@ -218,74 +218,31 @@ void GeneralChecks::log(const char *s, bool newLine)
         robot->nh->loginfo(s);
     }
     else
-    {
+    {/*
         if (newLine)
             Serial.println(s);
         else
-            Serial.print(s);
+            //Serial.print(s);
+            */
     }
 }
-
 
 void GeneralChecks::test()
 {
     /* Meaning of #actions, options and return values of cmdMovement:
 
-    Action  Description                     Options                           Returns
-    1       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
-    2       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
-    3       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
-    4       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
-    5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
-    6       Traverse ramp                   None / ignored                    Estimated length of ramp.
-    7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
-    8       Update angle reference          TODO, would help to reduce error given by physical field.
-    */
-
-    Serial.println("Specific test");
-    SingleEMAFilter<float> singleEMAFilter(0.6);
-
-    while (true){
-        double rawMeasure = robot->sensors->getVLXInfo(0);
-
-		// Calcular filtro
-		singleEMAFilter.AddValue(rawMeasure);
-
-		// Mostrar resultados
-		// Emplear Serial Plotter para visualización gráfica
-		Serial.print(rawMeasure);
-		Serial.print(",\t");
-		Serial.print(singleEMAFilter.GetLowPass());
-		Serial.print(",\t");
-		Serial.println(singleEMAFilter.GetHighPass());
-    }
-
-    while (true)
-    {
-        robot->sensors->printInfo(false, true, false, false);
-        delay(100);
-        //robot->cmdMovement(1, 1);
-        //robot->sensors->toggleBothLeds();
-        //delay(1000);
-        //robot->sensors->toggleBothLeds();
-    }
-
-    robot->cmdMovement(4, 0);
-    end();
-    while (true){
-        
-        delay(500);
-    }   
-    
-    end();
-    delay(1000);
-    robot->cmdMovement(3, 1);
-    /*
-    delay(1000);
-    robot->cmdMovement(3, 1);
-    end();
-    */
-    end();
+  Action  Description                     Options                           Returns
+  0       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
+  3       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  1       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  2       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
+  5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
+  4       Traverse ramp                   None / ignored                    Estimated length of ramp.
+  7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
+  8       Update angle reference          TODO, would help to reduce error given by physical field.
+  */
+    robot->nh->loginfo("Running Test");
+    robot->cmdMovement(0, 1);
 }
 
 void GeneralChecks::end()
@@ -293,34 +250,52 @@ void GeneralChecks::end()
     while (true)
         delay(1000);
 }
+
+/* Test ema filter
+ SingleEMAFilter<float> singleEMAFilter(0.6);
+
+ while (true){
+     double rawMeasure = robot->sensors->getVLXInfo(0);
+
+     // Calcular filtro
+     singleEMAFilter.AddValue(rawMeasure);
+
+     // Mostrar resultados
+     // Emplear Serial Plotter para visualización gráfica
+     Serial.print(rawMeasure);
+     Serial.print(",\t");
+     Serial.print(singleEMAFilter.GetLowPass());
+     Serial.print(",\t");
+     Serial.println(singleEMAFilter.GetHighPass());
+ }
 /*
 
 Test number of revolutions given by the encoders.
 void GeneralChecks::test()
 
 {
-    Plot graph(robot);
-    graph.startSequence();
+ Plot graph(robot);
+ graph.startSequence();
 
-    robot->motor[1].motorBackward();
-    while (true)
-    {
-        robot->motor[1].setPWM(0);
-        // robot->updateStraightPID(40);
-        // robot
-        delay(50);
-        Serial.print("Front left: ");
-        Serial.print(robot->motor[0].getRevolutions());
-        Serial.print(", Back left: ");
-        Serial.print(robot->motor[1].getRevolutions());
-        Serial.print(", Front right: ");
-        Serial.print(robot->motor[2].getRevolutions());
+ robot->motor[1].motorBackward();
+ while (true)
+ {
+     robot->motor[1].setPWM(0);
+     // robot->updateStraightPID(40);
+     // robot
+     delay(50);
+     Serial.print("Front left: ");
+     Serial.print(robot->motor[0].getRevolutions());
+     Serial.print(", Back left: ");
+     Serial.print(robot->motor[1].getRevolutions());
+     Serial.print(", Front right: ");
+     Serial.print(robot->motor[2].getRevolutions());
 
-        Serial.print(", Back right: ");
-        Serial.println(robot->motor[3].getRevolutions());
+     Serial.print(", Back right: ");
+     Serial.println(robot->motor[3].getRevolutions());
 
-        // graph.plotTargetandCurrent();
-        // graph.plotPWM();
-    }
+     // graph.plotTargetandCurrent();
+     // graph.plotPWM();
+ }
 }
 */

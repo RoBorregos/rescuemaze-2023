@@ -20,8 +20,8 @@ void VLX::init()
 
   if (!vlx.begin())
   {
-    if (!CK::kusingROS)
-      Serial.println("ERROR VLX");
+    // if (!CK::kusingROS)
+    //   Serial.println("ERROR VLX");
   }
 
   //vlx.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY);
@@ -69,7 +69,7 @@ void VLX::printDistance()
   if (CK::kusingROS)
     return;
     
-  Serial.print("Distancia: ");
-  Serial.print(VLX::getDistance());
-  Serial.println(" M");
+  // Serial.print("Distancia: ");
+  // Serial.print(VLX::getDistance());
+  // Serial.println(" M");
 }

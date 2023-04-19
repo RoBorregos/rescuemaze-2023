@@ -46,15 +46,15 @@ void setup() {
  
 void loop() {
   
-    Serial.print(" Pulses: ");
-    Serial.print("Fr: ");
-    Serial.print(front_right_pulse_count);
-    Serial.print(", Fl: ");
-    Serial.print(front_left_pulse_count);
-    Serial.print(", Br: ");
-    Serial.print(back_right_pulse_count);
-    Serial.print(", Bl: ");
-    Serial.println(back_left_pulse_count);  
+    // Serial.print(" Pulses: ");
+    // Serial.print("Fr: ");
+    // Serial.print(front_right_pulse_count);
+    // Serial.print(", Fl: ");
+    // Serial.print(front_left_pulse_count);
+    // Serial.print(", Br: ");
+    // Serial.print(back_right_pulse_count);
+    // Serial.print(", Bl: ");
+    // Serial.println(back_left_pulse_count);  
 }
  
 // Increment the number of pulses by 1

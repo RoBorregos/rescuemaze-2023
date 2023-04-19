@@ -12,7 +12,7 @@
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-#define kusingROS false
+#define kusingROS true
 
 #define useleftvlx true
 #define userightvlx true
@@ -39,7 +39,7 @@ void setup()
   
   ros::NodeHandle nh;
   nh.initNode();
-
+  
   while (!nh.connected())
   {
     nh.spinOnce();
@@ -55,18 +55,19 @@ void setup()
 
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
 
-  rosbridge.rosBridgeTest();
-  // rosbridge.run();
+  
+  // rosbridge.rosBridgeTest();
+  //rosbridge.run();
 
   // Serial.begin(57600);
 
   // bno.init();
 
   // initAll(&bno, true, true);
-  // GeneralChecks checks(robot);
+  GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkAll();
-  // checks.test();
+  checks.test();
   // checks.checkSensorData();
 
   // Center of tile: 0.0620 VLX sensor 2: 0.0590 VLX sensor 3: 0.0550, use to find tile.

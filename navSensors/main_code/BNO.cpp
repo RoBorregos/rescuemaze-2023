@@ -9,8 +9,8 @@ void BNO::init()
 
   if (!bno.begin())
   {
-    if (!CK::kusingROS)
-      Serial.println("ERROR BNO");
+    //if (!CK::kusingROS)
+      //Serial.println("ERROR BNO");
   }
 }
 
@@ -45,12 +45,14 @@ void BNO::anglesInfo()
 
   if (!CK::kusingROS)
   {
+    /*
     Serial.print(F("X = "));
     Serial.print(x, 4);
     Serial.print(F(", Y = "));
     Serial.print(y, 4);
     Serial.print(F(", Z = "));
     Serial.println(z, 4);
+    */
   }
 }
 
@@ -140,6 +142,7 @@ void BNO::displaySensorDetails(void)
 
   if (!CK::kusingROS)
   {
+    /*
     Serial.println("------------------------------------");
     Serial.print("Sensor:       ");
     Serial.println(sensor.name);
@@ -158,6 +161,7 @@ void BNO::displaySensorDetails(void)
     Serial.println(" xxx");
     Serial.println("------------------------------------");
     Serial.println("");
+    */
   }
 }
 
@@ -170,7 +174,7 @@ void BNO::displaySensorStatus(void)
 
   if (!CK::kusingROS)
   {
-    /* Display the results in the Serial Monitor */
+    /* Display the results in the Serial Monitor 
     Serial.println("");
     Serial.print("System Status: 0x");
     Serial.println(system_status, HEX);
@@ -179,6 +183,7 @@ void BNO::displaySensorStatus(void)
     Serial.print("System Error:  0x");
     Serial.println(system_error, HEX);
     Serial.println("");
+    */
   }
 }
 
@@ -193,7 +198,7 @@ void BNO::displayCalStatus(void)
   if (CK::kusingROS)
     return;
 
-  /* Display calibration status for each sensor. */
+  /* Display calibration status for each sensor. 
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag);
   Serial.print("CALIBRATION: Sys=");
@@ -203,7 +208,7 @@ void BNO::displayCalStatus(void)
   Serial.print(" Accel=");
   Serial.print(accel, DEC);
   Serial.print(" Mag=");
-  Serial.println(mag, DEC);
+  Serial.println(mag, DEC);*/
 }
 
 void BNO::restoreCalibration()

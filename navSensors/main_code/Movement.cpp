@@ -70,17 +70,17 @@ void Movement::setMotors()
 {
   // Motors were swapped. Check which motor corresponss to pins
   motor[FRONT_RIGHT] = Motor(kDigitalPinsFrontLeftMotor[1], kDigitalPinsFrontLeftMotor[0],
-                            kAnalogPinFrontLeftMotor, kEncoderPinsFrontLeftMotor[0],
-                            kEncoderPinsFrontLeftMotor[1], MotorID::frontLeft);
+                             kAnalogPinFrontLeftMotor, kEncoderPinsFrontLeftMotor[0],
+                             kEncoderPinsFrontLeftMotor[1], MotorID::frontLeft);
   motor[BACK_LEFT] = Motor(kDigitalPinsBackLeftMotor[1], kDigitalPinsBackLeftMotor[0],
-                            kAnalogPinBackLeftMotor, kEncoderPinsBackLeftMotor[0],
-                            kEncoderPinsBackLeftMotor[1], MotorID::backLeft);
+                           kAnalogPinBackLeftMotor, kEncoderPinsBackLeftMotor[0],
+                           kEncoderPinsBackLeftMotor[1], MotorID::backLeft);
   motor[FRONT_LEFT] = Motor(kDigitalPinsFrontRightMotor[1], kDigitalPinsFrontRightMotor[0],
-                             kAnalogPinFrontRightMotor, kEncoderPinsFrontRightMotor[0],
-                             kEncoderPinsBackRightMotor[1], MotorID::frontRight);
+                            kAnalogPinFrontRightMotor, kEncoderPinsFrontRightMotor[0],
+                            kEncoderPinsBackRightMotor[1], MotorID::frontRight);
   motor[BACK_RIGHT] = Motor(kDigitalPinsBackRightMotor[1], kDigitalPinsBackRightMotor[0],
-                           kAnalogPinBackRightMotor, kEncoderPinsBackRightMotor[0],
-                           kEncoderPinsBackRightMotor[1], MotorID::backRight);
+                            kAnalogPinBackRightMotor, kEncoderPinsBackRightMotor[0],
+                            kEncoderPinsBackRightMotor[1], MotorID::backRight);
 }
 
 // Constrains
@@ -200,11 +200,13 @@ void Movement::encoderTics()
 
   for (int i = 0; i < kMotorCount; i++)
   {
-    Serial.print("Motor ");
+    /*
+    // Serial.print("Motor ");
     Serial.print(i + 1);
     Serial.print(": ");
     Serial.println(motor[i].getEncoderTics());
     delay(10);
+    */
   }
 }
 
@@ -221,7 +223,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 {
   if (nh == nullptr && !CK::kusingROS)
   {
-    Serial.println("ERROR, trying to use NodeHandle without initializing it. Change constructor or method call.");
+    // Serial.println("ERROR, trying to use NodeHandle without initializing it. Change constructor or method call.");
     return;
   }
 
@@ -339,39 +341,45 @@ int Movement::cmdMovement(const int action, const int option)
   {
     firstMove = false;
     updateAngleReference();
-    Serial.println("Updated angle reference");
+    // Serial.println("Updated angle reference");
   }
 
   switch (action)
   {
   case 0:
+    nh->loginfo("Moving forward");
     // Move forward 1 unit.
     return advanceXMeters(0.3, option);
     break;
 
   case 1:
+    nh->loginfo("Turning right");
     // Right turn
     rotateRobot(option, 1);
     return 1;
     break;
 
   case 2:
+    nh->loginfo("Moving backward");
     // Move back 1 unit
     return advanceXMeters(-0.3, option);
     break;
 
   case 3:
+    nh->loginfo("Turning left");
     // Left turn
     rotateRobot(option, 0);
     return 1;
     break;
 
   case 4:
+    nh->loginfo("Traversing ramp");
     // Traverse ramp
     return traverseRamp(option);
     break;
 
   case 5:
+    nh->loginfo("Traversing ramp");
     // Rearrange in tile. Use VLX and BNO.
     goToAngle(getTurnDirection(rDirection));     // Rearrange orientation
     advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
@@ -379,12 +387,14 @@ int Movement::cmdMovement(const int action, const int option)
     break;
 
   case 7:
+    nh->loginfo("Dropping n kits");
     // Drop n kits
     dropDecider(option);
     return 1;
     break;
 
   case 8:
+    nh->loginfo("Update Angle reference");
     // Update angle reference.
     updateAngleReference();
     return 1;
@@ -416,7 +426,7 @@ void Movement::rotateRobot(int option, int dir)
   {
     if (!CK::kusingROS && CK::debugRotation)
     {
-      Serial.println("Reacomodating");
+      // Serial.println("Reacomodating");
     }
 
     // Align robot with back wall.
@@ -494,6 +504,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
 
     if (!CK::kusingROS && CK::vlxPID)
     {
+      /*
       Serial.print("Correction: ");
       Serial.print(correctionVLX);
       Serial.print(", Target rpm: left: ");
@@ -501,7 +512,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
       Serial.print(", Target rpm: right: ");
       Serial.print(RPMs + correctionVLX * -1);
       Serial.print("Real Error: ");
-      Serial.println(correctionVLX / 100);
+      Serial.println(correctionVLX / 100);*/
     }
   }
 }
@@ -510,8 +521,8 @@ bool Movement::checkColor()
 {
   sensors->toggleRightLed();
   char c = sensors->getTCSInfo();
-  Serial.print("TCS info:");
-  Serial.println(c);
+  // Serial.print("TCS info:");
+  // Serial.println(c);
   sensors->toggleRightLed();
   return c == 'N';
 }
@@ -528,7 +539,7 @@ void Movement::updateStraightPID(int RPMs)
 void Movement::updateVelPwm(int RPMs, bool useBNO)
 {
   int speed_sign = 0;
-  
+
   if (RPMs > 0)
     speed_sign = 1;
   else if (RPMs < 0)
@@ -562,7 +573,6 @@ void Movement::updateVelPwm(int RPMs, bool useBNO)
 
     leftM = correctionVLX;
     rightM = correctionVLX * -1;
-
   }
 
   // Update PWM taking into account error.
@@ -624,8 +634,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
-        Serial.print("Distancia recorrida advanceXMeters: ");
-        Serial.println(initial - dist);
+        // Serial.print("Distancia recorrida advanceXMeters: ");
+        // Serial.println(initial - dist);
       }
     }
   }
@@ -647,8 +657,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
-        Serial.print("Distancia recorrida advanceXMeters: ");
-        Serial.println(initial - dist);
+        // Serial.print("Distancia recorrida advanceXMeters: ");
+        // Serial.println(initial - dist);
       }
 
       // If robot hasn't moved significantly in backStuckTimer, break.
@@ -673,8 +683,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
   if (!CK::kusingROS && CK::debugAdvanceX)
   {
-    Serial.print("Distancia final recorrida advanceXMeters: ");
-    Serial.println(initial - dist);
+    // Serial.print("Distancia final recorrida advanceXMeters: ");
+    // Serial.println(initial - dist);
   }
 
   // Indicate the robot went backwards because of black tile.
@@ -794,14 +804,16 @@ void Movement::printAngleReference()
   if (CK::kusingROS)
     return;
 
-  Serial.println("0 is north, 1 is east, 2 is south, 3 is west");
+  // Serial.println("0 is north, 1 is east, 2 is south, 3 is west");
 
   for (int i = 0; i < 4; i++)
   {
+    /*
     Serial.print("Angle: ");
     Serial.print(angleDirs[i]);
     Serial.print(" Dir: ");
     Serial.println(i);
+    */
   }
 }
 
@@ -835,8 +847,8 @@ double Movement::stabilizePitch(int straightPidType)
   {
     if (!CK::kusingROS && CK::debugRamp)
     {
-      Serial.print("Robot out of stable pitch: ");
-      Serial.println(sensors->getAngleY());
+      // Serial.print("Robot out of stable pitch: ");
+      // Serial.println(sensors->getAngleY());
     }
     updateVelocityDecider(kMovementRPMs, straightPidType);
   }
@@ -873,7 +885,7 @@ void Movement::goToAngle(int targetAngle)
 {
   if (CK::debugGoToAngle && !CK::kusingROS)
   {
-    Serial.println("Inside goToAngle");
+    // Serial.println("Inside goToAngle");
   }
 
   double currentAngle = bno->getAngleX();
@@ -991,11 +1003,11 @@ void Movement::testMotor()
     if (!CK::kusingROS)
     {
       /* Display the results in the Serial Monitor */
-      Serial.print("Curr speed: ");
-      Serial.print(m->getCurrentSpeed());
-      Serial.print(", ");
-      Serial.print("Curr target: ");
-      Serial.println(m->getTargetSpeed());
+      // Serial.print("Curr speed: ");
+      // Serial.print(m->getCurrentSpeed());
+      // Serial.print(", ");
+      // Serial.print("Curr target: ");
+      // Serial.println(m->getTargetSpeed());
     }
   }
 }
