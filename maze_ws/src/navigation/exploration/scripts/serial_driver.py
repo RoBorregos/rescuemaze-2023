@@ -25,6 +25,7 @@ from std_msgs.msg import Int8, Float32MultiArray
 from std_srvs.srv import Trigger, TriggerResponse
 from exploration.srv import GoalStatus, GoalStatusResponse, GoalStatusRequest
 from exploration.srv import VLXDist, VLXDistResponse, VLXDistRequest
+from nav_main.srv import GetWallsDist, GetWallsDistResponse, GetWallsDistRequest
 
 import struct
 import binascii
@@ -306,6 +307,9 @@ def start_status(req):
     return TriggerResponse(controller.get_start_state()[1], "Start status")
 
 if __name__ == '__main__':
+
+    only_test_lidar = True
+
     rospy.init_node('serial_node')
 
     name = rospy.get_name() + '/'
@@ -321,22 +325,30 @@ if __name__ == '__main__':
 
     rospy.loginfo("Connecting to serial port %s at %d baud" % (port, baud))
 
-    rospy.Subscriber("/unit_movement", Int8, goal_callback)
-    rospy.Subscriber("/lidar_serial", Float32MultiArray, lidar_callback)
-    rospy.Subscriber("/dispenser", Int8, victims_callback)
+    
+    if only_test_lidar:
+        get_walls = rospy.ServiceProxy('get_walls_dist', GetWallsDist)
+    else:
+        rospy.Subscriber("/lidar_serial", Float32MultiArray, lidar_callback)
+        rospy.Subscriber("/unit_movement", Int8, goal_callback)
+        rospy.Subscriber("/dispenser", Int8, victims_callback)
 
-    # Goal status service
-    s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
-    # VLX service
-    s2 = rospy.Service('/get_vlx', VLXDist, get_vlx)
-    # Robot start service
-    s3 = rospy.Service('/get_start_status', Trigger, start_status)
+        # Goal status service
+        s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
+        # VLX service
+        s2 = rospy.Service('/get_vlx', VLXDist, get_vlx)
+        # Robot start service
+        s3 = rospy.Service('/get_start_status', Trigger, start_status)
 
     global controller
 
     controller = Microcontroller(port=port, baud=baud, timeout=timeout)
     controller.connect()
 
-
+    if only_test_lidar:
+        while not rospy.is_shutdown():
+            # get lidar 
+            distances = get_walls()
+            controller.send_lidar(distances.front, distances.back, distances.right, distances.left)
 
         
