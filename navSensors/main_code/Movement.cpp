@@ -337,49 +337,51 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 int Movement::cmdMovement(const int action, const int option)
 {
+  // nh->loginfo("cmdMovement called");
+  // nh->spinOnce();
   if (firstMove && !CK::kusingROS)
   {
     firstMove = false;
     updateAngleReference();
-    // Serial.println("Updated angle reference");
+    Serial.println("Updated angle reference");
   }
 
   switch (action)
   {
   case 0:
-    nh->loginfo("Moving forward");
+    // nh->loginfo("Moving forward");
     // Move forward 1 unit.
     return advanceXMeters(0.3, option);
     break;
 
   case 1:
-    nh->loginfo("Turning right");
+    // nh->loginfo("Turning right");
     // Right turn
     rotateRobot(option, 1);
     return 1;
     break;
 
   case 2:
-    nh->loginfo("Moving backward");
+    // nh->loginfo("Moving backward");
     // Move back 1 unit
     return advanceXMeters(-0.3, option);
     break;
 
   case 3:
-    nh->loginfo("Turning left");
+    // nh->loginfo("Turning left");
     // Left turn
     rotateRobot(option, 0);
     return 1;
     break;
 
   case 4:
-    nh->loginfo("Traversing ramp");
+    // nh->loginfo("Traversing ramp");
     // Traverse ramp
     return traverseRamp(option);
     break;
 
   case 5:
-    nh->loginfo("Traversing ramp");
+    // nh->loginfo("Traversing ramp");
     // Rearrange in tile. Use VLX and BNO.
     goToAngle(getTurnDirection(rDirection));     // Rearrange orientation
     advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
@@ -387,14 +389,14 @@ int Movement::cmdMovement(const int action, const int option)
     break;
 
   case 7:
-    nh->loginfo("Dropping n kits");
+    // nh->loginfo("Dropping n kits");
     // Drop n kits
     dropDecider(option);
     return 1;
     break;
 
   case 8:
-    nh->loginfo("Update Angle reference");
+    // nh->loginfo("Update Angle reference");
     // Update angle reference.
     updateAngleReference();
     return 1;
@@ -407,6 +409,7 @@ int Movement::cmdMovement(const int action, const int option)
 
 void Movement::rotateRobot(int option, int dir)
 {
+  // nh->loginfo("rotateRobot called");
   bool reacomodate = false;
 
   // Move robot backward if there is a wall back.
@@ -426,7 +429,7 @@ void Movement::rotateRobot(int option, int dir)
   {
     if (!CK::kusingROS && CK::debugRotation)
     {
-      // Serial.println("Reacomodating");
+      Serial.println("Reacomodating");
     }
 
     // Align robot with back wall.
@@ -468,6 +471,7 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 // Update PID with either VLX or BNO error.
 void Movement::updateStraightPID(int RPMs, bool useBNO)
 {
+  // nh->loginfo("updateStraightPID called");
   if (useBNO)
   {
     double errorD = getAngleError(dirToAngle(rDirection));
@@ -481,7 +485,8 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
   else
   {
     // Use VLX distance error to update target speeds.
-    // Serial.println("UpdateStraightPID");
+    if (!CK::kusingROS)
+      Serial.println("UpdateStraightPID");
     if (millis() - lastUpdateVLX > kVlxErrorTimer)
     {
       lastUpdateVLX = millis();
@@ -504,7 +509,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
 
     if (!CK::kusingROS && CK::vlxPID)
     {
-      /*
+
       Serial.print("Correction: ");
       Serial.print(correctionVLX);
       Serial.print(", Target rpm: left: ");
@@ -512,17 +517,22 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
       Serial.print(", Target rpm: right: ");
       Serial.print(RPMs + correctionVLX * -1);
       Serial.print("Real Error: ");
-      Serial.println(correctionVLX / 100);*/
+      Serial.println(correctionVLX / 100);
     }
   }
 }
 
 bool Movement::checkColor()
 {
+  // nh->loginfo("checkColor called");
   sensors->toggleRightLed();
   char c = sensors->getTCSInfo();
-  // Serial.print("TCS info:");
-  // Serial.println(c);
+  if (!CK::kusingROS)
+  {
+    Serial.print("TCS info:");
+    Serial.println(c);
+  }
+
   sensors->toggleRightLed();
   return c == 'N';
 }
@@ -530,6 +540,7 @@ bool Movement::checkColor()
 // pass RPMs directly to PID.
 void Movement::updateStraightPID(int RPMs)
 {
+  // nh->loginfo("updateStraightPID called");
   motor[FRONT_LEFT].motorSpeedPID(RPMs);
   motor[BACK_LEFT].motorSpeedPID(RPMs);
   motor[FRONT_RIGHT].motorSpeedPID(RPMs);
@@ -538,6 +549,8 @@ void Movement::updateStraightPID(int RPMs)
 
 void Movement::updateVelPwm(int RPMs, bool useBNO)
 {
+  // nh->loginfo("updateVelPwm called");
+
   int speed_sign = 0;
 
   if (RPMs > 0)
@@ -584,6 +597,7 @@ void Movement::updateVelPwm(int RPMs, bool useBNO)
 
 void Movement::updateVelocityDecider(int RPMs, bool useBNO)
 {
+  // nh->loginfo("updateVelocityDecider called");
   if (CK::usePid)
   {
     updateStraightPID(RPMs, useBNO);
@@ -594,8 +608,9 @@ void Movement::updateVelocityDecider(int RPMs, bool useBNO)
   }
 }
 
-double Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
+int Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
 {
+  // nh->loginfo("AdvanceXMeters called");
   double dist = sensors->getDistInfo(dist_front);
 
   double initial = dist;
@@ -634,8 +649,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
-        // Serial.print("Distancia recorrida advanceXMeters: ");
-        // Serial.println(initial - dist);
+        Serial.print("Distancia recorrida advanceXMeters: ");
+        Serial.println(initial - dist);
       }
     }
   }
@@ -657,8 +672,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
-        // Serial.print("Distancia recorrida advanceXMeters: ");
-        // Serial.println(initial - dist);
+        Serial.print("Distancia recorrida advanceXMeters: ");
+        Serial.println(initial - dist);
       }
 
       // If robot hasn't moved significantly in backStuckTimer, break.
@@ -683,8 +698,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 
   if (!CK::kusingROS && CK::debugAdvanceX)
   {
-    // Serial.print("Distancia final recorrida advanceXMeters: ");
-    // Serial.println(initial - dist);
+    Serial.print("Distancia final recorrida advanceXMeters: ");
+    Serial.println(initial - dist);
   }
 
   // Indicate the robot went backwards because of black tile.
@@ -804,16 +819,16 @@ void Movement::printAngleReference()
   if (CK::kusingROS)
     return;
 
-  // Serial.println("0 is north, 1 is east, 2 is south, 3 is west");
+  Serial.println("0 is north, 1 is east, 2 is south, 3 is west");
 
   for (int i = 0; i < 4; i++)
   {
-    /*
+    
     Serial.print("Angle: ");
     Serial.print(angleDirs[i]);
     Serial.print(" Dir: ");
     Serial.println(i);
-    */
+    
   }
 }
 
@@ -847,8 +862,8 @@ double Movement::stabilizePitch(int straightPidType)
   {
     if (!CK::kusingROS && CK::debugRamp)
     {
-      // Serial.print("Robot out of stable pitch: ");
-      // Serial.println(sensors->getAngleY());
+      Serial.print("Robot out of stable pitch: ");
+      Serial.println(sensors->getAngleY());
     }
     updateVelocityDecider(kMovementRPMs, straightPidType);
   }
@@ -885,7 +900,7 @@ void Movement::goToAngle(int targetAngle)
 {
   if (CK::debugGoToAngle && !CK::kusingROS)
   {
-    // Serial.println("Inside goToAngle");
+    Serial.println("Inside goToAngle");
   }
 
   double currentAngle = bno->getAngleX();

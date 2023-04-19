@@ -52,7 +52,7 @@ class Sensors
   bool usingBNO; // Used to decide if BNO will be initialized.
 
   long int maxBNOTime = 10000;    // Max time for BNO to calibrate.
-  double timeToPlaceRobot = 3000; // Time to place robot after BNO calibration.
+  double timeToPlaceRobot = 6000; // Time to place robot after BNO calibration.
 
   // Sensors.
   BNO *bno;

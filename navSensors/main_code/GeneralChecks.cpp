@@ -17,7 +17,7 @@ void GeneralChecks::checkAll()
     }
     else
     {
-        //Serial.println("Running general checks in Arduino.");
+        // Serial.println("Running general checks in Arduino.");
     }
     checkSensorData();
     checkWheelDirections();
@@ -213,17 +213,16 @@ void GeneralChecks::checkUnitaryMovements()
 
 void GeneralChecks::log(const char *s, bool newLine)
 {
-    if (publishRos && CK::kusingROS)
+    if (publishRos || CK::kusingROS)
     {
         robot->nh->loginfo(s);
     }
     else
-    {/*
+    {
         if (newLine)
             Serial.println(s);
         else
-            //Serial.print(s);
-            */
+            Serial.print(s);
     }
 }
 
@@ -241,8 +240,17 @@ void GeneralChecks::test()
   7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
   8       Update angle reference          TODO, would help to reduce error given by physical field.
   */
-    robot->nh->loginfo("Running Test");
+    // robot->nh->loginfo("Running Test");
+
+    Serial.println("Running Test");
+
+    /*
+    while (true){
+        robot->sensors->printInfo(true, false, false, false);
+    }*/
+
     robot->cmdMovement(0, 1);
+    end();
 }
 
 void GeneralChecks::end()
