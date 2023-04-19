@@ -213,7 +213,7 @@ private:
     void vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg);
     void vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg);
 
-    void startCallback(const std_msgs::Int16::ConstPtr &msg);
+    void startCallback(const std_msgs::Int8::ConstPtr &msg);
     int sendGoalJetson(int movement);
 
     void sendKit();
@@ -691,11 +691,10 @@ void ROSbridge::vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg)
     distVlxLeft = msg->range;
 }
 
-void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
+void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
 {
     ROS_INFO("Start callback: %d", msg->data);
-    // startAlgorithm = msg->data;
-    startAlgorithm = false;
+    startAlgorithm = msg->data;
 }
 
 // 0: forward
