@@ -91,6 +91,15 @@ void RosBridge::cmdVelocityCallback(const geometry_msgs::Twist &cmd_velocity)
 void RosBridge::cmdMovementCallback(const std_msgs::Int8 &cmd_movement_req)
 {
   double response = robot->cmdMovement(cmd_movement_req.data);
+
+  // Transform response to algorithm response
+
+  if (response == 0){
+    // do nothing
+  } else if (response == 1){
+    
+  }
+  
   cmd_movement_response.data = response;
   cmd_movement_publisher.publish(&cmd_movement_response);
 }
@@ -126,6 +135,13 @@ void RosBridge::publishVLX()
   // VLX sensor data
   vlx_sensor_msgs_front.range = sensors->getVLXInfo(vlx_front);
   vlx_sensor_publisher_front.publish(&vlx_sensor_msgs_front);
+
+  vlx_sensor_msgs_right.range = sensors->getVLXInfo(vlx_right);
+  vlx_sensor_publisher_right.publish(&vlx_sensor_msgs_right);
+
+  vlx_sensor_msgs_left.range = sensors->getVLXInfo(vlx_left);
+  vlx_sensor_publisher_left.publish(&vlx_sensor_msgs_left);
+
 }
 
 void RosBridge::publishLimitSwitches()

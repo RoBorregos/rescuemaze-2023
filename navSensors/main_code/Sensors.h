@@ -15,6 +15,11 @@
 #define vlx_left 2
 #define vlx_front 0
 
+#define dist_front 0
+#define dist_back 1
+#define dist_left 2
+#define dist_right 3
+
 class RosBridge; // Forward declaration of RosBridge
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.

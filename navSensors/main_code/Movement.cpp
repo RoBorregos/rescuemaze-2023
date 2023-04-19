@@ -349,12 +349,6 @@ int Movement::cmdMovement(const int action, const int option)
     return advanceXMeters(0.3, option);
     break;
 
-  case 3:
-    // Left turn
-    rotateRobot(option, 0);
-    return 1;
-    break;
-
   case 1:
     // Right turn
     rotateRobot(option, 1);
@@ -364,18 +358,24 @@ int Movement::cmdMovement(const int action, const int option)
   case 2:
     // Move back 1 unit
     return advanceXMeters(-0.3, option);
-
     break;
+
+  case 3:
+    // Left turn
+    rotateRobot(option, 0);
+    return 1;
+    break;
+
+  case 4:
+    // Traverse ramp
+    return traverseRamp(option);
+    break;
+
   case 5:
     // Rearrange in tile. Use VLX and BNO.
     goToAngle(getTurnDirection(rDirection));     // Rearrange orientation
     advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
     return 1;
-    break;
-
-  case 6:
-    // Traverse ramp
-    return traverseRamp(option);
     break;
 
   case 7:
@@ -403,7 +403,7 @@ void Movement::rotateRobot(int option, int dir)
   if (option == 1)
   {
     double dist = 100;
-    dist = (dir == 0) ? sensors->getVLXInfo(vlx_right) : sensors->getVLXInfo(vlx_left);
+    dist = (dir == 0) ? sensors->getDistInfo(dist_right) : sensors->getDistInfo(dist_left);
     if (dist < kDistanceWall)
       reacomodate = true;
   }
@@ -475,8 +475,8 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
     if (millis() - lastUpdateVLX > kVlxErrorTimer)
     {
       lastUpdateVLX = millis();
-      double rightDistance = sensors->getVLXInfo(1);
-      double leftDistance = sensors->getVLXInfo(2);
+      double rightDistance = sensors->getDistInfo(dist_right);
+      double leftDistance = sensors->getDistInfo(dist_left);
 
       while (rightDistance > 0.3)
         rightDistance -= 0.3;
@@ -527,7 +527,7 @@ void Movement::updateStraightPID(int RPMs)
 
 double Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
 {
-  double dist = sensors->getVLXInfo(vlx_front);
+  double dist = sensors->getDistInfo(dist_front);
 
   double initial = dist;
   double target = dist - x;
@@ -554,14 +554,14 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
         lastTCS = millis();
         if (checkColor())
         {
-          dist = sensors->getVLXInfo(vlx_front);
+          dist = sensors->getDistInfo(dist_front);
           stop();
-          //return 0;
+          // return 0;
           return advanceXMeters(dist - initial, straightPidType, true);
         }
       }
 
-      dist = sensors->getVLXInfo(vlx_front);
+      dist = sensors->getDistInfo(dist_front);
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
@@ -584,7 +584,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       // Get dist reading after correcting angle.
       rearrangeAngle();
 
-      dist = sensors->getVLXInfo(vlx_front);
+      dist = sensors->getDistInfo(dist_front);
 
       if (!CK::kusingROS && CK::debugAdvanceX)
       {
@@ -803,7 +803,7 @@ void Movement::rearrangeAngle()
 double Movement::getDistanceToCenter()
 {
   double dist = 0;
-  dist = sensors->getVLXInfo(vlx_front);
+  dist = sensors->getDistInfo(dist_front);
   dist *= 100;                          // m to cm.
   double center = ((int)dist % 15) - 5; // in cm. "-5" is the distance from vlx to wall.
 
@@ -975,3 +975,12 @@ int Movement::getTurnDirection(int turn)
 
   return -1;
 }
+
+
+
+/*
+
+
+
+
+*/

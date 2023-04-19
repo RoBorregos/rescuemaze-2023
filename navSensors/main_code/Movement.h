@@ -181,12 +181,12 @@ public:
   /* Meaning of #actions, options and return values of cmdMovement:
 
   Action  Description                     Options                           Returns
-  1       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
-  2       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
-  3       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
-  4       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
+  0       Move forward 1 unit (30 cms)    1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted, other -> Ramp
+  3       Left turn (-90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  1       Right turn (90 deg)             1 to reaccomodate with back wall  1 -> successful, 0 -> move aborted
+  2       Move backward 1 unit (30 cms)   1 (use deg for error) 0 use vlx   1 -> successful, 0 -> move aborted
   5       Rearrange in current tile       None / ignored                    1 -> successful, 0 -> move aborted
-  6       Traverse ramp                   None / ignored                    Estimated length of ramp.
+  4       Traverse ramp                   None / ignored                    Estimated length of ramp.
   7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
   8       Update angle reference          TODO, would help to reduce error given by physical field.
   */
