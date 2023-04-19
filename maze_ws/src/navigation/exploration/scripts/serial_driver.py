@@ -352,7 +352,10 @@ if __name__ == '__main__':
     controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
     controller.connect()
 
+    rospy.spin()
+
     # Tests
+    """
     while (1):
         print("Loop")
         # print(controller.get_baud())
@@ -365,6 +368,7 @@ if __name__ == '__main__':
         controller.send_lidar(1.5, 4.9, -3.0, 4.3)
         print(controller.get_lidar())
         rospy.sleep(1)
+    """
 
 
 
