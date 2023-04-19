@@ -14,7 +14,7 @@
 using namespace std;
 
 // #define simulateRos true
-// #define useLidar false
+#define useLidar true
 // #define useNavStack true
 
 #include "Tile.h"
