@@ -23,6 +23,7 @@ namespace CK
     const int basePwmBackRight = 100;
     const int basePwmFrontLeft = 100;
     const int basePwmFrontRight = 100;
+    const double kRampDt = 3;
 }
 
 #endif

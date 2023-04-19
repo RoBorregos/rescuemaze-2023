@@ -97,12 +97,42 @@ void RosBridge::cmdMovementCallback(const std_msgs::Int8 &cmd_movement_req)
 
   // Transform response to algorithm response
 
-  if (response == 0)
+  if (cmd_movement_req.data == 0)
   {
-    // do nothing
-  }
-  else if (response == 1)
-  {
+    if (response == 0)
+    {
+      // do nothing
+    }
+    else if (response == 1)
+    {
+      // check color
+      char color = sensors->getTCSInfo();
+
+      if (color == 'A')
+      {
+        // wait 5 seconds and return result
+        delay(5000);
+        response = 2;
+      }
+      else if (color == 'P')
+      {
+        // checkpoint detected
+        response = 3;
+      }
+    }
+    else // went through ramp
+    {
+      if (response > CK::kRampDt)
+      {
+        // ramp detected
+        response = 4;
+      }
+      else
+      {
+        // ramp not detected
+        response = 2;
+      }
+    }    
   }
 
   cmd_movement_response.data = response;

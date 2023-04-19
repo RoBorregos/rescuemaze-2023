@@ -184,11 +184,13 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
     rosBridge->updateDistLidar();
     return;
   }
-
-  wallDistances[0] = front;
-  wallDistances[1] = back;
-  wallDistances[2] = left;
-  wallDistances[3] = right;
+  // 19*18 
+  
+  // Update values adding constant error
+  wallDistances[0] = front - 19 / 2;
+  wallDistances[1] = back - 19 / 2;
+  wallDistances[2] = left - 18 / 2;
+  wallDistances[3] = right - 18 / 2;
   lidarAttemptCount = 0;
 }
 

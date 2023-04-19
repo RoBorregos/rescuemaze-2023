@@ -213,7 +213,7 @@ private:
     void vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg);
     void vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg);
 
-    void startCallback(const std_msgs::Int16::ConstPtr &msg);
+    void startCallback(const std_msgs::Int8::ConstPtr &msg);
     int sendGoalJetson(int movement);
 
     void sendKit();
@@ -691,11 +691,10 @@ void ROSbridge::vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg)
     distVlxLeft = msg->range;
 }
 
-void ROSbridge::startCallback(const std_msgs::Int16::ConstPtr &msg)
+void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
 {
     ROS_INFO("Start callback: %d", msg->data);
-    // startAlgorithm = msg->data;
-    startAlgorithm = false;
+    startAlgorithm = msg->data;
 }
 
 // 0: forward
@@ -724,24 +723,16 @@ int ROSbridge::sendGoalJetson(int movement)
     std_msgs::Int8 movementmsg;
     if (movement == 0)
     {
+        // Check if there's a ramp
         if (checkUpRamp())
         {
             upRamp = true;
+            movementmsg.data = 4;
         }
-        ROS_INFO("Forward");
-
-        // // Check if there's a ramp
-        // if (checkUpRamp())
-        // {
-        //     upRamp = true;
-        //     movementmsg.data = 4;
-        // }
-        // else
-        // {
-        //     movementmsg.data = 1;
-        // }
-
-        movementmsg.data = 1;
+        else
+        {
+            movementmsg.data = 1;
+        }
     }
     else if (movement == 1)
     {
@@ -761,7 +752,7 @@ int ROSbridge::sendGoalJetson(int movement)
     if (movement == 4)
     {
         ROS_INFO("Backward");
-        movementmsg.data = 4;
+        movementmsg.data = 2;
     }
 
     unitmovementpub.publish(movementmsg);
@@ -1731,6 +1722,8 @@ int ROSbridge::getVictims()
     // Normal tile, check victim
     openmv_camera::BothCameras bothCameras;
 
+    bool gotVictims = false;
+
     victimsClient.call(bothCameras);
 
     if (bothCameras.response.left_cam == "H")
@@ -1740,9 +1733,9 @@ int ROSbridge::getVictims()
         msg.data = -3;
         dispenserpub.publish(msg);
 
-        ros::Duration(6).sleep();
+        gotVictims = true;
 
-        return 3;
+        // ros::Duration(6).sleep();
     }
     else if (bothCameras.response.right_cam == "H")
     {
@@ -1751,9 +1744,9 @@ int ROSbridge::getVictims()
         msg.data = 3;
         dispenserpub.publish(msg);
 
-        ros::Duration(6).sleep();
+        gotVictims = true;
 
-        return 3;
+        // ros::Duration(6).sleep();
     }
     else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
     {
@@ -1762,9 +1755,9 @@ int ROSbridge::getVictims()
         msg.data = -2;
         dispenserpub.publish(msg);
 
-        ros::Duration(4).sleep();
+        gotVictims = true;
 
-        return 2;
+        // ros::Duration(4).sleep();
     }
     else if (bothCameras.response.right_cam == "S")
     {
@@ -1773,9 +1766,9 @@ int ROSbridge::getVictims()
         msg.data = 2;
         dispenserpub.publish(msg);
 
-        ros::Duration(4).sleep();
+        gotVictims = true;
 
-        return 2;
+        // ros::Duration(4).sleep();
     }
     else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
     {
@@ -1784,9 +1777,9 @@ int ROSbridge::getVictims()
         msg.data = -1;
         dispenserpub.publish(msg);
 
-        ros::Duration(2).sleep();
+        gotVictims = true;
 
-        return 1;
+        // ros::Duration(2).sleep();
     }
     else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
     {
@@ -1795,7 +1788,19 @@ int ROSbridge::getVictims()
         msg.data = 1;
         dispenserpub.publish(msg);
 
-        ros::Duration(2).sleep();
+        gotVictims = true;
+
+        // ros::Duration(2).sleep();
+    }
+
+    if (gotVictims)
+    {
+        // Wait for the dispenser to finish
+
+        while (scope.result != 6)
+        {
+            ros::spinOnce();
+        }
 
         return 1;
     }

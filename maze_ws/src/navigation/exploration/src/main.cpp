@@ -62,11 +62,26 @@ void printTile(Tile *tile)
     }
 }
 
+bool checkRestartAlgorithm()
+{
+    if (!bridge->startAlgorithm)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 int moveForward(int &rDirection, Map &mapa)
 {
     // cout << "forward" << endl;
     ROS_INFO("Move: ");
     ROS_INFO("         forward");
+
+    if (checkRestartAlgorithm())
+    {
+        return -1;
+    }
 
 #ifndef simulateRos
 
@@ -93,6 +108,11 @@ void right(int &rDirection, Map &mapa)
     // cout << "right" << endl;
     ROS_INFO("right");
 
+    if (checkRestartAlgorithm())
+    {
+        return;
+    }
+
 // bridge->publishIdealOrientation(rDirection);
 #ifndef simulateRos
 
@@ -103,10 +123,10 @@ void right(int &rDirection, Map &mapa)
     bridge->sendUnitGoal(1, rDirection);
     (rDirection == 3) ? rDirection = 0 : rDirection++;
 
-    #ifdef useNavStack
+#ifdef useNavStack
     bridge->publishIdealOrientation(rDirection);
 
-    #endif
+#endif
     if (mapSimDebug)
     {
         mapa.printMaze(rDirection);
@@ -120,6 +140,11 @@ void moveBackward(int &rDirection, Map &mapa)
     // cout << "forward" << endl;
     ROS_INFO("Move: ");
     ROS_INFO("       backward");
+
+    if (checkRestartAlgorithm())
+    {
+        return;
+    }
 
     if (canMoveBackward)
         bridge->sendUnitGoal(2, rDirection);
@@ -139,6 +164,11 @@ void left(int &rDirection, Map &mapa)
     ROS_INFO(" Move: ");
     ROS_INFO("      left");
 
+    if (checkRestartAlgorithm())
+    {
+        return;
+    }
+
 // bridge->publishIdealOrientation(rDirection);
 #ifndef simulateRos
 
@@ -149,10 +179,10 @@ void left(int &rDirection, Map &mapa)
     bridge->sendUnitGoal(3, rDirection);
     (rDirection == 0) ? rDirection = 3 : rDirection--;
 
-    #ifdef useNavStack
+#ifdef useNavStack
     bridge->publishIdealOrientation(rDirection);
 
-    #endif
+#endif
 
     if (mapSimDebug)
     {
@@ -165,6 +195,12 @@ void left(int &rDirection, Map &mapa)
 // Gira a la direccion indicada
 void rotateTo(int &rDirection, int newDirection, Map &mapa)
 {
+
+    if (checkRestartAlgorithm())
+    {
+        return;
+    }
+
     // ROS_INFO_STREAM("rotateTo: " << newDirection);
     if (rDirection + 2 == newDirection or rDirection - 2 == newDirection)
     {
@@ -292,6 +328,11 @@ void calcPos(vector<int> &pos, string key, Map &mapa)
 // Mueve el robot hacia la direccion indicada por key y regresa el tile al que se movio
 Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map &mapa, stack<string> &path)
 {
+    if (checkRestartAlgorithm())
+    {
+        return nullptr;
+    }
+
     printTile(tile);
     if (tile->adjacentTiles[key])
     {
@@ -525,6 +566,7 @@ bool isRamp() // use ros
     // TODO: Implement ros ramp detection
     return false;
 }
+
 bool isRamp(string key, Map &mapa)
 {
     if (mapa.getChar(key) == 'r') // no ros
@@ -538,6 +580,11 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 {
     while (!path.empty())
     {
+        if (checkRestartAlgorithm())
+        {
+            return nullptr;
+        }
+
         bridge->pubDebug("Move to the: " + path.top());
         tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa, path);
         // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
@@ -560,7 +607,6 @@ int checkVictims(Map &mapa)
 
     return 0;
 }
-
 
 // void defineTile(Tile *tile)
 // {
@@ -845,9 +891,9 @@ void explore(bool checkpoint, int argc, char **argv)
 
     int steps = 2;
 
-    #ifdef useNavStack
+#ifdef useNavStack
     bridge->publishIdealOrientation(0);
-    #endif
+#endif
 
     do
     {
@@ -868,6 +914,17 @@ void explore(bool checkpoint, int argc, char **argv)
         // Se revisan las casillas adyacentes
         for (auto &&key : keys)
         {
+            if (checkRestartAlgorithm())
+            {
+                mapa.pos = mapa.recovpos;
+                mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
+
+                if (rosDebug)
+                    bridge->pubDebug("Restarting algorithm");
+
+                break;
+            }
+
             if (rosDebug)
             {
                 bridge->pubDebug("In position: " + posvectorToString(mapa.pos));
