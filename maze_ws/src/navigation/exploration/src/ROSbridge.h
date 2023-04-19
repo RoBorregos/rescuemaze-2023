@@ -192,6 +192,10 @@ private:
     double distVlxRight;
     double distVlxLeft;
 
+    bool receivedVlxFront;
+    bool receivedVlxRight;
+    bool receivedVlxLeft;
+
     double distLidar;
 
     ros::Subscriber vlxfrontsub;
@@ -260,6 +264,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n) : ac("move_base", true) //, tfb(n)
     blackTile = false;
     silverTile = false;
 
+    receivedVlxFront = false;
+    receivedVlxRight = false;
+    receivedVlxLeft = false;
+
     upRamp = false;
     downRamp = false;
 
@@ -323,6 +331,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     distVlxRight = 0;
     distVlxLeft = 0;
     distLidar = 0;
+
+    receivedVlxFront = false;
+    receivedVlxRight = false;
+    receivedVlxLeft = false;
 
     ROS_INFO("Creating ROSbridge");
     nh = n;
@@ -678,16 +690,19 @@ int ROSbridge::checkUpRamp()
 
 void ROSbridge::vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg)
 {
+    receivedVlxFront = true;
     distVlxFront = msg->range;
 }
 
 void ROSbridge::vlxRightCallback(const sensor_msgs::Range::ConstPtr &msg)
 {
+    receivedVlxRight = true;
     distVlxRight = msg->range;
 }
 
 void ROSbridge::vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg)
 {
+    receivedVlxLeft = true;
     distVlxLeft = msg->range;
 }
 
@@ -817,6 +832,10 @@ int ROSbridge::sendGoalJetson(int movement)
         //     upRamp = true;
         // }
     }
+
+    receivedVlxFront = false;
+    receivedVlxRight = false;
+    receivedVlxLeft = false;
 
     if (upRamp)
     {
@@ -1637,14 +1656,17 @@ vector<int> ROSbridge::getWalls()
 
 vector<int> ROSbridge::getWalls()
 {
+    while (!receivedVlxLeft || !receivedVlxRight)
+        ros::spinOnce();
+    
     ROS_INFO("Getting walls");
 
-    nav_main::GetWalls walls;
-    wallsClient.call(walls);
+    nav_main::GetWallsDist walls;
+    wallsDistClient.call(walls);
 
     ROS_INFO("Got walls front:%d, right: %d, back: %d, left: %d", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
 
-    vector<int> wallsVector = {walls.response.front, walls.response.right, walls.response.back, walls.response.left};
+    vector<int> wallsVector = {walls.response.front > 0.20, distVlxRight > 0.20, walls.response.back > 0.20, distVlxLeft > 0.20};
 
     return wallsVector;
 }
