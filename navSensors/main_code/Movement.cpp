@@ -335,7 +335,7 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
   }
 }
 
-int Movement::cmdMovement(const int action, const int option)
+double Movement::cmdMovement(const int action, const int option)
 {
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
@@ -608,7 +608,7 @@ void Movement::updateVelocityDecider(int RPMs, bool useBNO)
   }
 }
 
-int Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
+double Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
 {
   // nh->loginfo("AdvanceXMeters called");
   double dist = sensors->getDistInfo(dist_front);

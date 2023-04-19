@@ -174,8 +174,6 @@ float Sensors::getVLXInfo(int posVLX)
 
 void Sensors::updateDistLidar(float front, float back, float left, float right)
 {
-  if (this->rosBridge == nullptr || !usingLidar)
-    return;
   // Values weren't updated
   if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right)
   {
@@ -187,7 +185,8 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
       return;
     }
     // Call updateDistances again
-    rosBridge->updateDistLidar();
+    rosBridge->readOnce();
+    //rosBridge->updateDistLidar();
     return;
   }
   // 19*18
@@ -301,7 +300,7 @@ float Sensors::getDistInfo(int direction)
   if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
     float front, back, left, right;
-    rosBridge->updateDistLidar();
+    rosBridge->readOnce();
 
     if (direction >= 0 && direction <= 3 && usingLidar)
       return wallDistances[direction];
@@ -407,7 +406,7 @@ void Sensors::initSwitches()
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
 }
 
-void Sensors::setRosBridge(RosBridge *rosBridge)
+void Sensors::setRosBridge(RosBridge2 *rosBridge)
 {
   this->rosBridge = rosBridge;
 }

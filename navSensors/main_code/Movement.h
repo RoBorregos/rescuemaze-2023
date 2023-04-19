@@ -95,7 +95,7 @@ private:
   static constexpr bool kUsingPID = true;
 
   // Control constants
-  static constexpr double kErrorVlxReading = 4; // Error to consider a reading as valid, in degrees.
+  static constexpr double kErrorVlxReading = 1; // Error to consider a reading as valid, in degrees.
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
   static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
@@ -178,7 +178,7 @@ public:
   // @param action A specific movement.
   // @param option Specify which option to use for specific actions.s
   // @return The status code of the movement.
-  int cmdMovement(const int action, const int option = 0);
+  double cmdMovement(const int action, const int option = 0);
 
   /* Meaning of #actions, options and return values of cmdMovement:
 

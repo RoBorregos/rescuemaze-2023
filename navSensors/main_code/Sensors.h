@@ -7,7 +7,8 @@
 #include "VLX.h"
 #include "TCS.h"
 #include "CommonK.h"
-#include "RosBridge.h"
+// #include "RosBridge.h"
+#include "RosBridge2.h"
 
 // SENSOR DATA
 
@@ -20,7 +21,7 @@
 #define dist_left 2
 #define dist_right 3
 
-class RosBridge; // Forward declaration of RosBridge
+class RosBridge2; // Forward declaration of RosBridge
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
@@ -56,7 +57,7 @@ class Sensors
 
   // Sensors.
   BNO *bno;
-  RosBridge *rosBridge = nullptr;
+  RosBridge2 *rosBridge = nullptr;
   VLX vlx[3];
   TCS tcs;
   bool rightLedOn = false;
@@ -106,7 +107,7 @@ public:
 
   void initSwitches();
 
-  void setRosBridge(RosBridge *rosBridge);
+  void setRosBridge(RosBridge2 *rosBridge);
 
   // Sensor Methods
 
