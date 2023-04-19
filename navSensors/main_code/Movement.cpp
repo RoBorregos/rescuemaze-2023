@@ -1062,6 +1062,21 @@ int Movement::getTurnDirection(int turn)
   return -1;
 }
 
+void Movement::logDebug(int data)
+{
+  nh->loginfo("Debug: %d", data);
+}
+
+void Movement::logDebug(double data)
+{
+  nh->loginfo("Debug: %f", data);
+}
+
+void Movement::logDebug(String data, double data2)
+{
+  nh->loginfo("Debug: %s %f", data.c_str(), data2);
+}
+
 /*
 
 
