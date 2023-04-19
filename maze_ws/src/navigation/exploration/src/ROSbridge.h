@@ -6,6 +6,7 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int8.h>
+#include <std_msgs/Float32MultiArray.h>
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include "actionlib/client/simple_action_client.h"
@@ -37,6 +38,9 @@
 #include <nav_main/GetWalls.h>
 #include <nav_main/GetWallsDist.h>
 #include <openmv_camera/BothCameras.h>
+
+#include <exploration/GoalStatus.h>
+#include <exploration/VLXDist.h>
 
 // #include "TfBroadcaster.h"
 
@@ -206,10 +210,15 @@ private:
 
     // Publishers
     ros::Publisher dispenserpub;
+    ros::Publisher lidarserialpub;
     ros::Publisher debugpub;
 
     ros::ServiceClient victimsClient;
     ros::ServiceClient wallsDistClient;
+
+    ros::ServiceClient vlxDistClient;
+    ros::ServiceClient goalStatusClient;
+    ros::ServiceClient robotStartClient;
 
     int checkUpRamp();
 
@@ -347,15 +356,20 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
 
     jetsonresultsub = nh->subscribe("/control_feedback", 10, &ROSbridge::jetsonResultCallback, this);
-    
+
     ROS_INFO("Created subscribers");
 
     dispenserpub = nh->advertise<std_msgs::Int8>("/dispenser", 1000);
+    lidarserialpub = nh->advertise<std_msgs::Float32MultiArray>("/lidar_serial", 1000);
     debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
 
     unitmovementpub = nh->advertise<std_msgs::Int8>("/unit_movement", 1000);
 
     victimsClient = nh->serviceClient<openmv_camera::BothCameras>("/get_victims");
+
+    vlxDistClient = nh->serviceClient<exploration::VLXDist>("/get_vlx");
+    goalStatusClient = nh->serviceClient<exploration::GoalStatus>("/get_goal_status");
+    robotStartClient = nh->serviceClient<std_srvs::Trigger>("/get_start_status");
 }
 
 #endif
@@ -676,6 +690,14 @@ int ROSbridge::checkUpRamp()
 {
     ros::spinOnce();
 
+    // Call vlx service
+    exploration::VLXDist vlxDistSrv;
+    vlxDistClient.call(vlxDistSrv);
+
+    distVlxFront = vlxDistSrv.response.front;
+    distVlxRight = vlxDistSrv.response.right;
+    distVlxLeft = vlxDistSrv.response.left;
+
     // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
     if (distLidar < 0.3 && distLidar - distVlxFront < 0.1 && distLidar - distVlxFront > 0.05)
     {
@@ -734,7 +756,6 @@ int ROSbridge::sendGoalJetson(int movement)
 
     distLidar = walls.response.front;
 
-
     std_msgs::Int8 movementmsg;
     if (movement == 0)
     {
@@ -779,7 +800,23 @@ int ROSbridge::sendGoalJetson(int movement)
     {
         ros::spinOnce();
 
+        // Call get_walls_dist service
+        nav_main::GetWallsDist walls;
+        wallsDistClient.call(walls);
+        float distLidarFront = walls.response.front;
+        float distLidarRight = walls.response.right;
+        float distLidarLeft = walls.response.left;
+        float distLidarBack = walls.response.back;
 
+        // Make float multiarray msg for lidar
+        std_msgs::Float32MultiArray lidarserialmsg;
+        lidarserialmsg.data.clear();
+        lidarserialmsg.data.push_back(distLidarFront);
+        lidarserialmsg.data.push_back(distLidarRight);
+        lidarserialmsg.data.push_back(distLidarLeft);
+        lidarserialmsg.data.push_back(distLidarBack);
+
+        lidarserialpub.publish(lidarserialmsg);
 
         // // check color
         // if (tcsdata == 'N' && !blackTile)
@@ -849,15 +886,14 @@ int ROSbridge::sendGoalJetson(int movement)
         sendGoalJetson(1);
         if (checkUpRamp())
         {
-            // if there was a ramp, turn left and return the value 
+            // if there was a ramp, turn left and return the value
             sendGoalJetson(3);
             return 4;
         }
-
     }
 
     return scope.result;
-    
+
     // if (blackTile)
     // {
     //     blackTile = false;
@@ -1656,15 +1692,15 @@ vector<int> ROSbridge::getWalls()
 
 vector<int> ROSbridge::getWalls()
 {
-    while (!receivedVlxLeft || !receivedVlxRight)
-        ros::spinOnce();
-    
+    // while (!receivedVlxLeft || !receivedVlxRight)
+    //     ros::spinOnce();
+
     ROS_INFO("Getting walls");
 
     nav_main::GetWallsDist walls;
     wallsDistClient.call(walls);
 
-    ROS_INFO("Got walls front:%d, right: %d, back: %d, left: %d", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+    ROS_INFO("Got walls front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
 
     vector<int> wallsVector = {walls.response.front > 0.20, distVlxRight > 0.20, walls.response.back > 0.20, distVlxLeft > 0.20};
 
@@ -1869,7 +1905,6 @@ double ROSbridge::yawDifference(double targetYaw, double originYaw)
 
 #endif
 
-
 #ifdef useNavStack
 
 #ifdef simulateRos
@@ -1879,7 +1914,6 @@ void ROSbridge::publishIdealOrientation(int orientation)
 }
 
 #else
-
 
 void ROSbridge::publishIdealOrientation(int orientation)
 {

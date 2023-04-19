@@ -18,11 +18,13 @@ tf
 geometry_msgs
 tf2_ros
 tf2
+genmsg
+actionlib_msgs
+actionlib
 # map_server
   # message_runtime
 )
 
-find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
 
 find_package(Boost COMPONENTS serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
@@ -72,7 +74,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  Trigger.srv
+  GoalStatus.srv
+  VLXDist.srv
 )
 
 ## Generate actions in the 'action' folder
