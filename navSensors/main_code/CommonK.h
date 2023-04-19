@@ -15,6 +15,14 @@ namespace CK
     const bool onlyCmdMovement = true;
     const bool debugBNOCalibration = true;
     const bool calibrateBNO = false;
+    const bool usePid = true;
+    const bool useBNO = true;
+
+    // Tune constants such that motors all motors move at desired speed.
+    const int basePwmBackLeft = 100;
+    const int basePwmBackRight = 100;
+    const int basePwmFrontLeft = 100;
+    const int basePwmFrontRight = 100;
 }
 
 #endif

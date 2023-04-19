@@ -420,7 +420,7 @@ void Movement::rotateRobot(int option, int dir)
     }
 
     // Align robot with back wall.
-    updateStraightPID(-kMovementRPMs);
+    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
     delay(kMillisBackAccomodate);
 
     // Move to center of tile
@@ -525,6 +525,65 @@ void Movement::updateStraightPID(int RPMs)
   motor[BACK_RIGHT].motorSpeedPID(RPMs);
 }
 
+void Movement::updateVelPwm(int RPMs, bool useBNO)
+{
+  int speed_sign = 0;
+  
+  if (RPMs > 0)
+    speed_sign = 1;
+  else if (RPMs < 0)
+    speed_sign = -1;
+
+  if (useBNO)
+  {
+    double errorD = getAngleError(dirToAngle(rDirection));
+    double factor = 10; // Increasing the factor increases the speed correction.
+    leftM = errorD * factor;
+    rightM = leftM * -1;
+  }
+  else
+  {
+    // Use VLX distance error to update target speeds.
+    // Serial.println("UpdateStraightPID");
+    if (millis() - lastUpdateVLX > kVlxErrorTimer)
+    {
+      lastUpdateVLX = millis();
+      double rightDistance = sensors->getDistInfo(dist_right);
+      double leftDistance = sensors->getDistInfo(dist_left);
+
+      while (rightDistance > 0.3)
+        rightDistance -= 0.3;
+      while (leftDistance > 0.3)
+        leftDistance -= 0.3;
+
+      // A positive correction means that the robot must move to the right
+      this->correctionVLX = 100 * (rightDistance - leftDistance) * 2;
+    }
+
+    leftM = correctionVLX;
+    rightM = correctionVLX * -1;
+
+  }
+
+  // Update PWM taking into account error.
+  motor[FRONT_LEFT].setPWM(leftM + CK::basePwmFrontLeft, speed_sign);
+  motor[BACK_LEFT].setPWM(leftM + CK::basePwmBackLeft, speed_sign);
+  motor[FRONT_RIGHT].setPWM(rightM + CK::basePwmFrontRight, speed_sign);
+  motor[BACK_RIGHT].setPWM(rightM + CK::basePwmBackRight, speed_sign);
+}
+
+void Movement::updateVelocityDecider(int RPMs, bool useBNO)
+{
+  if (CK::usePid)
+  {
+    updateStraightPID(RPMs, useBNO);
+  }
+  else
+  {
+    updateVelPwm(RPMs, useBNO);
+  }
+}
+
 double Movement::advanceXMeters(double x, int straightPidType, bool forceBackward)
 {
   double dist = sensors->getDistInfo(dist_front);
@@ -537,7 +596,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   {
     while (dist > target && dist > 0.03)
     {
-      updateStraightPID(kMovementRPMs, straightPidType);
+      updateVelocityDecider(kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
       rearrangeAngle();
@@ -579,7 +638,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
-      updateStraightPID(-kMovementRPMs, straightPidType);
+      updateVelocityDecider(-kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
       rearrangeAngle();
@@ -642,11 +701,11 @@ void Movement::advanceXMetersEncoders(double x, bool useAngleError)
       if (useAngleError)
       {
         double angleError = getAngleError(dirToAngle(rDirection));
-        updateStraightPID(kMovementRPMs, angleError);
+        updateVelocityDecider(kMovementRPMs, angleError);
       }
       else
       {
-        updateStraightPID(kMovementRPMs);
+        updateVelocityDecider(kMovementRPMs);
       }
 
       if (millis() - lastUpdateVLX < 5)
@@ -665,11 +724,11 @@ void Movement::advanceXMetersEncoders(double x, bool useAngleError)
       if (useAngleError)
       {
         double angleError = getAngleError(dirToAngle(rDirection));
-        updateStraightPID(-kMovementRPMs, angleError);
+        updateVelocityDecider(-kMovementRPMs, angleError);
       }
       else
       {
-        updateStraightPID(-kMovementRPMs);
+        updateVelocityDecider(-kMovementRPMs);
       }
       dist = meanDistanceTraveled();
     }
@@ -702,11 +761,11 @@ void Movement::advanceSlow(bool direction)
 {
   if (direction)
   {
-    updateStraightPID(10);
+    updateVelocityDecider(10, CK::useBNO);
   }
   else
   {
-    updateStraightPID(-10);
+    updateVelocityDecider(-10, CK::useBNO);
   }
 }
 
@@ -779,7 +838,7 @@ double Movement::stabilizePitch(int straightPidType)
       Serial.print("Robot out of stable pitch: ");
       Serial.println(sensors->getAngleY());
     }
-    updateStraightPID(kMovementRPMs, straightPidType);
+    updateVelocityDecider(kMovementRPMs, straightPidType);
   }
 
   double dt = (millis() - start) / 1000.0;
@@ -907,7 +966,7 @@ double Movement::traverseRamp(int option)
   {
     while (millis() - start < kAdvanceToRampTime)
     {
-      updateStraightPID(kMovementRPMs, 0);
+      updateVelocityDecider(kMovementRPMs, CK::useBNO);
     }
   }
 
@@ -975,8 +1034,6 @@ int Movement::getTurnDirection(int turn)
 
   return -1;
 }
-
-
 
 /*
 

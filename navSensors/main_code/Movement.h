@@ -106,6 +106,9 @@ private:
   static constexpr double distToCheck = 0.05;
   static constexpr double backStuckTimer = 100000;
 
+  int leftM = 0;
+  int rightM = 0;
+
   // Kinematics.
   Kinematics kinematics;
 
@@ -232,6 +235,13 @@ public:
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.
   void updateStraightPID(int RPMs);
+
+  // Updates pwm given to each motor, choose between corrections using bno or vlx.
+  void updateVelPwm(int RPMs, bool useBNO);
+
+  // Update pwm given to each motor, choose between corrections to pwm or
+  // get closer to RPMs via PID. Use flag from CommonK.h
+  void updateVelocityDecider(int RPMs, bool useBNO=true);
 
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.

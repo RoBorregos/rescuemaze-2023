@@ -163,6 +163,9 @@ public:
   // Sets motor PWM
   void setPWM(double PWM);
 
+  // Sets the pwm according and changes wheel direction
+  void setPWM(int PWM, int speed_sign);
+
   // Returns current PWM
   double getPWM();
 

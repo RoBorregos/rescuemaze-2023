@@ -204,6 +204,12 @@ void Sensors::getLidarDistances(double &front, double &back, double &left, doubl
   right = wallDistances[3];
 }
 
+bool Sensors::readMotorInit(){
+  
+  int val = digitalRead(22);
+  return val == HIGH;
+}
+
 void Sensors::initLeds()
 {
   pinMode(kDigitalPinsLEDS[0], OUTPUT);

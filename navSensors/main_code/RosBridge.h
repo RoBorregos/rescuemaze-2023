@@ -59,8 +59,6 @@ private:
   // Update distances to walls.
   void updateDistLidarCallback(const geometry_msgs::Quaternion &dist);
 
-  
-
   void logNumber(double number);
   
   void logDist(double front, double back, double right, double left);
@@ -78,6 +76,8 @@ private:
   void publishVLX();
 
   void publishLimitSwitches();
+
+  void publishRobotInit();
 
   Movement *robot;
   Sensors *sensors;
@@ -102,6 +102,7 @@ private:
   ros::Publisher vlx_sensor_publisher_right;
   ros::Publisher vlx_sensor_publisher_left;
   ros::Publisher tcs_sensor_publisher;
+  ros::Publisher robot_init_publisher; // Publish motor to check robot status.
   ros::Publisher limit_switch_right_publisher; // Right limit switch
   ros::Publisher limit_switch_left_publisher;  // Left limit switch
   ros::Publisher test_publisher;
@@ -114,6 +115,7 @@ private:
   std_msgs::String testT;
   std_msgs::Int8 limit_switch_right_msgs; // Right limit switch
   std_msgs::Int8 limit_switch_left_msgs;  // Right limit switch
+  std_msgs::Int8 robot_init_msgs;  // Robot init msg switch
 
   std_msgs::Empty dist_req;  // Dist req msg
   std_msgs::Int8 cmd_movement_input;  
@@ -135,6 +137,7 @@ private:
 
   // Motor.
   const int kMotorCount = 4;
+  bool motor_init = false;
 };
 
 #endif

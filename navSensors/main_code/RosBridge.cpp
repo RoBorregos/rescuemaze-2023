@@ -14,6 +14,7 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
                                                                                vlx_sensor_publisher_left("/sensor/vlx/left", &vlx_sensor_msgs_left),
                                                                                req_dist_publisher("/dist_request", &dist_req),
                                                                                tcs_sensor_publisher("/sensor/tcs", &tcs_sensor_msgs),
+                                                                               robot_init_publisher("/robot_init", &robot_init_msgs),
                                                                                limit_switch_right_publisher("/limit_switch/right", &limit_switch_right_msgs),
                                                                                limit_switch_left_publisher("/limit_switch/left", &limit_switch_left_msgs),
                                                                                cmd_movement_publisher("/control_feedback", &cmd_movement_response)
@@ -40,6 +41,8 @@ RosBridge::RosBridge(Movement *robot, Sensors *sensors, ros::NodeHandle *nh) : r
   }
 
   nh->subscribe(velocity_subscriber);
+
+  nh->advertise(robot_init_publisher);
 
   nh->advertise(vlx_sensor_publisher_front);
   nh->advertise(vlx_sensor_publisher_right);
@@ -94,12 +97,14 @@ void RosBridge::cmdMovementCallback(const std_msgs::Int8 &cmd_movement_req)
 
   // Transform response to algorithm response
 
-  if (response == 0){
+  if (response == 0)
+  {
     // do nothing
-  } else if (response == 1){
-    
   }
-  
+  else if (response == 1)
+  {
+  }
+
   cmd_movement_response.data = response;
   cmd_movement_publisher.publish(&cmd_movement_response);
 }
@@ -141,7 +146,6 @@ void RosBridge::publishVLX()
 
   vlx_sensor_msgs_left.range = sensors->getVLXInfo(vlx_left);
   vlx_sensor_publisher_left.publish(&vlx_sensor_msgs_left);
-
 }
 
 void RosBridge::publishLimitSwitches()
@@ -173,6 +177,21 @@ void RosBridge::publishLimitSwitches()
   }
 }
 
+void RosBridge::publishRobotInit()
+{
+  bool motorStatus = sensors->readMotorInit();
+  if (motorStatus != motor_init){
+    motor_init = motorStatus;
+    // Pub robot init
+    if (motor_init){
+      robot_init_msgs.data = 1;
+    } else {
+      robot_init_msgs.data = 0;
+    }
+    robot_init_publisher.publish(&robot_init_msgs);  
+  }
+}
+
 void RosBridge::publish()
 {
   unsigned long currentTime = millis();
@@ -187,6 +206,7 @@ void RosBridge::publish()
       // tcs_sensor_publisher.publish(&tcs_sensor_msgs);
 
       publishVLX();
+      publishRobotInit();
       // publishLimitSwitches();
     }
   }
@@ -223,15 +243,17 @@ void RosBridge::rosBridgeTest()
 }
 
 // Helper function to log numbers.
-void RosBridge::logNumber(double number){
+void RosBridge::logNumber(double number)
+{
   String str = String(number);
-  const char* message = str.c_str();
+  const char *message = str.c_str();
   nh->loginfo(message);
 }
 
 // Helper function to log distances.
-void RosBridge::logDist(double front, double back, double left, double right){
+void RosBridge::logDist(double front, double back, double left, double right)
+{
   String all = String(front) + " " + String(back) + " " + String(left) + " " + String(right);
-  const char* message = all.c_str();
+  const char *message = all.c_str();
   nh->loginfo(message);
 }

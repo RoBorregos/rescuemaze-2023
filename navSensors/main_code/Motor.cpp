@@ -178,6 +178,23 @@ void Motor::setPWM(double PWM)
   }
 }
 
+void Motor::setPWM(int PWM, int speed_sign)
+{
+  this->pwm = PWM;
+  switch (speed_sign)
+  {
+  case 0:
+    motorStop();
+    break;
+  case 1:
+    motorForward();
+    break;
+  case -1:
+    motorBackward();
+    break;
+  }
+}
+
 double Motor::getTargetRps(double velocity)
 {
   return Ms2Rps(velocity);
