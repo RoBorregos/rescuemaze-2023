@@ -7,12 +7,13 @@
 #include "GeneralChecks.h"
 #include "Plot.h"
 #include "CommonK.h"
+#include "RosBridge2.h"
 
 // Macros for vlx
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-#define kusingROS true
+#define kusingROS false
 
 #define useleftvlx true
 #define userightvlx true
@@ -51,12 +52,12 @@ void setup()
 
   nh.loginfo("Arduino node initialized");
 
-  RosBridge rosbridge(robot, s, &nh);
+  //RosBridge rosbridge(robot, s, &nh);
 
-  s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+  //s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
 
   
-  // rosbridge.rosBridgeTest();
+  //rosbridge.rosBridgeTest();
   //rosbridge.run();
 
   // Serial.begin(57600);
@@ -127,12 +128,14 @@ void setup()
   
   bno.init();
   initAll(&bno, true, true);
+  RosBridge2 rosbridge(robot, s, &bno);
+  rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
-  checks.checkAll();
- 
-
+  //checks.checkAll();
+  checks.printRevolutions();
+  //checks.test();
 }
 
 int newAngle = 0;

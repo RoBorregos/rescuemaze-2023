@@ -9,8 +9,8 @@ void BNO::init()
 
   if (!bno.begin())
   {
-    //if (!CK::kusingROS)
-      //Serial.println("ERROR BNO");
+    // if (!CK::kusingROS)
+    // Serial.println("ERROR BNO");
   }
 }
 
@@ -45,14 +45,13 @@ void BNO::anglesInfo()
 
   if (!CK::kusingROS)
   {
-    /*
+
     Serial.print(F("X = "));
     Serial.print(x, 4);
     Serial.print(F(", Y = "));
     Serial.print(y, 4);
     Serial.print(F(", Z = "));
     Serial.println(z, 4);
-    */
   }
 }
 
@@ -174,7 +173,7 @@ void BNO::displaySensorStatus(void)
 
   if (!CK::kusingROS)
   {
-    /* Display the results in the Serial Monitor 
+    /* Display the results in the Serial Monitor
     Serial.println("");
     Serial.print("System Status: 0x");
     Serial.println(system_status, HEX);
@@ -198,7 +197,7 @@ void BNO::displayCalStatus(void)
   if (CK::kusingROS)
     return;
 
-  /* Display calibration status for each sensor. 
+   //Display calibration status for each sensor.
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag);
   Serial.print("CALIBRATION: Sys=");
@@ -208,14 +207,14 @@ void BNO::displayCalStatus(void)
   Serial.print(" Accel=");
   Serial.print(accel, DEC);
   Serial.print(" Mag=");
-  Serial.println(mag, DEC);*/
+  Serial.println(mag, DEC);
 }
 
 void BNO::restoreCalibration()
 {
   // Object to load to bno
   adafruit_bno055_offsets_t calibrationData;
-  
+
   // Fill calibrationData with info obtained with SaveBnoCal.ino. Check navSensors/other
   calibrationData.accel_offset_x = -22;
   calibrationData.accel_offset_y = -33;
@@ -238,6 +237,7 @@ void BNO::restoreCalibration()
 }
 
 // Call in case bno isn't calibrated.
-void BNO::setExtCUse(){
+void BNO::setExtCUse()
+{
   bno.setExtCrystalUse(true);
 }

@@ -238,9 +238,9 @@ void Motor::motorRotateIzqPID(double target_angle, double current_angle)
   double tmp_pwm = pwm;
   pidRotate.computeRotateIzq(target_angle, current_angle, tmp_pwm);
   tmp_pwm = fabs(tmp_pwm);
-  if (tmp_pwm < 60)
+  if (tmp_pwm < 80)
   {
-    tmp_pwm = 60;
+    tmp_pwm = 80;
   }
   else if (tmp_pwm > 255)
   {
@@ -254,9 +254,9 @@ void Motor::motorRotateDerPID(double target_angle, double current_angle)
   double tmp_pwm = pwm;
   pidRotate.computeRotateDer(target_angle, current_angle, tmp_pwm);
   tmp_pwm = fabs(tmp_pwm);
-  if (tmp_pwm < 60)
+  if (tmp_pwm < 80)
   {
-    tmp_pwm = 60;
+    tmp_pwm = 80;
   }
   else if (tmp_pwm > 255)
   {

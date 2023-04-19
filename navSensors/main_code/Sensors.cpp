@@ -100,7 +100,7 @@ void Sensors::initSensors()
 
     // Give some time to place robot on the ground. The initial position will be
     // considered as north.
-    double timeToPlaceRobot = 3000; // 3 seconds
+    double timeToPlaceRobot = 5000; // 3 seconds
     initialT = millis();
     toggleRightLed();
 
@@ -140,19 +140,19 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
   {
     for (int i = 0; i < 3; i++)
     {
-      // Serial.print(" VLX sensor ");
-      // Serial.print(i + 1);
-      // Serial.print(": ");
-      // Serial.print(float(getVLXInfo(i)), 4);
+      Serial.print(" VLX sensor ");
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(float(getVLXInfo(i)), 4);
     }
-    // Serial.println();
+    Serial.println();
   }
 
   if (tcs && !CK::kusingROS)
   {
-    // Serial.print("TCS sensor  ");
+    Serial.print("TCS sensor  ");
     this->tcs.printRGB();
-    // Serial.println(getTCSInfo());
+    Serial.println(getTCSInfo());
   }
 
   if (limitSwitches)
@@ -174,31 +174,35 @@ float Sensors::getVLXInfo(int posVLX)
 
 void Sensors::updateDistLidar(float front, float back, float left, float right)
 {
-  if (this->rosBridge == nullptr || !usingLidar)
-    return;
   // Values weren't updated
   if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right)
   {
     lidarAttemptCount++;
-    if (lidarAttemptCount > 15){
+    if (lidarAttemptCount > 15)
+    {
       // Lidar is not working, use vlx
       usingLidar = false;
       return;
     }
     // Call updateDistances again
-    rosBridge->updateDistLidar();
+    rosBridge->readOnce();
+    //rosBridge->updateDistLidar();
     return;
   }
-  // 19*18 
+  wallDistances[0] = front;
+  wallDistances[1] = back;
+  wallDistances[2] = left;
+  wallDistances[3] = right;
   
-  // Update values adding constant error
-  wallDistances[0] = front - 19 / 2;
-  wallDistances[1] = back - 19 / 2;
-  wallDistances[2] = left - 18 / 2;
-  wallDistances[3] = right - 18 / 2;
-  lidarAttemptCount = 0;
-}
+  // 19*18
 
+  // Update values adding constant error
+  // wallDistances[0] = front - 19 / 2;
+  // wallDistances[1] = back - 19 / 2;
+  // wallDistances[2] = left - 18 / 2;
+  // wallDistances[3] = right - 18 / 2;
+  // lidarAttemptCount = 0;
+}
 
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
 {
@@ -211,8 +215,9 @@ void Sensors::getLidarDistances(double &front, double &back, double &left, doubl
   right = wallDistances[3];
 }
 
-bool Sensors::readMotorInit(){
-  
+bool Sensors::readMotorInit()
+{
+
   int val = digitalRead(22);
   return val == HIGH;
 }
@@ -300,21 +305,22 @@ float Sensors::getDistInfo(int direction)
   if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
     float front, back, left, right;
-    rosBridge->updateDistLidar();
+    rosBridge->readOnce();
 
     if (direction >= 0 && direction <= 3 && usingLidar)
       return wallDistances[direction];
   }
 
-  switch(direction){
-    case 0:
-      return getVLXInfo(vlx_front);
-    case 2:
-      return getVLXInfo(vlx_left);
-    case 3:
-      return getVLXInfo(vlx_right);
-    default:
-      return -1;
+  switch (direction)
+  {
+  case 0:
+    return getVLXInfo(vlx_front);
+  case 2:
+    return getVLXInfo(vlx_left);
+  case 3:
+    return getVLXInfo(vlx_right);
+  default:
+    return -1;
   }
 }
 
@@ -405,7 +411,7 @@ void Sensors::initSwitches()
   pinMode(kDigitalPinsLimitSwitch[1], INPUT);
 }
 
-void Sensors::setRosBridge(RosBridge *rosBridge)
+void Sensors::setRosBridge(RosBridge2 *rosBridge)
 {
   this->rosBridge = rosBridge;
 }

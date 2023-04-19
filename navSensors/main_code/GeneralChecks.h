@@ -30,6 +30,8 @@ public:
     // Method used to calibrate tcs sensor ad find
     void calibrateSensors();
 
+    void printRevolutions();
+
     // Check that VLX, TCS, and BNO are working correctly.
     void checkSensorData(int iterations=50);
 

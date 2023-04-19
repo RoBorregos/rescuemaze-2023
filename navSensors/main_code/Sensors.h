@@ -7,7 +7,8 @@
 #include "VLX.h"
 #include "TCS.h"
 #include "CommonK.h"
-#include "RosBridge.h"
+// #include "RosBridge.h"
+#include "RosBridge2.h"
 
 // SENSOR DATA
 
@@ -20,7 +21,7 @@
 #define dist_left 2
 #define dist_right 3
 
-class RosBridge; // Forward declaration of RosBridge
+class RosBridge2; // Forward declaration of RosBridge
 
 // Class used to initialize, manage, and recieve information from all the needed sensors.
 class Sensors
@@ -52,18 +53,16 @@ class Sensors
   bool usingBNO; // Used to decide if BNO will be initialized.
 
   long int maxBNOTime = 10000;    // Max time for BNO to calibrate.
-  double timeToPlaceRobot = 3000; // Time to place robot after BNO calibration.
+  double timeToPlaceRobot = 6000; // Time to place robot after BNO calibration.
 
   // Sensors.
   BNO *bno;
-  RosBridge *rosBridge = nullptr;
+  RosBridge2 *rosBridge = nullptr;
   VLX vlx[3];
   TCS tcs;
   bool rightLedOn = false;
   bool leftLedOn = false;
 
-  // Lidar distances
-  double wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
   int lidarAttemptCount = 0;
   bool usingLidar = true;
 
@@ -87,6 +86,8 @@ class Sensors
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
 
 public:
+  // Lidar distances
+  float wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
   String vlxNames[3] = {"Front", "Right", "Left"};
 
   // Constructor
@@ -106,7 +107,7 @@ public:
 
   void initSwitches();
 
-  void setRosBridge(RosBridge *rosBridge);
+  void setRosBridge(RosBridge2 *rosBridge);
 
   // Sensor Methods
 
