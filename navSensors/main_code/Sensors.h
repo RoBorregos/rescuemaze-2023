@@ -14,7 +14,6 @@
 #define vlx_right 1
 #define vlx_left 2
 #define vlx_front 0
-#define vlx_back 3
 
 class RosBridge; // Forward declaration of RosBridge
 
@@ -59,7 +58,9 @@ class Sensors
   bool leftLedOn = false;
 
   // Lidar distances
-  double wallDistances[4] = {0, 0, 0, 0};
+  double wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
+  int lidarAttemptCount = 0;
+  bool usingLidar = true;
 
   int kMuxVLX = 3;
   // Sensor Pins.
@@ -188,6 +189,11 @@ public:
 
   // Make general checks to ensure TCS is working correctly.
   void checkTCS();
+
+  // Use function as toplevel for distances. Decides between using lidar
+  // or vlx. If lidar fails repeatedly, it will switch to vlx. (back not available for vlx)
+  // @param direction 0 for front, 1 for back, 2 for left, 3 for right.
+  float getDistInfo(int direction);
 };
 
 #endif

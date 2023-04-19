@@ -32,13 +32,14 @@ void setup()
 {
   Serial.begin(57600);
 
+
   // General options
   bool useVLX = true;
   bool setIndividualConstants = true;
-
+  
   ros::NodeHandle nh;
   nh.initNode();
-  
+
   while (!nh.connected())
   {
     nh.spinOnce();

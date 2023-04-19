@@ -114,7 +114,9 @@ void Sensors::initSensors()
     }
 
     bothLedOff();
-  } else {
+  }
+  else
+  {
     bno->setExtCUse();
   }
 }
@@ -167,22 +169,32 @@ float Sensors::getVLXInfo(int posVLX)
 
 void Sensors::updateDistLidar(float front, float back, float left, float right)
 {
-  if (this->rosBridge == nullptr)
+  if (this->rosBridge == nullptr || !usingLidar)
     return;
   // Values weren't updated
-  if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right){
+  if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right)
+  {
+    lidarAttemptCount++;
+    if (lidarAttemptCount > 15){
+      // Lidar is not working, use vlx
+      usingLidar = false;
+      return;
+    }
     // Call updateDistances again
     rosBridge->updateDistLidar();
-    return; 
+    return;
   }
 
   wallDistances[0] = front;
   wallDistances[1] = back;
   wallDistances[2] = left;
   wallDistances[3] = right;
+  lidarAttemptCount = 0;
 }
 
-void Sensors::getLidarDistances(double &front, double &back, double &left, double &right){
+
+void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
+{
   if (rosBridge == nullptr)
     return;
 
@@ -267,6 +279,30 @@ char Sensors::getTCSInfo()
 {
   return tcs.getColorWithThresholds();
   // return tcs.getColorWithPrecision();
+}
+
+// 0 front, 1 back, 2 left, 3 right
+float Sensors::getDistInfo(int direction)
+{
+  if (usingLidar && rosBridge != nullptr)
+  {
+    float front, back, left, right;
+    rosBridge->updateDistLidar();
+
+    if (direction >= 0 && direction <= 3 && usingLidar)
+      return wallDistances[direction];
+  }
+
+  switch(direction){
+    case 0:
+      return getVLXInfo(vlx_front);
+    case 2:
+      return getVLXInfo(vlx_left);
+    case 3:
+      return getVLXInfo(vlx_right);
+    default:
+      return -1;
+  }
 }
 
 void Sensors::bnoAngles(float &x, float &y, float &z)
