@@ -15,6 +15,7 @@ namespace CK
     const bool onlyCmdMovement = true;
     const bool debugBNOCalibration = true;
     const bool calibrateBNO = false;
+    const double kRampDt = 3;
 }
 
 #endif

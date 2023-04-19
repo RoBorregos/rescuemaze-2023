@@ -98,7 +98,6 @@ private:
   static constexpr double kErrorVlxReading = 4; // Error to consider a reading as valid, in degrees.
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
-  static constexpr double kRampDt = 3;
   static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
   static constexpr double kDistanceWall = 0.08; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
