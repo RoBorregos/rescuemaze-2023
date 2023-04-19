@@ -293,6 +293,12 @@ public:
 
   // For specific tests on specific motors.
   void testMotor();
+
+  void logDebug(int data);
+
+  void logDebug(double data);
+
+  void logDebug(String data, double data2);
 };
 
 #endif
