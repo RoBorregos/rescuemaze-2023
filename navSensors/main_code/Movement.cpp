@@ -604,7 +604,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       if (outOfPitch())
       {
         double dt = stabilizePitch(straightPidType);
-        if (abs(dt) > kRampDt)
+        if (abs(dt) > CK::kRampDt)
           return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
       }
 
