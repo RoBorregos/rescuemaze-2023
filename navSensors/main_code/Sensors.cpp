@@ -292,7 +292,7 @@ char Sensors::getTCSInfo()
 // 0 front, 1 back, 2 left, 3 right
 float Sensors::getDistInfo(int direction)
 {
-  if (usingLidar && rosBridge != nullptr)
+  if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
     float front, back, left, right;
     rosBridge->updateDistLidar();

@@ -83,8 +83,7 @@ void GeneralChecks::checkSensorData(int iterations)
         Serial.println("\n\nTCS information: \n");
         for (int i = 0; i < iterations; i++)
         {
-            Serial.print("Color: ");
-            Serial.println(robot->sensors->getTCSInfo());
+            robot->sensors->printInfo(false, false, true, false);
             delay(100);
         }
 

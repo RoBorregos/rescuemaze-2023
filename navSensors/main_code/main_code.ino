@@ -12,7 +12,7 @@
 #define front_vlx 0
 #define right_vlx 1
 #define left_vlx 2
-#define kusingROS true
+#define kusingROS false
 
 #define useleftvlx true
 #define userightvlx true
@@ -122,15 +122,23 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
+  //mux.findI2C();
+  
+  bno.init();
   initAll(&bno, true, true);
 
-  bno.init();
+  GeneralChecks checks(robot);
+  // checks.checkWheelDirections();
+  checks.checkAll();
+ 
+
 }
 
 int newAngle = 0;
 
 void loop()
 {
+  return;
   s->printInfo(false, true, true, true);
   // forward();
 }

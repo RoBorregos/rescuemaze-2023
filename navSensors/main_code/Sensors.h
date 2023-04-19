@@ -51,7 +51,7 @@ class Sensors
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
 
-  long int maxBNOTime = 10000; // Max time for BNO to calibrate.
+  long int maxBNOTime = 10000;    // Max time for BNO to calibrate.
   double timeToPlaceRobot = 3000; // Time to place robot after BNO calibration.
 
   // Sensors.
@@ -70,11 +70,15 @@ class Sensors
   int kMuxVLX = 3;
   // Sensor Pins.
 
-  // Front is in pin 1.
-  // Right is in pin 6.
-  // Left is in pin 0.
-
-  int kMuxPins[3] = {1, 6, 0}; // VLX multiplexor pins
+  // Front is in pin 7.
+  // Right is in pin 0.
+  // Left is in pin 1.
+  /*
+  #define vlx_right 1
+  #define vlx_left 2
+  #define vlx_front 0
+*/
+  int kMuxPins[3] = {7, 0, 1}; // VLX multiplexor pins
   int kMuxTCS = {2};           // TCS multiplexor pin
 
   // Limit Switches

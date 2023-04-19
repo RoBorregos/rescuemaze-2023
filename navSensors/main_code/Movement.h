@@ -62,19 +62,19 @@ private:
   // Motor.
   static constexpr int kMotorCount = 4;
 
-  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {34, 35};
+  static constexpr uint8_t kDigitalPinsFrontLeftMotor[2] = {35, 34};
   static constexpr uint8_t kAnalogPinFrontLeftMotor = 10;
   static constexpr uint8_t kEncoderPinsFrontLeftMotor[2] = {3, 49}; // A,B
 
-  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {33, 32};
+  static constexpr uint8_t kDigitalPinsBackLeftMotor[2] = {32, 33};
   static constexpr uint8_t kAnalogPinBackLeftMotor = 12;
   static constexpr uint8_t kEncoderPinsBackLeftMotor[2] = {18, 47};
 
-  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {37, 36};
+  static constexpr uint8_t kDigitalPinsFrontRightMotor[2] = {36, 37};
   static constexpr uint8_t kAnalogPinFrontRightMotor = 11;
   static constexpr uint8_t kEncoderPinsFrontRightMotor[2] = {2, 48};
 
-  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {30, 31};
+  static constexpr uint8_t kDigitalPinsBackRightMotor[2] = {31, 30};
   static constexpr uint8_t kAnalogPinBackRightMotor = 13;
   static constexpr uint8_t kEncoderPinsBackRightMotor[2] = {19, 46};
 

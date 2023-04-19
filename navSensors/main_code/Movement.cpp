@@ -69,16 +69,16 @@ void Movement::setIndividualPID()
 void Movement::setMotors()
 {
   // Motors were swapped. Check which motor corresponss to pins
-  motor[FRONT_LEFT] = Motor(kDigitalPinsFrontLeftMotor[1], kDigitalPinsFrontLeftMotor[0],
+  motor[FRONT_RIGHT] = Motor(kDigitalPinsFrontLeftMotor[1], kDigitalPinsFrontLeftMotor[0],
                             kAnalogPinFrontLeftMotor, kEncoderPinsFrontLeftMotor[0],
                             kEncoderPinsFrontLeftMotor[1], MotorID::frontLeft);
-  motor[BACK_RIGHT] = Motor(kDigitalPinsBackLeftMotor[1], kDigitalPinsBackLeftMotor[0],
+  motor[BACK_LEFT] = Motor(kDigitalPinsBackLeftMotor[1], kDigitalPinsBackLeftMotor[0],
                             kAnalogPinBackLeftMotor, kEncoderPinsBackLeftMotor[0],
                             kEncoderPinsBackLeftMotor[1], MotorID::backLeft);
-  motor[FRONT_RIGHT] = Motor(kDigitalPinsFrontRightMotor[1], kDigitalPinsFrontRightMotor[0],
+  motor[FRONT_LEFT] = Motor(kDigitalPinsFrontRightMotor[1], kDigitalPinsFrontRightMotor[0],
                              kAnalogPinFrontRightMotor, kEncoderPinsFrontRightMotor[0],
                              kEncoderPinsBackRightMotor[1], MotorID::frontRight);
-  motor[BACK_LEFT] = Motor(kDigitalPinsBackRightMotor[1], kDigitalPinsBackRightMotor[0],
+  motor[BACK_RIGHT] = Motor(kDigitalPinsBackRightMotor[1], kDigitalPinsBackRightMotor[0],
                            kAnalogPinBackRightMotor, kEncoderPinsBackRightMotor[0],
                            kEncoderPinsBackRightMotor[1], MotorID::backRight);
 }
