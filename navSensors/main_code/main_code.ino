@@ -7,6 +7,7 @@
 #include "GeneralChecks.h"
 #include "Plot.h"
 #include "CommonK.h"
+#include "RosBridge2.h"
 
 // Macros for vlx
 #define front_vlx 0
@@ -127,11 +128,14 @@ void setup()
   
   bno.init();
   initAll(&bno, true, true);
+  RosBridge2 rosbridge(robot, s, &bno);
+  rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   //checks.checkAll();
-  checks.test();
+  checks.printRevolutions();
+  //checks.test();
 }
 
 int newAngle = 0;

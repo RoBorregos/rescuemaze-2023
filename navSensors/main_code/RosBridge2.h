@@ -43,7 +43,7 @@ class RosBridge2{
         Movement *robot_;
         BNO *bno_;
         Sensors *sensors_;
-        int state_;
+        int state_ = 8;
 
         // Suscriber.
         static constexpr uint16_t kWatchdogPeriod = 500;

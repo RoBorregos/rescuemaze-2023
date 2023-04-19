@@ -1064,17 +1064,20 @@ int Movement::getTurnDirection(int turn)
 
 void Movement::logDebug(int data)
 {
-  nh->loginfo("Debug: %d", data);
+  String m = "Debug: " + String(data);
+  nh->loginfo(m.c_str());
 }
 
 void Movement::logDebug(double data)
 {
-  nh->loginfo("Debug: %f", data);
+  String m = "Debug: " + String(data);
+  nh->loginfo(m.c_str());
 }
 
 void Movement::logDebug(String data, double data2)
 {
-  nh->loginfo("Debug: %s %f", data.c_str(), data2);
+  String m = "Debug: " + data + " " + String(data2);
+  nh->loginfo(m.c_str());
 }
 
 /*

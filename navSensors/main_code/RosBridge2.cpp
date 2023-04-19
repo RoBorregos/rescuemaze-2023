@@ -1,6 +1,5 @@
 #include "RosBridge2.h"
 
-
 //////////////////////////////////Constructor//////////////////////////////////////
 RosBridge2::RosBridge2(Movement *robot, Sensors *sensors, BNO *bno) : robot_(robot), sensors_(sensors), bno_(bno)
 {
@@ -13,6 +12,8 @@ RosBridge2::RosBridge2(Movement *robot, Sensors *sensors, BNO *bno) : robot_(rob
 // Movement Suscriber
 void RosBridge2::cmdMovementCallback(int move)
 {
+  state_ = move;
+  return;
   double response = robot_->cmdMovement(move, 1);
 
   if (response == 0)
@@ -66,8 +67,15 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
 {
   switch (command)
   {
+  case 0x00: // Baud
+    if (packet_size == 1)
+    { // Check packet size
+      uint32_t baud[] = {57600};
+      writeSerial(true, (uint8_t *)baud, sizeof(baud));
+    }
+    break;
   case 0x01: // Get VLX
-    if (packet_size == 13)
+    if (packet_size == 1)
     { // Check packet size
       float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_left)};
       writeSerial(true, (uint8_t *)data, sizeof(data));
@@ -85,8 +93,8 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     { // Check packet size
       int move;
       memcpy(&move, buffer, sizeof(move));
-      writeSerial(true, nullptr, 0);
       cmdMovementCallback(move);
+      writeSerial(true, nullptr, 0);
     }
     break;
   case 0x04: // send_lidar
@@ -98,9 +106,8 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       memcpy(&back, buffer + sizeof(front), sizeof(back));
       memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
       memcpy(&right, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
-
-      writeSerial(true, nullptr, 0);
       updateDistLidar(front, back, left, right);
+      writeSerial(true, nullptr, 0);
     }
     break;
   case 0x05: // send_victims
@@ -117,6 +124,13 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     if (packet_size == 1)
     { // Check packet size
       bool data[] = {sensors_->readMotorInit()};
+      writeSerial(true, (uint8_t *)data, sizeof(data));
+    }
+    break;
+  case 0x07: // get_lidar
+    if (packet_size == 1)
+    { // Check packet size
+      float data[] = {sensors_->wallDistances[0], sensors_->wallDistances[1], sensors_->wallDistances[2], sensors_->wallDistances[3]};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
@@ -144,7 +158,7 @@ void RosBridge2::writeSerial(bool success, uint8_t *payload, int elements)
 }
 void RosBridge2::readSerial()
 {
-  static uint8_t buffer[18];
+  static uint8_t buffer[24];
   static uint8_t index = 0;
   static uint8_t packet_size = 0;
   static uint8_t command = 0;
@@ -205,11 +219,12 @@ void RosBridge2::run()
     readSerial();
     if ((millis() - watchdog_timer_) > kWatchdogPeriod)
     {
-     // Decide to do something after ktime has passed without receiving a command
+      // Decide to do something after ktime has passed without receiving a command
     }
   }
 }
 
-void RosBridge2::readOnce(){
+void RosBridge2::readOnce()
+{
   readSerial();
 }

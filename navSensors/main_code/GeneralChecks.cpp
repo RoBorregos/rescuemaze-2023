@@ -307,3 +307,28 @@ void GeneralChecks::test()
  }
 }
 */
+
+void GeneralChecks::printRevolutions()
+{
+    robot->motor[FRONT_RIGHT].motorForward();
+    robot->motor[FRONT_LEFT].motorForward();
+    robot->motor[BACK_RIGHT].motorForward();
+    robot->motor[BACK_LEFT].motorForward();
+
+    robot->motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight);
+    robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
+    robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
+    robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
+    while (true)
+    {
+        Serial.print("Front left: ");
+        Serial.print(robot->motor[FRONT_LEFT].getRevolutions());
+        Serial.print(", Back left: ");
+        Serial.print(robot->motor[BACK_LEFT].getRevolutions());
+        Serial.print(", Front right: ");
+        Serial.print(robot->motor[FRONT_RIGHT].getRevolutions());
+        Serial.print(", Back right: ");
+        Serial.println(robot->motor[BACK_RIGHT].getRevolutions());
+        delay(100);
+    }
+}

@@ -219,7 +219,7 @@ class Microcontroller:
     def get_VLX(self):
         ''' Get the current VLX on the serial port.
         '''
-        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x0D, 0x01) + struct.pack("B", 0x02)
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x01) + struct.pack("B", 0x02)
         if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
            valFront, valRight, valLeft = struct.unpack('3f', self.payload_args)
            return  self.SUCCESS, valFront, valRight, valLeft 
@@ -232,7 +232,7 @@ class Microcontroller:
         '''
         cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x02) + struct.pack("B", 0x03)
         if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
-           val, = struct.unpack('?', self.payload_args)
+           val, = struct.unpack('f', self.payload_args)
            return  self.SUCCESS, val 
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
@@ -258,6 +258,17 @@ class Microcontroller:
             # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
             return self.FAIL
         
+    def get_lidar(self):
+        ''' Get the lidar distances detected in arduino. Used for debugging
+        '''
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x07) + struct.pack("B", 0x08)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+            valFront, valBack, valRight, valLeft = struct.unpack('4f', self.payload_args)
+            return  self.SUCCESS , valFront, valBack, valRight, valLeft
+        else:
+            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
+            return self.FAIL
+        
     def send_victims(self, victims):
         ''' Send the current victims state on the serial port.
         '''
@@ -278,6 +289,7 @@ class Microcontroller:
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
            return self.FAIL, False
+           
 
 def goal_callback(data):
     global controller
@@ -309,6 +321,9 @@ if __name__ == '__main__':
     rospy.init_node('serial_node')
 
     name = rospy.get_name() + '/'
+    port = ""
+    baud = ""
+    timeout = ""
 
     if rospy.has_param(name + 'port'):
         port = rospy.get_param(name + 'port')
@@ -334,8 +349,22 @@ if __name__ == '__main__':
 
     global controller
 
-    controller = Microcontroller(port=port, baud=baud, timeout=timeout)
+    controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
     controller.connect()
+
+    # Tests
+    while (1):
+        print("Loop")
+        # print(controller.get_baud())
+        #print(controller.get_VLX())
+        #print(controller.get_baud())
+        #print(controller.get_goal_state())
+        #print(controller.get_start_state())
+        #controller.set_goal(5)
+        #print(controller.get_goal_state())
+        controller.send_lidar(1.5, 4.9, -3.0, 4.3)
+        print(controller.get_lidar())
+        rospy.sleep(1)
 
 
 

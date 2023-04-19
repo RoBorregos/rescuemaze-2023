@@ -63,8 +63,6 @@ class Sensors
   bool rightLedOn = false;
   bool leftLedOn = false;
 
-  // Lidar distances
-  double wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
   int lidarAttemptCount = 0;
   bool usingLidar = true;
 
@@ -88,6 +86,8 @@ class Sensors
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
 
 public:
+  // Lidar distances
+  float wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
   String vlxNames[3] = {"Front", "Right", "Left"};
 
   // Constructor
