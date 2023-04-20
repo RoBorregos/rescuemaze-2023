@@ -250,6 +250,7 @@ public:
 
     vector<int> getWalls();
     int getVictims();
+    bool checkStart();
 
     void pubDebug(string msg);
 };
@@ -350,10 +351,10 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
 
     ROS_INFO("Creating subscribers");
 
-    vlxfrontsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxFrontCallback, this);
-    vlxrightsub = nh->subscribe("/sensor/vlx/right", 10, &ROSbridge::vlxRightCallback, this);
-    vlxleftsub = nh->subscribe("/sensor/vlx/left", 10, &ROSbridge::vlxLeftCallback, this);
-    startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
+    // vlxfrontsub = nh->subscribe("/sensor/vlx/front", 10, &ROSbridge::vlxFrontCallback, this);
+    // vlxrightsub = nh->subscribe("/sensor/vlx/right", 10, &ROSbridge::vlxRightCallback, this);
+    // vlxleftsub = nh->subscribe("/sensor/vlx/left", 10, &ROSbridge::vlxLeftCallback, this);
+    // startsub = nh->subscribe("/robot_init", 10, &ROSbridge::startCallback, this);
 
     jetsonresultsub = nh->subscribe("/control_feedback", 10, &ROSbridge::jetsonResultCallback, this);
 
@@ -692,6 +693,7 @@ int ROSbridge::checkUpRamp()
 
     // Call vlx service
     exploration::VLXDist vlxDistSrv;
+    vlxDistClient.waitForExistence();
     vlxDistClient.call(vlxDistSrv);
 
     distVlxFront = vlxDistSrv.response.front;
@@ -747,11 +749,14 @@ void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
 // 5: Goal reached, up ramp
 int ROSbridge::sendGoalJetson(int movement)
 {
+    ROS_INFO("Send goal to arduino");
+
     ros::spinOnce();
 
     // Call get_walls_dist service
     nav_main::GetWallsDist walls;
 
+    wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
     distLidar = walls.response.front;
@@ -762,11 +767,13 @@ int ROSbridge::sendGoalJetson(int movement)
         // Check if there's a ramp
         if (checkUpRamp())
         {
+            ROS_INFO("Forward (ramp)");
             upRamp = true;
             movementmsg.data = 4;
         }
         else
         {
+            ROS_INFO("Forward");
             movementmsg.data = 1;
         }
     }
@@ -798,10 +805,13 @@ int ROSbridge::sendGoalJetson(int movement)
     // wait for message from jetson (jetsonresultsub)
     while (scope.status == -1)
     {
+        ROS_INFO("Waiting for result");
+
         ros::spinOnce();
 
         // Call get_walls_dist service
         nav_main::GetWallsDist walls;
+        wallsDistClient.waitForExistence();
         wallsDistClient.call(walls);
         float distLidarFront = walls.response.front;
         float distLidarRight = walls.response.right;
@@ -820,6 +830,7 @@ int ROSbridge::sendGoalJetson(int movement)
 
         // call status service
         exploration::GoalStatus statusSrv;
+        goalStatusClient.waitForExistence();
         goalStatusClient.call(statusSrv);
 
         scope.status = statusSrv.response.status;
@@ -884,6 +895,7 @@ int ROSbridge::sendGoalJetson(int movement)
 
     if (upRamp)
     {
+        ROS_INFO("Returning 5 (up ramp)");
         upRamp = false;
         return 5;
     }
@@ -894,12 +906,21 @@ int ROSbridge::sendGoalJetson(int movement)
         sendGoalJetson(1);
         if (checkUpRamp())
         {
+            ROS_INFO("Turning and Returning 4 (down ramp)");
             // if there was a ramp, turn left and return the value
             sendGoalJetson(3);
             return 4;
         }
+        else
+        {
+            ROS_INFO("Turning and Returning 2 (stairs)");
+            // if there was no ramp, turn left and return the value
+            sendGoalJetson(3);
+            return 0;
+        }
     }
 
+    ROS_INFO("Returning %d", scope.result);
     return scope.result;
 
     // if (blackTile)
@@ -1706,6 +1727,7 @@ vector<int> ROSbridge::getWalls()
     ROS_INFO("Getting walls");
 
     nav_main::GetWallsDist walls;
+    wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
     ROS_INFO("Got walls front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
@@ -1790,6 +1812,7 @@ int ROSbridge::getVictims()
 
     bool gotVictims = false;
 
+    victimsClient.waitForExistence();    
     victimsClient.call(bothCameras);
 
     if (bothCameras.response.left_cam == "H")
