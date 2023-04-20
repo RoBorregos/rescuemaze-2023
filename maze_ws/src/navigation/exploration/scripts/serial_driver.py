@@ -342,18 +342,20 @@ if __name__ == '__main__':
 
     
     if only_test_lidar:
+        rospy.wait_for_service('get_walls_dist')
         get_walls = rospy.ServiceProxy('get_walls_dist', GetWallsDist)
     else:
         rospy.Subscriber("/lidar_serial", Float32MultiArray, lidar_callback)
-        rospy.Subscriber("/unit_movement", Int8, goal_callback)
-        rospy.Subscriber("/dispenser", Int8, victims_callback)
+    
+    rospy.Subscriber("/unit_movement", Int8, goal_callback)
+    rospy.Subscriber("/dispenser", Int8, victims_callback)
 
-        # Goal status service
-        s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
-        # VLX service
-        s2 = rospy.Service('/get_vlx', VLXDist, get_vlx)
-        # Robot start service
-        s3 = rospy.Service('/get_start_status', Trigger, start_status)
+    # Goal status service
+    s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
+    # VLX service
+    s2 = rospy.Service('/get_vlx', VLXDist, get_vlx)
+    # Robot start service
+    s3 = rospy.Service('/get_start_status', Trigger, start_status)
 
     global controller
 
@@ -361,9 +363,17 @@ if __name__ == '__main__':
     controller.connect()
 
     if only_test_lidar:
-        while not rospy.is_shutdown():
+        # get lidar 
+        distances = get_walls()
+        controller.send_lidar(distances.front, distances.back, distances.right, distances.left)
+        print(controller.get_lidar())
+        rospy.sleep(1)
+        
+        while False and not rospy.is_shutdown():
             # get lidar 
             distances = get_walls()
             controller.send_lidar(distances.front, distances.back, distances.right, distances.left)
+            print(controller.get_lidar())
+            rospy.sleep(1)
 
         
