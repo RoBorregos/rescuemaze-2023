@@ -404,7 +404,7 @@ double Movement::cmdMovement(const int action, const int option)
     // Rearrange in tile. Use VLX and BNO.
     goToAngle(getTurnDirection(rDirection)); // Rearrange orientation
     advanceUntilCentered();
-    return 1; 
+    return 1;
     break;
 
   case 7:
@@ -491,6 +491,13 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 // Update PID with either VLX or BNO error.
 void Movement::updateStraightPID(int RPMs, bool useBNO)
 {
+  // Debug motors status
+  if (!CK::kusingROS)
+  {
+    getMotorStatus(FRONT_LEFT);
+    getMotorStatus(BACK_LEFT);
+  }
+
   // nh->loginfo("updateStraightPID called");
   if (useBNO)
   {
@@ -501,6 +508,17 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
     motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
     motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
     motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+
+    if (!CK::kusingROS)
+    {
+      double correction = errorD * factor;
+      Serial.print("ErrorD: ");
+      Serial.print(correctionVLX);
+      Serial.print(", Target rpm: left: ");
+      Serial.print(RPMs + correction);
+      Serial.print(", Target rpm: right: ");
+      Serial.print(RPMs + correction * -1);
+    }
   }
   else
   {
@@ -928,7 +946,7 @@ void Movement::rearrangeAngle()
 {
   double angleError = getAngleError(dirToAngle(rDirection));
   if (abs(angleError) > kErrorVlxReading)
-    goToAngle(dirToAngle(rDirection));
+    goToAngle(dirToAngle(rDirection), true);
 }
 
 double Movement::getDistanceToCenter()
@@ -959,7 +977,7 @@ void Movement::advanceUntilCentered()
   }
 }
 
-void Movement::goToAngle(int targetAngle)
+void Movement::goToAngle(int targetAngle, bool oneSide)
 {
   if (CK::debugGoToAngle && !CK::kusingROS)
   {
@@ -970,7 +988,7 @@ void Movement::goToAngle(int targetAngle)
 
   double diff = getAngleError(targetAngle);
 
-  while (abs(diff) > 0.4)
+  while (abs(diff) > 1)
   {
     bool turnRight = false;
     if (diff > 0 && diff < 180 || diff < -180)
@@ -982,7 +1000,7 @@ void Movement::goToAngle(int targetAngle)
       turnRight = false;
     }
 
-    updateRotatePID(targetAngle, turnRight);
+    updateRotateDecider(targetAngle, turnRight, oneSide);
 
     diff = getAngleError(targetAngle);
 
@@ -1002,13 +1020,19 @@ void Movement::goToAngle(int targetAngle)
         Serial.print(" turning left, angle: ");
         Serial.println(bno->getAngleX());
       }
+      Serial.print("Front left: ");
+      getMotorStatus(FRONT_LEFT);
+      Serial.print("Front right: ");
+      getMotorStatus(FRONT_RIGHT);
+      Serial.print("Back left: ");
+      getMotorStatus(BACK_LEFT);
     }
   }
 
   stop();
 }
 
-void Movement::updateRotatePID(int targetAngle, bool right)
+void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
 {
   double current_angle = bno->getAngleX();
   if (right)
@@ -1016,16 +1040,65 @@ void Movement::updateRotatePID(int targetAngle, bool right)
     girarDerecha();
     motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);
     motor[BACK_LEFT].motorRotateDerPID(targetAngle, current_angle);
-    motor[FRONT_RIGHT].motorRotateDerPID(targetAngle, current_angle);
-    motor[BACK_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+    if (!oneSide)
+    {
+      motor[FRONT_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+      motor[BACK_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+    }
   }
   else
   {
     girarIzquierda();
     motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
     motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
-    motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
-    motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    if (!oneSide)
+    {
+      motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+      motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    }
+
+    if (CK::debugGoToAngle && !CK::kusingROS)
+    {
+      Serial.print("Front left pwm: ");
+      Serial.println(motor[FRONT_LEFT].getPWM());
+    }
+  }
+}
+
+void Movement::updateRotatePWM(int targetAngle, bool right)
+{
+
+  int diff = getAngleError(targetAngle);
+
+  if (right)
+  {
+    girarDerecha();
+
+    motor[FRONT_LEFT].setPWM(diff + CK::basePwmFrontLeft, 1);
+    motor[BACK_LEFT].setPWM(diff + CK::basePwmBackLeft, 1);
+    motor[FRONT_RIGHT].setPWM(diff * -1 + CK::basePwmFrontRight, -1);
+    motor[BACK_RIGHT].setPWM(diff * -1 + CK::basePwmBackRight, -1);
+  }
+  else
+  {
+    girarIzquierda();
+
+    motor[FRONT_LEFT].setPWM(diff + CK::basePwmFrontLeft, -1);
+    motor[BACK_LEFT].setPWM(diff + CK::basePwmBackLeft, -1);
+    motor[FRONT_RIGHT].setPWM(diff * -1 + CK::basePwmFrontRight, 1);
+    motor[BACK_RIGHT].setPWM(diff * -1 + CK::basePwmBackRight, 1);
+  }
+}
+
+void Movement::updateRotateDecider(int targetAngle, bool right, bool oneSide)
+{
+  if (CK::rotatePID)
+  {
+    updateRotatePID(targetAngle, right, oneSide);
+  }
+  else
+  {
+    updateRotatePWM(targetAngle, right);
   }
 }
 
@@ -1157,7 +1230,7 @@ void Movement::handleRightLimitSwitch()
   int targetAngle = bno->getAngleX() - 20;
   if (targetAngle < 0)
     targetAngle += 360;
-  goToAngle(targetAngle);
+  goToAngle(targetAngle, true);
   stop();
 }
 
@@ -1174,8 +1247,13 @@ void Movement::handleLeftLimitSwitch()
   int targetAngle = bno->getAngleX() + 20;
   if (targetAngle > 360)
     targetAngle -= 360;
-  goToAngle(targetAngle);
+  goToAngle(targetAngle, true);
   stop();
+}
+
+void Movement::getMotorStatus(int pos)
+{
+  motor[pos].motorStatus();
 }
 
 /*

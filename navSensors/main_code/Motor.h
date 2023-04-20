@@ -76,7 +76,7 @@ private:
 
   PIDRb pidRotate;
   static constexpr double kPRotate = 10; // 0.5
-  static constexpr double kIRotate = 5;
+  static constexpr double kIRotate = 10;
   static constexpr double kDRotate = 5;
 
 public:
@@ -111,6 +111,8 @@ public:
   void initMotor();
 
   void motorSetup();
+
+  void motorStatus();
 
   // Encoder Methods
 

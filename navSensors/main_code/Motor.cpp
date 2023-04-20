@@ -230,7 +230,32 @@ void Motor::motorSpeedPID(double target_speed, bool debug)
 
   pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
   setPWM(tmp_pwm);
-  
+}
+
+void Motor::motorStatus()
+{
+  if (!CK::kusingROS)
+  {
+    Serial.print("Direction: ");
+    if (currentState == MotorState::Forward)
+    {
+      Serial.print("Forward");
+    }
+    else if (currentState == MotorState::Backward)
+    {
+      Serial.print("Backward");
+    }
+    else if (currentState == MotorState::Stop)
+    {
+      Serial.print("Stop");
+    }
+    Serial.print(" | Speed: ");
+    Serial.print(currentSpeed);
+    Serial.print(" | Target Speed: ");
+    Serial.print(targetSpeed);
+    Serial.print(" | PWM: ");
+    Serial.println(pwm);
+  }
 }
 
 void Motor::motorRotateIzqPID(double target_angle, double current_angle)
@@ -325,6 +350,7 @@ void Motor::PIDAggressiveTunings(double kp, double ki, double kd)
   pidStraight.setAggressive(kp, ki, kd);
 }
 
-void Motor::setVelocityAdjustment(const double velocity_adjustment) {
+void Motor::setVelocityAdjustment(const double velocity_adjustment)
+{
   velocity_adjustment_ = velocity_adjustment;
 }

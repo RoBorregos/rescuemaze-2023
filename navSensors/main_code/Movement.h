@@ -95,7 +95,7 @@ private:
   static constexpr bool kUsingPID = true;
 
   // Control constants
-  static constexpr double kErrorVlxReading = 1.5; // Error to consider a reading as valid, in degrees.
+  static constexpr double kErrorVlxReading = 2; // Error to consider a reading as valid, in degrees.
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
   static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
@@ -208,10 +208,14 @@ public:
   void girarIzquierda();
 
   // Rotates the robot to the specified angle.
-  void goToAngle(int targetAngle);
+  void goToAngle(int targetAngle, bool oneSide=false);
 
   // Updates individual motor speed using the angle error and PID.
-  void updateRotatePID(int RPMs, bool right);
+  void updateRotatePID(int RPMs, bool right, bool oneSide=false);
+
+  void updateRotateDecider(int targetAngle, bool right, bool oneSide);
+
+  void updateRotatePWM(int targetAngle, bool right);
 
   // Returns the robot's expected angle given its rdirection.
   int dirToAngle(int rdirection);
@@ -303,6 +307,8 @@ public:
   void logDebug(int data);
 
   void logDebug(double data);
+
+  void getMotorStatus(int pos);
 
   void logDebug(String data, double data2);
 };
