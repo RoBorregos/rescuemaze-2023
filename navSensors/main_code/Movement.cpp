@@ -451,6 +451,21 @@ void Movement::rotateRobot(int option, int dir)
       Serial.println("Reacomodating");
     }
 
+
+    motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, -1);
+    motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
+    motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
+    motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, -1);
+    delay(1000);
+
+    motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, 1);
+    motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, 1);
+    motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, 1);
+    motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, 1);
+    delay(100);
+    
+    stop();
+    /*
     // Align robot with back wall.
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
     delay(kMillisBackAccomodate);
@@ -458,6 +473,7 @@ void Movement::rotateRobot(int option, int dir)
 
     // Move to center of tile
     advanceXMeters(0.03, true);
+    */
   }
   stop();
   resetEncoders();
