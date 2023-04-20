@@ -251,20 +251,33 @@ void GeneralChecks::test()
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
 
-    
-
     /*while (true)
     {
         robot->handleSwitches();
         Serial.println("Handle for limit switch finished");
         delay(2000);
     }*/
+    
+    robot->girarIzquierda();
+    robot->motor[FRONT_RIGHT].motorForward();
+    robot->motor[FRONT_LEFT].motorForward();
+    robot->motor[BACK_RIGHT].motorForward();
+    robot->motor[BACK_LEFT].motorForward();
+
+    robot->motor[FRONT_RIGHT].setPWM(255);
+    robot->motor[FRONT_LEFT].setPWM(255);
+    robot->motor[BACK_RIGHT].setPWM(255);
+    robot->motor[BACK_LEFT].setPWM(255);
+
+    end();
+
+
+    // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
 
     robot->cmdMovement(0, 1);
-    delay(1000);
     robot->cmdMovement(1, 1);
-    delay(1000);
     robot->cmdMovement(0, 1);
+
     end();
 }
 
@@ -334,6 +347,11 @@ void GeneralChecks::printRevolutions()
     robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
     robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
     robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
+    // robot->motor[FRONT_RIGHT].setPWM(255);
+    // robot->motor[FRONT_LEFT].setPWM(255);
+    // robot->motor[BACK_RIGHT].setPWM(255);
+    // robot->motor[BACK_LEFT].setPWM(255);
+
     while (true)
     {
         Serial.print("Front left: ");
