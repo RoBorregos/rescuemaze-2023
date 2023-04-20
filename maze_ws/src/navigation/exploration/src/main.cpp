@@ -25,10 +25,10 @@ using namespace std;
 // 0: north, 1: east, 2: south, 3: west
 int rDirection = 0;
 
-#define mapSimDebug true
+#define mapSimDebug false
 #define useros true
 #define rosDebug true
-#define canMoveBackward false
+#define canMoveBackward true
 
 ROSbridge *bridge;
 
@@ -539,7 +539,7 @@ bool isWall(string key) // use ros
     while (index < 0)
         index += 4;
 
-    if (bridge->getWalls()[index] == 0)
+    if (bridge->getWalls()[index] == false)
         return true;
 
     return false;
@@ -555,7 +555,17 @@ bool isWall(string key, Map &mapa)
     return false;
 }
 
-vector<int> getWalls() // use ros
+bool isWall(string key, vector<bool> &walls)
+{
+    int index = (directions[key] - rDirection); // Correct according to robot direction
+
+    while (index < 0)
+        index += 4;
+
+    return walls[index];
+}
+
+vector<bool> getWalls() // use ros
 {
     return bridge->getWalls();
 }
@@ -849,28 +859,38 @@ void explore(bool checkpoint, int argc, char **argv)
     Map mapa;
     Tile *startTile;
 
-    try
+    if (true)
     {
-        // Cargar checkpoint
-        std::ifstream ifs("~/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
-        boost::archive::text_iarchive ia(ifs);
-        ia >> mapa;
-        ROS_INFO("Checkpoint loaded");
-
-        // Se actualiza el mapa con la informacion del checkpoint
-        mapa.pos = mapa.recovpos;
-        mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
-        startTile = mapa.tiles.at(posvectorToString(vector<int>{0, 0, 0}));
-    }
-    // Si no hay checkpoint, se crea un nuevo mapa
-    catch (const boost::archive::archive_exception &e)
-    {
-        ROS_INFO("No checkpoint found");
-
         startTile = mapa.tile;
         startTile->visited = true;
         mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
     }
+    else
+    {
+        try
+        {
+            // // Cargar checkpoint
+            // std::ifstream ifs("~/rescuemaze-2023/maze_ws/navigation/exploration/src/checkpoint.txt");
+            // boost::archive::text_iarchive ia(ifs);
+            // ia >> mapa;
+            // ROS_INFO("Checkpoint loaded");
+
+            // // Se actualiza el mapa con la informacion del checkpoint
+            // mapa.pos = mapa.recovpos;
+            // mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
+            // startTile = mapa.tiles.at(posvectorToString(vector<int>{0, 0, 0}));
+        }
+        // Si no hay checkpoint, se crea un nuevo mapa
+        catch (const boost::archive::archive_exception &e)
+        {
+            ROS_INFO("No checkpoint found");
+
+            startTile = mapa.tile;
+            startTile->visited = true;
+            mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
+        }
+    }
+
 
 #ifdef simulateRos
     bridge->mapa = &mapa;
@@ -909,7 +929,7 @@ void explore(bool checkpoint, int argc, char **argv)
         mapa.tile->visited = true;
         mapa.setVisitedChar();
 
-        vector<int> walls = getWalls();
+        vector<bool> walls = getWalls();
 
         // Se revisan las casillas adyacentes
         for (auto &&key : keys)
@@ -940,7 +960,8 @@ void explore(bool checkpoint, int argc, char **argv)
             }
             // ROS_INFO("Checking key: %s", key.c_str());
 
-            if (useros && walls[directions[key]] == 1 && !mapa.tile->walls[key])
+            // if (useros && walls[directions[key]] == 1 && !mapa.tile->walls[key])
+            if (useros && isWall(key, walls) && !mapa.tile->walls[key])
             {
                 // ROS_INFO("Wall detected");
                 if (rosDebug)
