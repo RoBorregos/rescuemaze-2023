@@ -369,7 +369,7 @@ if __name__ == '__main__':
         print(controller.get_lidar())
         rospy.sleep(1)
         
-        while False and not rospy.is_shutdown():
+        while not rospy.is_shutdown():
             # get lidar 
             distances = get_walls()
             controller.send_lidar(distances.front, distances.back, distances.right, distances.left)

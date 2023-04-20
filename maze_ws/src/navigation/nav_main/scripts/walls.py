@@ -190,6 +190,16 @@ def dist_callback(_):
     
 
 if __name__ == '__main__':
+    global left_dist
+    global back_dist
+    global right_dist
+    global front_dist
+
+    left_dist = 0
+    back_dist = 0
+    right_dist = 0
+    front_dist = 0
+    
     # Initialize the node
     rospy.init_node('get_walls')
     rospy.loginfo("Wall service initialized")
