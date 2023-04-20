@@ -1,4 +1,4 @@
-}#include "Movement.h"
+#include "Movement.h"
 #include "Sensors.h"
 #include "Motor.h"
 #include "MotorID.h"
@@ -129,6 +129,7 @@ void setup()
   bno.init();
   initAll(&bno, true, true);
   RosBridge2 rosbridge(robot, s, &bno);
+  s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   rosbridge.run();
 
   GeneralChecks checks(robot);

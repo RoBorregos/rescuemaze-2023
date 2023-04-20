@@ -315,6 +315,10 @@ def victims_callback(data):
     global controller
     controller.send_victims(data.data)
 
+def get_cur_goal(req):
+    global controller
+    return GoalStatusResponse(controller.get_goal()[1])
+
 def goal_status(req):
     global controller
     return GoalStatusResponse(controller.get_goal_state()[1])
@@ -332,7 +336,7 @@ def start_status(req):
 
 if __name__ == '__main__':
 
-    only_test_lidar = True
+    only_test_lidar = False
 
     rospy.init_node('serial_node')
 
@@ -369,10 +373,15 @@ if __name__ == '__main__':
     # Robot start service
     s3 = rospy.Service('/get_start_status', Trigger, start_status)
 
+    s4 = rospy.Service('/get_cur_goal', GoalStatus, get_cur_goal)
+
     global controller
 
     controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
     controller.connect()
+
+    rospy.spin()
+
 
     if only_test_lidar:
         # get lidar 

@@ -206,6 +206,8 @@ public:
   // or vlx. If lidar fails repeatedly, it will switch to vlx. (back not available for vlx)
   // @param direction 0 for front, 1 for back, 2 for left, 3 for right.
   float getDistInfo(int direction);
+
+  bool isValid(double d);
 };
 
 #endif

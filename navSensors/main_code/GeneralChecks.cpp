@@ -253,13 +253,14 @@ void GeneralChecks::test()
 
     
 
-    while (true)
+    /*while (true)
     {
         robot->handleSwitches();
         Serial.println("Handle for limit switch finished");
         delay(2000);
-    }
-
+    }*/
+    robot->cmdMovement(0, 1);
+    delay(1000);
     robot->cmdMovement(0, 1);
     end();
 }

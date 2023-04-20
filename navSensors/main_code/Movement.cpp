@@ -346,6 +346,25 @@ double Movement::cmdMovement(const int action, const int option)
     Serial.println("Updated angle reference");
   }
 
+  if (firstMove)
+  {
+    firstMove = false;
+    updateAngleReference();
+    sensors->bothLedOn();
+    delay(50);
+    sensors->bothLedOff();
+    delay(50);
+
+    sensors->bothLedOn();
+    delay(50);
+    sensors->bothLedOff();
+    delay(50);
+
+    sensors->bothLedOn();
+    delay(500);
+    sensors->bothLedOff();
+  }
+
   switch (action)
   {
   case 0:
@@ -385,7 +404,7 @@ double Movement::cmdMovement(const int action, const int option)
     // Rearrange in tile. Use VLX and BNO.
     goToAngle(getTurnDirection(rDirection)); // Rearrange orientation
     advanceUntilCentered();
-    return 1;
+    return 1; 
     break;
 
   case 7:
@@ -931,6 +950,11 @@ void Movement::advanceUntilCentered()
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
   }
+  if diswhile (dist < 0.25)
+  {
+    updateVelocityDecider(kMovementRPMs, CK::useBNO);
+    dist = sensors->getDistInfo(dist_front);
+  }
 }
 
 void Movement::goToAngle(int targetAngle)
@@ -1120,7 +1144,10 @@ void Movement::logDebug(String data, double data2)
 void Movement::handleRightLimitSwitch()
 {
   for (int i = 0; i < 5; i++)
+  {
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
+    delay(10);
+  }
 
   stop();
   delay(100);
@@ -1134,7 +1161,10 @@ void Movement::handleRightLimitSwitch()
 void Movement::handleLeftLimitSwitch()
 {
   for (int i = 0; i < 5; i++)
+  {
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
+    delay(10);
+  }
 
   stop();
   delay(100);

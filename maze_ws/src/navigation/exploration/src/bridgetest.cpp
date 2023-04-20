@@ -7,10 +7,12 @@ int main(int argc, char **argv)
 
     ROSbridge bridge(n);
 
-    // while (ros::ok() && !bridge.started)
-    // {
-    //     ros::spinOnce();
-    // }
+    while (ros::ok())
+    {
+        ros::spinOnce();
+
+        bridge.sendUnitGoal(0, 0);
+    }
 
     // int dir = 0;
     // bridge.publishIdealOrientation(dir);
@@ -35,7 +37,6 @@ int main(int argc, char **argv)
     //     // bridge.publishTransform();
     //     // bridge.sendUnitGoal(3, dir);
     //     // dir--;
-
 
     //     // if (dir < 0)
     //     // {

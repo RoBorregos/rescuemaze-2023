@@ -301,13 +301,25 @@ char Sensors::getTCSInfo()
 // 0 front, 1 back, 2 left, 3 right
 float Sensors::getDistInfo(int direction)
 {
+  if (lidarAttemptCount > 15)
+  {
+    // Lidar is not working, use vlx
+    usingLidar = false;
+  }
+
   if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
-    float front, back, left, right;
     rosBridge->readOnce();
 
-    if (direction >= 0 && direction <= 3 && usingLidar)
-      return wallDistances[direction];
+    if (direction >= 0 && direction <= 3 && usingLidar){
+      if (isValid(wallDistances[direction])){
+        lidarAttemptCount = 0;
+        return wallDistances[direction];
+      } else {
+        lidarAttemptCount++;
+        return getDistInfo(direction);
+      }
+    }
   }
 
   switch (direction)
@@ -465,4 +477,11 @@ void Sensors::bothLedOff()
   rightLedOn = false;
   digitalWrite(kDigitalPinsLEDS[0], LOW);
   digitalWrite(kDigitalPinsLEDS[1], LOW);
+}
+
+bool Sensors::isValid(double d){
+  if (d < 0.1 || d > 5){
+    return false;
+  }
+  return true;
 }
