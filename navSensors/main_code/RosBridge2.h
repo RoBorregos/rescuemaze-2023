@@ -45,6 +45,8 @@ class RosBridge2{
         Sensors *sensors_;
         int state_ = 8;
 
+        int goal = 0;
+
         // Suscriber.
         static constexpr uint16_t kWatchdogPeriod = 500;
 

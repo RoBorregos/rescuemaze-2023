@@ -64,7 +64,7 @@ class Sensors
   bool leftLedOn = false;
 
   int lidarAttemptCount = 0;
-  bool usingLidar = false;
+  bool usingLidar = true;
 
   int kMuxVLX = 3;
   // Sensor Pins.
