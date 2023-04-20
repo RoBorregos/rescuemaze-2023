@@ -21,6 +21,12 @@ private:
   sensors_event_t angVelocityData, linearAccelData;
   imu::Quaternion quat;
 
+  float yaw_ = 0.0;
+  float yaw_vel_ = 0.0;
+  float x_accel = 0.0;
+  float y_accel = 0.0;
+  float z_accel = 0.0;
+
 public:
   BNO();
 
@@ -32,6 +38,7 @@ public:
   bool isCalibrated();
   void restoreCalibration();
 
+  // Events with quaternion.
   void updateEvents();
   float getQuat_x();
   float getQuat_y();
@@ -43,6 +50,14 @@ public:
   float getLinAcc_x();
   float getLinAcc_y();
   float getLinAcc_z();
+
+  // Events with Euler angles.
+  void updateBNO();
+  float getYaw();
+  float getYawVel();
+  float getXAccel();
+  float getYAccel();
+  float getZAccel();
 
   void anglesInfo();
   void setExtCUse();

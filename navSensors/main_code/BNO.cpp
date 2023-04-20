@@ -69,6 +69,8 @@ void BNO::updateEvents()
 {
   bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
   bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
+  bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+
   quat = bno.getQuat();
 }
 
@@ -198,7 +200,7 @@ void BNO::displayCalStatus(void)
   if (CK::kusingROS)
     return;
 
-   //Display calibration status for each sensor.
+  // Display calibration status for each sensor.
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag);
   Serial.print("CALIBRATION: Sys=");
@@ -235,6 +237,51 @@ void BNO::restoreCalibration()
   bno.setSensorOffsets(calibrationData);
 
   bno.setExtCrystalUse(true);
+}
+
+// Get specific data from BNO
+void BNO::updateBNO()
+{
+  static long long last_time = 0;
+  static sensors_event_t orientationData, angVelocityData, accelerometerData;
+  if (millis() - last_time > 50)
+  {
+    last_time = millis();
+    bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+    bno.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
+    bno.getEvent(&accelerometerData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    yaw_ = orientationData.orientation.x;
+    yaw_vel_ = angVelocityData.gyro.x;
+    x_accel = accelerometerData.acceleration.x;
+    y_accel = accelerometerData.acceleration.y;
+    z_accel = accelerometerData.acceleration.z;
+  }
+}
+
+float BNO::getYaw()
+{
+  updateBNO();
+  return yaw_;
+}
+float BNO::getYawVel()
+{
+  updateBNO();
+  return yaw_vel_;
+}
+float BNO::getXAccel()
+{
+  updateBNO();
+  return x_accel;
+}
+float BNO::getYAccel()
+{
+  updateBNO();
+  return y_accel;
+}
+float BNO::getZAccel()
+{
+  updateBNO();
+  return z_accel;
 }
 
 // Call in case bno isn't calibrated.

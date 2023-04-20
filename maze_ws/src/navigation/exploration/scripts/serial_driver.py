@@ -16,11 +16,12 @@ from serial import Serial
 
 import roslib
 
-# from geometry_msgs.msg import Quaternion, Twist, Pose
+from geometry_msgs.msg import Quaternion #, Twist, Pose
 # from nav_msgs.msg import Odometry
-from std_msgs.msg import Int8, Float32MultiArray
+from std_msgs.msg import Int8, Float32, Float32MultiArray
 # from tf.broadcaster import TransformBroadcaster
-# from sensor_msgs.msg import Range, Imu
+from sensor_msgs.msg import Imu
+from tf.transformations import quaternion_from_euler
 
 from std_srvs.srv import Trigger, TriggerResponse
 from exploration.srv import GoalStatus, GoalStatusResponse, GoalStatusRequest
@@ -301,6 +302,14 @@ class Microcontroller:
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
            return self.FAIL, False
+        
+    def get_imu_val(self):
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x09) + struct.pack("B", 0x0A)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+           yaw, yaw_vel, x_acc, y_acc, z_acc, = struct.unpack('5f', self.payload_args)
+           return  self.SUCCESS, yaw, yaw_vel, x_acc, y_acc, z_acc
+        else:
+           return self.FAIL, 0, 0, 0, 0, 0
            
 
 def goal_callback(data):
@@ -332,6 +341,51 @@ def get_vlx(req):
 def start_status(req):
     global controller
     return TriggerResponse(controller.get_start_state()[1], "Start status")
+
+def pub_imu(data):
+    global controller, imuPub, imuAnglePub, imu_frame_id
+    controller.get_imu_val()
+    
+    try:
+        stat_, yaw, yaw_vel, acc_x, acc_y, acc_z = controller.get_imu_val()
+        # Degree to radians
+        yaw = yaw * 3.1415926 / 180.0
+        isValid = True
+        if yaw == 0.0:
+            isValid = False
+
+        # print("yaw:  " + str(yaw)+" yaw_vel: " + str(yaw_vel)+" acc_x: " + str(acc_x)+" acc_y: " + str(acc_y)+" acc_z: " + str(acc_z))
+        if isValid:
+            imu_data = Imu()  
+            imu_data.header.stamp = rospy.Time.now()
+            imu_data.header.frame_id = imu_frame_id 
+            imu_data.orientation_covariance[0] = 1000000
+            imu_data.orientation_covariance[1] = 0
+            imu_data.orientation_covariance[2] = 0
+            imu_data.orientation_covariance[3] = 0
+            imu_data.orientation_covariance[4] = 1000000
+            imu_data.orientation_covariance[5] = 0
+            imu_data.orientation_covariance[6] = 0
+            imu_data.orientation_covariance[7] = 0
+            imu_data.orientation_covariance[8] = 0.000001
+
+            newquat = quaternion_from_euler(0, 0, yaw)
+            imu_data.orientation = Quaternion(newquat[0], newquat[1], newquat[2], newquat[3])
+            imu_data.linear_acceleration_covariance[0] = -1
+            imu_data.angular_velocity_covariance[0] = -1
+
+            imu_data.linear_acceleration.x = acc_x
+            imu_data.linear_acceleration.y = acc_y
+            imu_data.linear_acceleration.z = acc_z
+
+            imu_data.angular_velocity.x = 0.0
+            imu_data.angular_velocity.y = 0.0
+            imu_data.angular_velocity.z = yaw_vel
+            imuPub.publish(imu_data)
+            imuAnglePub.publish(yaw)
+    except:
+        rospy.logerr("IMU exception triggered")
+        return
 
 
 if __name__ == '__main__':
@@ -375,13 +429,15 @@ if __name__ == '__main__':
 
     s4 = rospy.Service('/get_cur_goal', GoalStatus, get_cur_goal)
 
-    global controller
+    global controller, imuPub, imuAnglePub, imu_frame_id
+
+    imuPub = rospy.Publisher('imu', Imu, queue_size=5)
+    imuAnglePub = rospy.Publisher('imu_angle', Float32, queue_size=5)
+    imu_frame_id = rospy.get_param('imu_frame_id', 'imu_base')
 
     controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
     controller.connect()
-
     rospy.spin()
-
 
     if only_test_lidar:
         # get lidar 

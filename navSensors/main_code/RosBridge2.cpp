@@ -141,6 +141,14 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
+  case 0x09: // Get IMU
+    if (packet_size == 1)
+    { // Check packet size
+        // Yaw, yaw vel, getXaccel, getYaccel, getZaccel
+      float data[] = {bno_->getYaw(), bno_->getYawVel(), bno_->getXAccel(), bno_->getYAccel(), bno_->getZAccel()};
+      writeSerial(true, (uint8_t *)data, sizeof(data));
+    }
+    break;
   default:
     break;
   }
