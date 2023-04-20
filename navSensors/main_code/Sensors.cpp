@@ -190,19 +190,19 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
     //rosBridge->updateDistLidar();
     return;
   }
-  wallDistances[0] = front;
-  wallDistances[1] = back;
-  wallDistances[2] = left;
-  wallDistances[3] = right;
+  // wallDistances[0] = front;
+  // wallDistances[1] = back;
+  // wallDistances[2] = left;
+  // wallDistances[3] = right;
   
   // 19*18
 
   // Update values adding constant error
-  // wallDistances[0] = front - 19 / 2;
-  // wallDistances[1] = back - 19 / 2;
-  // wallDistances[2] = left - 18 / 2;
-  // wallDistances[3] = right - 18 / 2;
-  // lidarAttemptCount = 0;
+  wallDistances[0] = front - 19 / 2;
+  wallDistances[1] = back - 19 / 2;
+  wallDistances[2] = left - 18 / 2;
+  wallDistances[3] = right - 18 / 2;
+  lidarAttemptCount = 0;
 }
 
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
@@ -303,6 +303,17 @@ char Sensors::getTCSInfo()
 // 0 front, 1 back, 2 left, 3 right
 float Sensors::getDistInfo(int direction)
 {
+  // Debug using leds
+  if (usingLidar)
+  {
+    toggleRightLed();
+    delay(20);
+    toggleRightLed();
+    delay(20);
+    toggleRightLed();
+    delay(20);
+  }
+
   if (lidarAttemptCount > 15)
   {
     // Lidar is not working, use vlx

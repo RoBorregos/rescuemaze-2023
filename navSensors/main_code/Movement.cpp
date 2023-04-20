@@ -337,6 +337,8 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 double Movement::cmdMovement(const int action, const int option)
 {
+  if (!sensors->readMotorInit())
+    return -2;
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
   if (firstMove && !CK::kusingROS)
@@ -451,7 +453,6 @@ void Movement::rotateRobot(int option, int dir)
       Serial.println("Reacomodating");
     }
 
-
     motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, -1);
     motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
     motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
@@ -463,7 +464,7 @@ void Movement::rotateRobot(int option, int dir)
     motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, 1);
     motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, 1);
     delay(100);
-    
+
     stop();
     /*
     // Align robot with back wall.
@@ -681,6 +682,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   {
     while (dist > target && dist > 0.03)
     {
+      if (!sensors->readMotorInit())
+        return -2;
       handleSwitches();
 
       updateVelocityDecider(kMovementRPMs, straightPidType);
@@ -725,6 +728,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
+      if (!sensors->readMotorInit())
+        return -2;
       updateVelocityDecider(-kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
@@ -939,6 +944,8 @@ double Movement::stabilizePitch(int straightPidType)
   }
   while (outOfPitch())
   {
+    if (!sensors->readMotorInit())
+      return -2;
     if (!CK::kusingROS && CK::debugRamp)
     {
       Serial.print("Robot out of stable pitch: ");
@@ -1006,6 +1013,8 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   while (abs(diff) > 1)
   {
+    if (!sensors->readMotorInit())
+      return;
     bool turnRight = false;
     if (diff > 0 && diff < 180 || diff < -180)
     {
@@ -1145,6 +1154,8 @@ double Movement::traverseRamp(int option)
   {
     while (millis() - start < kAdvanceToRampTime)
     {
+      if (!sensors->readMotorInit())
+        return -2;
       updateVelocityDecider(kMovementRPMs, CK::useBNO);
     }
   }
@@ -1272,6 +1283,11 @@ void Movement::getMotorStatus(int pos)
   motor[pos].motorStatus();
 }
 
+void Movement::resetMovement()
+{
+  firstMove = true;
+  rDirection = 0;
+}
 /*
 
 

@@ -311,6 +311,9 @@ public:
   void getMotorStatus(int pos);
 
   void logDebug(String data, double data2);
+
+  void resetMovement();
+  
 };
 
 #endif

@@ -124,6 +124,8 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     if (packet_size == 1)
     { // Check packet size
       bool data[] = {sensors_->readMotorInit()};
+      if (!sensors_->readMotorInit())
+        robot_->resetMovement();
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;

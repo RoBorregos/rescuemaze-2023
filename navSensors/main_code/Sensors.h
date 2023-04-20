@@ -197,6 +197,7 @@ public:
 
   void getLidarDistances(double &front, double &back, double &left, double &right);
 
+  // Reads if motors are turned on.
   bool readMotorInit();
 
   // Make general checks to ensure TCS is working correctly.
