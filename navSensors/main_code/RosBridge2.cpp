@@ -12,8 +12,8 @@ RosBridge2::RosBridge2(Movement *robot, Sensors *sensors, BNO *bno) : robot_(rob
 // Movement Suscriber
 void RosBridge2::cmdMovementCallback(int move)
 {
-  state_ = move;
-  return;
+  state_ = -1; // Stauts code to indicate that the robot is moving
+
   double response = robot_->cmdMovement(move, 1);
 
   if (response == 0)

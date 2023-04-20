@@ -34,7 +34,7 @@ Movement::Movement(bool individualConstants)
   initMovement(individualConstants);
 }
 
-Movement::initMovement(bool individualConstants)
+void Movement::initMovement(bool individualConstants)
 {
   kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
   setMotors();
@@ -383,8 +383,8 @@ double Movement::cmdMovement(const int action, const int option)
   case 5:
     // nh->loginfo("Traversing ramp");
     // Rearrange in tile. Use VLX and BNO.
-    goToAngle(getTurnDirection(rDirection));     // Rearrange orientation
-    advanceXMeters(getDistanceToCenter(), true); // Get error in X, and move that distance.
+    goToAngle(getTurnDirection(rDirection)); // Rearrange orientation
+    advanceUntilCentered();
     return 1;
     break;
 
@@ -435,6 +435,7 @@ void Movement::rotateRobot(int option, int dir)
     // Align robot with back wall.
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
     delay(kMillisBackAccomodate);
+    updateAngleReference();
 
     // Move to center of tile
     advanceXMeters(0.03, true);
@@ -612,7 +613,13 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
 {
   // nh->loginfo("AdvanceXMeters called");
   double dist = sensors->getDistInfo(dist_front);
+  bool useEncoders = false;
 
+  // Use encoders to move if distance is greater than 1.28m, as its the vlx max range.
+  /*if (dist > 1.28){
+    useEncoders = true;
+    dist = meanDistanceTraveled();
+  }*/
   double initial = dist;
   double target = dist - x;
   double lastTCS = millis();
@@ -621,6 +628,8 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   {
     while (dist > target && dist > 0.03)
     {
+      handleSwitches();
+
       updateVelocityDecider(kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
@@ -709,6 +718,22 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   return 1;
 }
 
+void Movement::handleSwitches()
+{
+  bool right = 0, left = 0;
+  sensors->getLimitSwitches(right, left);
+  if (right)
+  {
+    handleRightLimitSwitch();
+    Serial.print("Handled right limit switch");
+  }
+  return;
+  if (left)
+  {
+    handleLeftLimitSwitch();
+    Serial.print("Handled left limit switch");
+  }
+}
 /*
 
 
@@ -747,10 +772,10 @@ void Movement::advanceXMetersEncoders(double x, bool useAngleError)
     while (target < dist)
     {
       if (useAngleError)
-      {
+      {advanceXMeters
         double angleError = getAngleError(dirToAngle(rDirection));
         updateVelocityDecider(-kMovementRPMs, angleError);
-      }
+      }advanceXMetersadvadvanceXMetersanceXMeters
       else
       {
         updateVelocityDecider(-kMovementRPMs);
@@ -823,12 +848,11 @@ void Movement::printAngleReference()
 
   for (int i = 0; i < 4; i++)
   {
-    
+
     Serial.print("Angle: ");
     Serial.print(angleDirs[i]);
     Serial.print(" Dir: ");
     Serial.println(i);
-    
   }
 }
 
@@ -894,6 +918,17 @@ double Movement::getDistanceToCenter()
   double center = ((int)dist % 15) - 5; // in cm. "-5" is the distance from vlx to wall.
 
   return center / 100.0; // Return distance in m.
+}
+
+void Movement::advanceUntilCentered()
+{
+  double dist = sensors->getDistInfo(dist_front);
+
+  while (dist < 0.25)
+  {
+    updateVelocityDecider(kMovementRPMs, CK::useBNO);
+    dist = sensors->getDistInfo(dist_front);
+  }
 }
 
 void Movement::goToAngle(int targetAngle)
@@ -1078,6 +1113,34 @@ void Movement::logDebug(String data, double data2)
 {
   String m = "Debug: " + data + " " + String(data2);
   nh->loginfo(m.c_str());
+}
+
+void Movement::handleRightLimitSwitch()
+{
+  for (int i = 0; i < 5; i++)
+    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
+
+  stop();
+  delay(100);
+  int targetAngle = bno->getAngleX() - 20;
+  if (targetAngle < 0)
+    targetAngle += 360;
+  goToAngle(targetAngle);
+  stop();
+}
+
+void Movement::handleLeftLimitSwitch()
+{
+  for (int i = 0; i < 5; i++)
+    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
+
+  stop();
+  delay(100);
+  int targetAngle = bno->getAngleX() + 20;
+  if (targetAngle > 360)
+    targetAngle -= 360;
+  goToAngle(targetAngle);
+  stop();
 }
 
 /*

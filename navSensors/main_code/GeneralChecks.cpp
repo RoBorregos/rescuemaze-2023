@@ -88,7 +88,7 @@ void GeneralChecks::checkSensorData(int iterations)
 
         Serial.println("Limit switches:\n");
 
-        int right = 0, left = 0;
+        bool right = 0, left = 0;
         for (int i = 0; i < iterations; i++)
         {
             robot->sensors->getLimitSwitches(right, left);
@@ -242,12 +242,23 @@ void GeneralChecks::test()
   */
     // robot->nh->loginfo("Running Test");
 
-    //Serial.println("Running Test");
+    // Serial.println("Running Test");
 
     /*
     while (true){
-        robot->sensors->printInfo(true, false, false, false);
+        robot->sensors->printInfo(false, true, false, false);
     }*/
+    // while (true)
+    // Serial.println(robot->sensors->getDistInfo(dist_front));
+
+    
+
+    while (true)
+    {
+        robot->handleSwitches();
+        Serial.println("Handle for limit switch finished");
+        delay(2000);
+    }
 
     robot->cmdMovement(0, 1);
     end();

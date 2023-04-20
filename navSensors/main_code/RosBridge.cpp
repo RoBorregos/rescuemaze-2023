@@ -178,12 +178,12 @@ void RosBridge::publishVLX()
 
 void RosBridge::publishLimitSwitches()
 {
-  int rightSwitch = 0;
-  int leftSwitch = 0;
+  bool rightSwitch = 0;
+  bool leftSwitch = 0;
 
   sensors->getLimitSwitches(rightSwitch, leftSwitch);
 
-  if (rightSwitch == 1)
+  if (rightSwitch)
   {
     limit_switch_right_msgs.data = 1;
     limit_switch_right_publisher.publish(&limit_switch_right_msgs);
@@ -193,7 +193,7 @@ void RosBridge::publishLimitSwitches()
     limit_switch_right_msgs.data = 0;
     limit_switch_right_publisher.publish(&limit_switch_right_msgs);
   }
-  if (leftSwitch == 1)
+  if (leftSwitch)
   {
     limit_switch_left_msgs.data = 1;
     limit_switch_left_publisher.publish(&limit_switch_left_msgs);

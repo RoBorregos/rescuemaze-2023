@@ -129,7 +129,7 @@ void setup()
   bno.init();
   initAll(&bno, true, true);
   RosBridge2 rosbridge(robot, s, &bno);
-  rosbridge.run();
+  //rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();

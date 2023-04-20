@@ -71,31 +71,30 @@ void Sensors::initSensors()
 
       if (millis() - initialT > maxBNOTime)
       {
-        /*
+        
         if (!CK::kusingROS && CK::debugBNOCalibration)
           Serial.println("BNO calibration timed out.");
-*/
         // Led blink to indicate that BNO calibration timed out.
         bothLedOff();
-        delay(100);
+        delay(1000);
 
         bothLedOn();
-        delay(100);
+        delay(1000);
 
         bothLedOff();
-        delay(100);
+        delay(1000);
         break;
       }
     }
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
-      /*
+      
       if (bno->isCalibrated())
         Serial.println("BNO calibration finished.");
       else
         Serial.println("BNO calibration failed.");
-        */
+        
     }
 
     // Give some time to place robot on the ground. The initial position will be
@@ -109,11 +108,11 @@ void Sensors::initSensors()
       toggleBothLeds();
       if (!CK::kusingROS && CK::debugBNOCalibration)
       {
-        /*
+        
         Serial.print("Place robot on the ground in ");
         Serial.print((timeToPlaceRobot - (millis() - initialT)) / 1000);
         Serial.println(" seconds.");
-        */
+        
       }
       delay(100);
     }
@@ -359,20 +358,20 @@ void Sensors::checkTCS()
   tcs.printColorList();
 }
 
-void Sensors::getLimitSwitches(int &right, int &left)
+void Sensors::getLimitSwitches(bool &right, bool &left)
 {
   right = rightLimitSwitch();
   left = leftLimitSwitch();
 }
 
-int Sensors::leftLimitSwitch()
+bool Sensors::leftLimitSwitch()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[0]);
 
   return val == HIGH;
 }
 
-int Sensors::rightLimitSwitch()
+bool Sensors::rightLimitSwitch()
 {
   int val = digitalRead(kDigitalPinsLimitSwitch[1]);
 
@@ -388,20 +387,20 @@ void Sensors::debugLimitSwitches()
 
   if (val == HIGH)
   {
-    // Serial.println("Switch 0 is open");
+    Serial.println("Switch 0 is open");
   }
   else
   {
-    // Serial.println("Switch 0 is closed");
+    Serial.println("Switch 0 is closed");
   }
   int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
   if (val2 == HIGH)
   {
-    // Serial.println("Switch 1 is open");
+    Serial.println("Switch 1 is open");
   }
   else
   {
-    // Serial.println("Switch 1 is closed");
+    Serial.println("Switch 1 is closed");
   }
 }
 

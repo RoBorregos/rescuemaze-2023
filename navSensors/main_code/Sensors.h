@@ -64,7 +64,7 @@ class Sensors
   bool leftLedOn = false;
 
   int lidarAttemptCount = 0;
-  bool usingLidar = true;
+  bool usingLidar = false;
 
   int kMuxVLX = 3;
   // Sensor Pins.
@@ -114,9 +114,9 @@ public:
   // Limit switches
 
   void debugLimitSwitches(); // Prints limit switches data.
-  int rightLimitSwitch();
-  int leftLimitSwitch();
-  void getLimitSwitches(int &right, int &left); // Returns limit switches data.
+  bool rightLimitSwitch();
+  bool leftLimitSwitch();
+  void getLimitSwitches(bool &right, bool &left); // Returns limit switches data.
 
   // Initializes indicator leds.
   void initLeds();

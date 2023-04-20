@@ -142,7 +142,13 @@ public:
   Movement(bool individualConstants = false);
 
   // Initialize objects in common of constructors.
-  initMovement(bool individualConstants = false);
+  void initMovement(bool individualConstants = false);
+
+  void handleSwitches();
+  void handleRightLimitSwitch();
+  void handleLeftLimitSwitch();
+
+  void advanceUntilCentered();
 
   // Initialization
 
