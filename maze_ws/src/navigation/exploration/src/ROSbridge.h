@@ -796,7 +796,7 @@ int ROSbridge::sendGoalJetson(int movement)
     scope.resultReceived = false;
 
     // wait for message from jetson (jetsonresultsub)
-    while (!scope.resultReceived)
+    while (scope.status == -1)
     {
         ros::spinOnce();
 
@@ -817,6 +817,12 @@ int ROSbridge::sendGoalJetson(int movement)
         lidarserialmsg.data.push_back(distLidarBack);
 
         lidarserialpub.publish(lidarserialmsg);
+
+        // call status service
+        exploration::GoalStatus statusSrv;
+        goalStatusClient.call(statusSrv);
+
+        scope.status = statusSrv.response.status;
 
         // // check color
         // if (tcsdata == 'N' && !blackTile)
@@ -869,6 +875,8 @@ int ROSbridge::sendGoalJetson(int movement)
         //     upRamp = true;
         // }
     }
+
+    scope.result = scope.status;
 
     receivedVlxFront = false;
     receivedVlxRight = false;
