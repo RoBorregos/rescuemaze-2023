@@ -134,8 +134,8 @@ void setup()
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   //checks.checkAll();
-  checks.printRevolutions();
-  //checks.test();
+  //checks.printRevolutions();
+  checks.test();
 }
 
 int newAngle = 0;

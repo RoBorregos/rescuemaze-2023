@@ -242,7 +242,7 @@ void GeneralChecks::test()
   */
     // robot->nh->loginfo("Running Test");
 
-    Serial.println("Running Test");
+    //Serial.println("Running Test");
 
     /*
     while (true){
