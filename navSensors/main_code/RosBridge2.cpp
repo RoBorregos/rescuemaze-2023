@@ -140,6 +140,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       int data[] = {this->goal};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
+    break;
   default:
     break;
   }
