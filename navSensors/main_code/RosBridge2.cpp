@@ -134,6 +134,12 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
+  case 0x08: // get goal
+    if (packet_size == 1)
+    {
+      int data[] = {this->goal};
+      writeSerial(true, (uint8_t *)data, sizeof(data));
+    }
   default:
     break;
   }

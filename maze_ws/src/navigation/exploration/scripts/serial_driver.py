@@ -259,17 +259,6 @@ class Microcontroller:
             # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
             return self.FAIL
         
-    def get_lidar(self):
-        ''' Get the lidar distances detected in arduino. Used for debugging
-        '''
-        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x07) + struct.pack("B", 0x08)
-        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
-            valFront, valBack, valRight, valLeft = struct.unpack('4f', self.payload_args)
-            return  self.SUCCESS , valFront, valBack, valRight, valLeft
-        else:
-            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
-            return self.FAIL
-        
     def send_victims(self, victims):
         ''' Send the current victims state on the serial port.
         '''
@@ -286,6 +275,28 @@ class Microcontroller:
         cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x06) + struct.pack("B", 0x07)
         if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
            val, = struct.unpack('?', self.payload_args)
+           return  self.SUCCESS, val 
+        else:
+           # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
+           return self.FAIL, False
+        
+    def get_lidar(self):
+        ''' Get the lidar distances detected in arduino. Used for debugging
+        '''
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x07) + struct.pack("B", 0x08)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+            valFront, valBack, valRight, valLeft = struct.unpack('4f', self.payload_args)
+            return  self.SUCCESS , valFront, valBack, valRight, valLeft
+        else:
+            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
+            return self.FAIL
+        
+    def get_goal(self):
+        ''' Get the current goal state on the serial port.
+        '''
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x08) + struct.pack("B", 0x09)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+           val, = struct.unpack('i', self.payload_args)
            return  self.SUCCESS, val 
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
@@ -317,6 +328,7 @@ def get_vlx(req):
 def start_status(req):
     global controller
     return TriggerResponse(controller.get_start_state()[1], "Start status")
+
 
 if __name__ == '__main__':
 
