@@ -943,6 +943,8 @@ double Movement::getDistanceToCenter()
 
 void Movement::advanceUntilCentered()
 {
+  return;
+  // Pending implementation.
   double dist = sensors->getDistInfo(dist_front);
 
   while (dist < 0.25)
@@ -950,7 +952,7 @@ void Movement::advanceUntilCentered()
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
   }
-  if diswhile (dist < 0.25)
+  while (dist > 0.25)
   {
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
@@ -968,10 +970,10 @@ void Movement::goToAngle(int targetAngle)
 
   double diff = getAngleError(targetAngle);
 
-  while (abs(diff) > 0.1)
+  while (abs(diff) > 0.4)
   {
     bool turnRight = false;
-    if (diff > 0 && diff < 180)
+    if (diff > 0 && diff < 180 || diff < -180)
     {
       turnRight = true;
     }
@@ -1143,6 +1145,7 @@ void Movement::logDebug(String data, double data2)
 
 void Movement::handleRightLimitSwitch()
 {
+
   for (int i = 0; i < 5; i++)
   {
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);

@@ -95,7 +95,7 @@ private:
   static constexpr bool kUsingPID = true;
 
   // Control constants
-  static constexpr double kErrorVlxReading = 1; // Error to consider a reading as valid, in degrees.
+  static constexpr double kErrorVlxReading = 1.5; // Error to consider a reading as valid, in degrees.
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
   static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.

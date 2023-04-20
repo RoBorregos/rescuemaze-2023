@@ -87,6 +87,8 @@ void Sensors::initSensors()
       }
     }
 
+    printInfo(true, false, false, false);
+
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
       
