@@ -693,6 +693,7 @@ int ROSbridge::checkUpRamp()
 
     // Call vlx service
     exploration::VLXDist vlxDistSrv;
+    vlxDistClient.waitForExistence();
     vlxDistClient.call(vlxDistSrv);
 
     distVlxFront = vlxDistSrv.response.front;
@@ -755,6 +756,7 @@ int ROSbridge::sendGoalJetson(int movement)
     // Call get_walls_dist service
     nav_main::GetWallsDist walls;
 
+    wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
     distLidar = walls.response.front;
@@ -809,6 +811,7 @@ int ROSbridge::sendGoalJetson(int movement)
 
         // Call get_walls_dist service
         nav_main::GetWallsDist walls;
+        wallsDistClient.waitForExistence();
         wallsDistClient.call(walls);
         float distLidarFront = walls.response.front;
         float distLidarRight = walls.response.right;
@@ -827,6 +830,7 @@ int ROSbridge::sendGoalJetson(int movement)
 
         // call status service
         exploration::GoalStatus statusSrv;
+        goalStatusClient.waitForExistence();
         goalStatusClient.call(statusSrv);
 
         scope.status = statusSrv.response.status;
@@ -1723,6 +1727,7 @@ vector<int> ROSbridge::getWalls()
     ROS_INFO("Getting walls");
 
     nav_main::GetWallsDist walls;
+    wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
     ROS_INFO("Got walls front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
@@ -1807,6 +1812,7 @@ int ROSbridge::getVictims()
 
     bool gotVictims = false;
 
+    victimsClient.waitForExistence();    
     victimsClient.call(bothCameras);
 
     if (bothCameras.response.left_cam == "H")
