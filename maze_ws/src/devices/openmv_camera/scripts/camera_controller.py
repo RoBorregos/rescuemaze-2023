@@ -7,8 +7,8 @@
 
 import rpc, rospy, io, serial, serial.tools.list_ports, socket, struct, sys, cv2, pytesseract, os
 import numpy as np
-# import tensorflow as tf
-import tflite_runtime.interpreter as tflite # Use on Jetson
+import tensorflow as tf
+#import tflite_runtime.interpreter as tflite # Use on Jetson
 
 from openmv_camera.srv import CameraDetection, CameraDetectionResponse
 from PIL import Image
@@ -17,8 +17,8 @@ from PIL import Image
 def initInterpreter():
     # Initialize interpreter only at startup
     global interpreter
-    # interpreter = tf.lite.Interpreter(model_path="model.tflite")
-    interpreter = tflite.Interpreter(model_path="model.tflite") # Use with jetson
+    interpreter = tf.lite.Interpreter(model_path="model.tflite")
+    #interpreter = tflite.Interpreter(model_path="model.tflite") # Use with jetson
     interpreter.allocate_tensors()
 
 def process_image(image):

@@ -7,11 +7,11 @@
     <!-- Set arguments -->
     <arg name="rpc_path" default="$(find openmv_camera)/scripts"/>
     <arg name="portLeft" default="/dev/port3"/>
-    <arg name="portRight" default="/dev/port4"/>
+    <arg name="portRight" default="/dev/port3"/>
     <arg name="debug" default="true"/>
     <arg name="debug_image" default="false"/>
 
-    <!-- Launch left camera service -->
+    <!-- Launch left camera service 
     <node name="camera_service_left" pkg="openmv_camera" type="camera_controller.py" respawn="true" output="screen">
         <param name="debug" value="$(arg debug)"/>
         <param name="debug_image" value="$(arg debug_image)"/>
@@ -19,7 +19,7 @@
         <param name="direction" value="left"/>
         <param name="working_dir" value="$(find openmv_camera)/scripts/datasets"/>
         <env name="PYTHONPATH" value="$(eval arg('rpc_path') + ':' + optenv('PYTHONPATH'))"/>
-    </node>
+    </node>-->
 
     <!-- Launch right camera service -->
     <node name="camera_service_right" pkg="openmv_camera" type="camera_controller.py" respawn="true" output="screen">

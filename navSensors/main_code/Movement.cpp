@@ -725,13 +725,15 @@ void Movement::handleSwitches()
   if (right)
   {
     handleRightLimitSwitch();
-    Serial.print("Handled right limit switch");
+    if (!CK::kusingROS)
+      Serial.print("Handled right limit switch");
   }
   return;
   if (left)
   {
     handleLeftLimitSwitch();
-    Serial.print("Handled left limit switch");
+    if (!CK::kusingROS)
+      Serial.print("Handled left limit switch");
   }
 }
 /*
@@ -1053,11 +1055,11 @@ void Movement::testMotor()
     if (!CK::kusingROS)
     {
       /* Display the results in the Serial Monitor */
-      // Serial.print("Curr speed: ");
-      // Serial.print(m->getCurrentSpeed());
-      // Serial.print(", ");
-      // Serial.print("Curr target: ");
-      // Serial.println(m->getTargetSpeed());
+      Serial.print("Curr speed: ");
+      Serial.print(m->getCurrentSpeed());
+      Serial.print(", ");
+      Serial.print("Curr target: ");
+      Serial.println(m->getTargetSpeed());
     }
   }
 }

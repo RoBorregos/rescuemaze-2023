@@ -46,6 +46,7 @@ def format_image(image):
     data2 = image.copy()
     image = Image.open(io.BytesIO(image))
     image = image.convert("L")
+    #image = image.convert("RGB")   
     image = np.array(image)
     
     image2 = np.asanyarray(data2, dtype="uint8")
@@ -123,7 +124,7 @@ if __name__ == '__main__':
 
     start_index = 1 # The index to start saving images from
     class_name = 'F' # The name of the class to capture
-    dataset_name = 'dataset1'# The name of the dataset to capture
+    dataset_name = 'dataset2'# The name of the dataset to capture
     
     save_path = get_path(dataset_base_path, dataset_name, class_name)
 
