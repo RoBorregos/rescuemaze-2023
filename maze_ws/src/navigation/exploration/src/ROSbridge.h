@@ -248,7 +248,7 @@ public:
 
     int sendUnitGoal(int movement, int rDirection);
 
-    vector<int> getWalls();
+    vector<bool> getWalls();
     int getVictims();
     bool checkStart();
 
@@ -346,6 +346,8 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     receivedVlxRight = false;
     receivedVlxLeft = false;
 
+    startAlgorithm = true;
+
     ROS_INFO("Creating ROSbridge");
     nh = n;
 
@@ -371,6 +373,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     vlxDistClient = nh->serviceClient<exploration::VLXDist>("/get_vlx");
     goalStatusClient = nh->serviceClient<exploration::GoalStatus>("/get_goal_status");
     robotStartClient = nh->serviceClient<std_srvs::Trigger>("/get_start_status");
+    wallsDistClient = nh->serviceClient<nav_main::GetWallsDist>("/get_walls_dist");
 }
 
 #endif
@@ -696,12 +699,14 @@ int ROSbridge::checkUpRamp()
     vlxDistClient.waitForExistence();
     vlxDistClient.call(vlxDistSrv);
 
-    distVlxFront = vlxDistSrv.response.front;
+    distVlxFront = vlxDistSrv.response.front ;
     distVlxRight = vlxDistSrv.response.right;
     distVlxLeft = vlxDistSrv.response.left;
 
+    ROS_INFO("Got vlx walls: front:%f, right: %f, left: %f", distVlxFront, distVlxRight, distVlxLeft);
+
     // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
-    if (distLidar < 0.3 && distLidar - distVlxFront < 0.1 && distLidar - distVlxFront > 0.05)
+    if (distLidar < 0.4 && (distLidar + 7) - distVlxFront < 0.2 && (distLidar + 7) - distVlxFront > 0.1)
     {
         ROS_INFO("Up ramp");
         // upRamp = true;
@@ -759,6 +764,11 @@ int ROSbridge::sendGoalJetson(int movement)
     wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
+    if (debugging)
+    {
+        ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+    }
+
     distLidar = walls.response.front;
 
     std_msgs::Int8 movementmsg;
@@ -774,13 +784,18 @@ int ROSbridge::sendGoalJetson(int movement)
         else
         {
             ROS_INFO("Forward");
-            movementmsg.data = 1;
+            movementmsg.data = 0;
         }
     }
     else if (movement == 1)
     {
         ROS_INFO("Turn right");
         movementmsg.data = 1;
+    }
+    else if (movement == 2)
+    {
+        ROS_INFO("Backward");
+        movementmsg.data = 2;
     }
     if (movement == 3)
     {
@@ -794,16 +809,19 @@ int ROSbridge::sendGoalJetson(int movement)
     // }
     if (movement == 4)
     {
-        ROS_INFO("Backward");
-        movementmsg.data = 2;
+        // ROS_INFO("Backward");
+        // movementmsg.data = 2;
     }
 
     unitmovementpub.publish(movementmsg);
     scope.startedGoal = true;
     scope.resultReceived = false;
+    scope.status = -1;
+
+    ROS_INFO("Status %d: ", scope.status);
 
     // wait for message from jetson (jetsonresultsub)
-    while (scope.status == -1)
+    do
     {
         ROS_INFO("Waiting for result");
 
@@ -834,6 +852,8 @@ int ROSbridge::sendGoalJetson(int movement)
         goalStatusClient.call(statusSrv);
 
         scope.status = statusSrv.response.status;
+
+        ROS_INFO("Status %d: ", scope.status);
 
         // // check color
         // if (tcsdata == 'N' && !blackTile)
@@ -885,9 +905,11 @@ int ROSbridge::sendGoalJetson(int movement)
 
         //     upRamp = true;
         // }
-    }
+    } while (scope.status == -1);
 
     scope.result = scope.status;
+
+    ROS_INFO("Received status: %d", scope.status);
 
     receivedVlxFront = false;
     receivedVlxRight = false;
@@ -1678,12 +1700,12 @@ void ROSbridge::clearMap()
 
 #ifdef simulateRos
 
-vector<int> ROSbridge::getWalls()
+vector<bool> ROSbridge::getWalls()
 {
     ROS_INFO("Getting walls");
 
     // {front, right, back, left}
-    vector<int> wallsVector = {0, 0, 0, 0};
+    vector<bool> wallsVector = {0, 0, 0, 0};
 
     wallsVector[0] = (mapa->getChar("north") == '#') ? 1 : 0;
     wallsVector[1] = (mapa->getChar("east") == '#') ? 1 : 0;
@@ -1697,13 +1719,13 @@ vector<int> ROSbridge::getWalls()
 
 #ifndef useLidar
 
-vector<int> ROSbridge::getWalls()
+vector<bool> ROSbridge::getWalls()
 {
     ros::spinOnce();
     ROS_INFO("Getting walls");
 
     // {front, right, back, left}
-    vector<int> wallsVector = {distVlxFront<0.15, distVlxRight> 0.15, 0, distVlxLeft > 0.15};
+    vector<bool> wallsVector = {distVlxFront<0.15, distVlxRight> 0.15, 0, distVlxLeft > 0.15};
 
     // Turn right to check back wall
     sendGoalJetson(1);
@@ -1719,7 +1741,7 @@ vector<int> ROSbridge::getWalls()
 
 #else
 
-vector<int> ROSbridge::getWalls()
+vector<bool> ROSbridge::getWalls()
 {
     // while (!receivedVlxLeft || !receivedVlxRight)
     //     ros::spinOnce();
@@ -1730,9 +1752,18 @@ vector<int> ROSbridge::getWalls()
     wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
-    ROS_INFO("Got walls front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+    // call vlx service
+    exploration::VLXDist vlx;
+    vlxDistClient.waitForExistence();
+    vlxDistClient.call(vlx);
 
-    vector<int> wallsVector = {walls.response.front > 0.20, distVlxRight > 0.20, walls.response.back > 0.20, distVlxLeft > 0.20};
+    distVlxFront = walls.response.front;
+    distVlxRight = vlx.response.right;
+    distVlxLeft = vlx.response.left;
+
+    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, distVlxRight, walls.response.back, distVlxLeft);
+
+    vector<bool> wallsVector = {walls.response.front < 0.25, distVlxRight < 0.25, walls.response.back < 0.25, distVlxLeft < 0.25};
 
     return wallsVector;
 }
@@ -1807,12 +1838,13 @@ int ROSbridge::getVictims()
 
 int ROSbridge::getVictims()
 {
+    return 0;
     // Normal tile, check victim
     openmv_camera::BothCameras bothCameras;
 
     bool gotVictims = false;
 
-    victimsClient.waitForExistence();    
+    victimsClient.waitForExistence();
     victimsClient.call(bothCameras);
 
     if (bothCameras.response.left_cam == "H")
