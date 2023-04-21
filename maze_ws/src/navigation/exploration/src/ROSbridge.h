@@ -220,6 +220,8 @@ private:
     ros::ServiceClient goalStatusClient;
     ros::ServiceClient robotStartClient;
 
+    ros::ServiceClient test_lidar_client;
+
     int checkUpRamp();
 
     void vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg);
@@ -374,6 +376,8 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     goalStatusClient = nh->serviceClient<exploration::GoalStatus>("/get_goal_status");
     robotStartClient = nh->serviceClient<std_srvs::Trigger>("/get_start_status");
     wallsDistClient = nh->serviceClient<nav_main::GetWallsDist>("/get_walls_dist");
+
+    test_lidar_client = nh->serviceClient<std_srvs::Trigger>("/get_lidar_status");
 }
 
 #endif
@@ -910,6 +914,16 @@ int ROSbridge::sendGoalJetson(int movement)
     scope.result = scope.status;
 
     ROS_INFO("Received status: %d", scope.status);
+
+    // Test lidar status
+    if (true)
+    {
+        std_srvs::Trigger lidarSrv;
+        test_lidar_client.waitForExistence();
+        test_lidar_client.call(lidarSrv);
+
+        ROS_INFO("Lidar status: %d", lidarSrv.response.success);
+    }
 
     receivedVlxFront = false;
     receivedVlxRight = false;
