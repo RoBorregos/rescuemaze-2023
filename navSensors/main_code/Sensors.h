@@ -64,7 +64,6 @@ class Sensors
   bool leftLedOn = false;
 
   int lidarAttemptCount = 0;
-  bool usingLidar = true;
 
   int kMuxVLX = 3;
   // Sensor Pins.
@@ -89,6 +88,7 @@ public:
   // Lidar distances
   float wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
   String vlxNames[3] = {"Front", "Right", "Left"};
+  bool usingLidar = true;
 
   // Constructor
 
