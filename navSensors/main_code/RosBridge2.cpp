@@ -146,8 +146,16 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x09: // Get IMU
     if (packet_size == 1)
     { // Check packet size
-        // Yaw, yaw vel, getXaccel, getYaccel, getZaccel
+      // Yaw, yaw vel, getXaccel, getYaccel, getZaccel
       float data[] = {bno_->getYaw(), bno_->getYawVel(), bno_->getXAccel(), bno_->getYAccel(), bno_->getZAccel()};
+      writeSerial(true, (uint8_t *)data, sizeof(data));
+    }
+    break;
+  case 0x0A: // Get if lidar is being used
+    if (packet_size == 1)
+    { // Check packet size
+
+      usingLidar bool data[] = {sensors_->usingLidar};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;

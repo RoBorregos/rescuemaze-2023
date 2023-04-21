@@ -310,6 +310,17 @@ class Microcontroller:
            return  self.SUCCESS, yaw, yaw_vel, x_acc, y_acc, z_acc
         else:
            return self.FAIL, 0, 0, 0, 0, 0
+    
+    def get_lidar_use(self):
+        ''' Get if lidar is being used.
+        '''
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x0A) + struct.pack("B", 0x0B)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+           val, = struct.unpack('?', self.payload_args)
+           return  self.SUCCESS, val 
+        else:
+           # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
+           return self.FAIL, False
            
 
 def goal_callback(data):
@@ -341,6 +352,10 @@ def get_vlx(req):
 def start_status(req):
     global controller
     return TriggerResponse(controller.get_start_state()[1], "Start status")
+
+def lidar_status(req):
+    global controller
+    return TriggerResponse(controller.get_lidar_use()[1], "Lidar status")
 
 def pub_imu(data):
     global controller, imuPub, imuAnglePub, imu_frame_id
@@ -428,6 +443,8 @@ if __name__ == '__main__':
     s3 = rospy.Service('/get_start_status', Trigger, start_status)
 
     s4 = rospy.Service('/get_cur_goal', GoalStatus, get_cur_goal)
+
+    s3 = rospy.Service('/get_lidar_status', Trigger, lidar_status)
 
     global controller, imuPub, imuAnglePub, imu_frame_id
 
