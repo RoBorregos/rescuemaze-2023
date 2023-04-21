@@ -335,12 +335,17 @@ def victims_callback(data):
     global controller
     controller.send_victims(data.data)
 
+def arduino_lidar_callback(data):
+    global controller
+    print(controller.get_lidar())
+
 def get_cur_goal(req):
     global controller
     return GoalStatusResponse(controller.get_goal()[1])
 
 def goal_status(req):
     global controller
+    pub_imu()
     return GoalStatusResponse(controller.get_goal_state()[1])
 
 def get_vlx(req):
@@ -434,6 +439,7 @@ if __name__ == '__main__':
     
     rospy.Subscriber("/unit_movement", Int8, goal_callback)
     rospy.Subscriber("/dispenser", Int8, victims_callback)
+    rospy.Subscriber("/lidar_data", Int8, arduino_lidar_callback)
 
     # Goal status service
     s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
@@ -444,7 +450,7 @@ if __name__ == '__main__':
 
     s4 = rospy.Service('/get_cur_goal', GoalStatus, get_cur_goal)
 
-    s3 = rospy.Service('/get_lidar_status', Trigger, lidar_status)
+    s5 = rospy.Service('/get_lidar_status', Trigger, lidar_status)
 
     global controller, imuPub, imuAnglePub, imu_frame_id
 

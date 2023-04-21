@@ -71,7 +71,7 @@ void Sensors::initSensors()
 
       if (millis() - initialT > maxBNOTime)
       {
-        
+
         if (!CK::kusingROS && CK::debugBNOCalibration)
           Serial.println("BNO calibration timed out.");
         // Led blink to indicate that BNO calibration timed out.
@@ -91,12 +91,11 @@ void Sensors::initSensors()
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
-      
+
       if (bno->isCalibrated())
         Serial.println("BNO calibration finished.");
       else
         Serial.println("BNO calibration failed.");
-        
     }
 
     // Give some time to place robot on the ground. The initial position will be
@@ -110,11 +109,10 @@ void Sensors::initSensors()
       toggleBothLeds();
       if (!CK::kusingROS && CK::debugBNOCalibration)
       {
-        
+
         Serial.print("Place robot on the ground in ");
         Serial.print((timeToPlaceRobot - (millis() - initialT)) / 1000);
         Serial.println(" seconds.");
-        
       }
       delay(100);
     }
@@ -185,23 +183,25 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
       usingLidar = false;
       return;
     }
-    // Call updateDistances again
     rosBridge->readOnce();
-    //rosBridge->updateDistLidar();
+
+    // rosBridge->updateDistLidar();
     return;
+  } else {
+    usingLidar = true;
   }
   // wallDistances[0] = front;
   // wallDistances[1] = back;
   // wallDistances[2] = left;
   // wallDistances[3] = right;
-  
+
   // 19*18
 
   // Update values adding constant error
-  wallDistances[0] = front - 19 / 2;
-  wallDistances[1] = back - 19 / 2;
-  wallDistances[2] = left - 18 / 2;
-  wallDistances[3] = right - 18 / 2;
+  wallDistances[0] = front - 19 / 200.0;
+  wallDistances[1] = back - 19 / 200.0;
+  wallDistances[2] = left - 18 / 200.0;
+  wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
 }
 
@@ -324,11 +324,15 @@ float Sensors::getDistInfo(int direction)
   {
     rosBridge->readOnce();
 
-    if (direction >= 0 && direction <= 3 && usingLidar){
-      if (isValid(wallDistances[direction])){
+    if (direction >= 0 && direction <= 3 && usingLidar)
+    {
+      if (isValid(wallDistances[direction]))
+      {
         lidarAttemptCount = 0;
         return wallDistances[direction];
-      } else {
+      }
+      else
+      {
         lidarAttemptCount++;
         return getDistInfo(direction);
       }
@@ -492,8 +496,10 @@ void Sensors::bothLedOff()
   digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
-bool Sensors::isValid(double d){
-  if (d < 0.1 || d > 5){
+bool Sensors::isValid(double d)
+{
+  if (d < 0.1 || d > 5)
+  {
     return false;
   }
   return true;

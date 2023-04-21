@@ -31,6 +31,7 @@
 #define vlx_back 3
 
 class Sensors;
+class RosBridge2;
 
 class Movement
 {
@@ -46,6 +47,8 @@ private:
   BNO *bno;
   // Sensors
   Sensors *sensors;
+
+  RosBridge2 *rosBridge2;
 
   bool firstMove = true; // Used to update angles after the first movement.
 
