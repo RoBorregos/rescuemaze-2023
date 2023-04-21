@@ -562,6 +562,8 @@ bool isWall(string key, vector<bool> &walls)
     while (index < 0)
         index += 4;
 
+    // ROS_INFO("Distance to %s: %f", key.c_str(), walls[index]);
+
     return walls[index];
 }
 
@@ -1087,7 +1089,12 @@ void explore(bool checkpoint, int argc, char **argv)
             steps--;
         }
 
-    } while (ros::ok() && steps > 0);
+    } while (ros::ok() && (!mapa.unvisited.empty() || steps > 0));
+
+    if (rosDebug)
+        ROS_INFO("Visited all tiles, returning to start");
+        // bridge->pubDebug("No unvisited tiles");
+
 
     mapa.unvisited.push_back(startTile);
     path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys);

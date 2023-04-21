@@ -1752,7 +1752,16 @@ vector<bool> ROSbridge::getWalls()
     wallsDistClient.waitForExistence();
     wallsDistClient.call(walls);
 
-    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+    // call vlx service
+    exploration::VLXDist vlx;
+    vlxDistClient.waitForExistence();
+    vlxDistClient.call(vlx);
+
+    distVlxFront = walls.response.front;
+    distVlxRight = vlx.response.right;
+    distVlxLeft = vlx.response.left;
+
+    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, distVlxRight, walls.response.back, distVlxLeft);
 
     vector<bool> wallsVector = {walls.response.front < 0.25, distVlxRight < 0.25, walls.response.back < 0.25, distVlxLeft < 0.25};
 
