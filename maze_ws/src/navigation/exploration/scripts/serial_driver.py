@@ -176,6 +176,9 @@ class Microcontroller:
     def execute(self, cmd):
         ''' Thread safe execution of "cmd" on the Microcontroller returning a single integer value.
         '''
+        global counter
+        counter += 1
+        print(counter)
         self.mutex.acquire()
         
         try:
@@ -324,12 +327,16 @@ class Microcontroller:
            
 
 def goal_callback(data):
-    global controller
+    global controller, goalCounter
     controller.set_goal(data.data)    
+    goalCounter += 1
+    print(goalCounter)
 
 def lidar_callback(data):
-    global controller
+    global controller, lidarCounter
     controller.send_lidar(data.data[0], data.data[1], data.data[2], data.data[3])
+    lidarCounter += 1
+    print(lidarCounter)
 
 def victims_callback(data):
     global controller
@@ -414,6 +421,11 @@ def restart_callback(data):
     controller.open()
 
 if __name__ == '__main__':
+
+    global counter, lidarCounter, goalCounter
+    counter = 0
+    lidarCounter = 0
+    goalCounter = 0
 
     only_test_lidar = False
 
