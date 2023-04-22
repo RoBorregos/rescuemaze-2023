@@ -194,6 +194,8 @@ public:
 
   void updateDistLidar(float front, float back, float left, float right);
 
+  void updateDistLidar(float front);
+
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.
   // @param vlx True to print vlx distances.
