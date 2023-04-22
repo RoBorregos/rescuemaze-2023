@@ -1,18 +1,29 @@
 #include "ROSbridge.h"
 
+ROSbridge *bridge;
+
+void testCallback(const std_msgs::Int8 &msg)
+{
+    ROS_INFO("Received %d", msg.data);
+    bridge->sendUnitGoal(msg.data, 0);
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "bridgetest");
     ros::NodeHandle *n = new ros::NodeHandle;
 
-    ROSbridge bridge(n);
+    ros::Subscriber sub = n->subscribe("/test_rosbridge", 1000, testCallback);
 
-    while (ros::ok())
-    {
-        ros::spinOnce();
+    bridge = new ROSbridge(n);
 
-        bridge.sendUnitGoal(0, 0);
-    }
+    ros::spin();
+    // while (ros::ok())
+    // {
+    //     ros::spinOnce();
+
+    //     bridge.sendUnitGoal(0, 0);
+    // }
 
     // int dir = 0;
     // bridge.publishIdealOrientation(dir);
@@ -83,6 +94,4 @@ int main(int argc, char **argv)
     //     ros::spinOnce();
     //     ROS_INFO("yaw: %f", bridge.yaw);
     // }
-
-    ros::spin();
 }

@@ -345,7 +345,6 @@ def get_cur_goal(req):
 
 def goal_status(req):
     global controller
-    pub_imu()
     return GoalStatusResponse(controller.get_goal_state()[1])
 
 def get_vlx(req):
@@ -411,8 +410,8 @@ def restart_callback(data):
     global controller
     print("Restarting connection")
     controller.close()
-    controller = Microcontroller(port=port, baud=baud, timeout=timeout)
-    controller.connect()
+    # controller = Microcontroller(port=port, baud=baud, timeout=timeout)
+    controller.open()
 
 if __name__ == '__main__':
 
