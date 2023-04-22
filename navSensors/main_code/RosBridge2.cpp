@@ -69,6 +69,7 @@ void RosBridge2::advanceXMeters(float meters)
 {
   state_ = -1;
   robot_->advanceXMetersAbs(meters, 1);
+  sensors_->logActive("Adv Abs", true, 0);
   state_ = 1;
 }
 

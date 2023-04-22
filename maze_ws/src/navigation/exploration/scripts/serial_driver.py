@@ -382,8 +382,7 @@ def lidar_status(req):
     return TriggerResponse(controller.get_lidar_use()[1], "Lidar status")
 
 def pub_imu(data):
-    global controller, imuPub, imuAnglePub, imu_frame_id, initT
-    initT = time.time()
+    global controller, imuPub, imuAnglePub, imu_frame_id
     controller.get_imu_val()
     
     try:
@@ -437,10 +436,12 @@ def restart_callback(data):
 def send_specific_goal_callback(data):
     global controller
     controller.send_specific_goal(data.data)
+    print("Abs dist Move:", data.data)
 
 if __name__ == '__main__':
 
-    global counter, lidarCounter, goalCounter
+    global counter, lidarCounter, goalCounter, initT
+    initT = time.time()
     counter = 0
     lidarCounter = 0
     goalCounter = 0
