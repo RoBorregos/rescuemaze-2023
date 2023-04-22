@@ -41,6 +41,9 @@ public:
 
     // Run basic unitary movements using cmd Movement.
     void checkUnitaryMovements();
+    
+    // Tests in oled.
+    void checkOled();
 
     // Print the time it takes to execute commands.
     void checkDT();

@@ -41,7 +41,10 @@ public:
     void display(double num, String message, String divider=": ", int x=0, int y=0);
     void display(String message, double num, String divider=": ", int x=0, int y=0);
 
+    void resetLine(int line);
+    void resetScreen();
     void setStyle();
+    void testdraw();
 };
 
 #endif

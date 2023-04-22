@@ -200,15 +200,18 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
   // wallDistances[3] = right;
 
   // 19*18
-  turnRightLedOn();
   // Update values adding constant error
   wallDistances[0] = front - 19 / 200.0;
   wallDistances[1] = back - 19 / 200.0;
   wallDistances[2] = left - 18 / 200.0;
   wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
-  delay(20);
-  turnRightLedOff();
+
+  logActive("Distancias con lidar", true, 0, 4);
+  logActive("Distancia en frente: " + String(wallDistances[0]), true, 0, 5);
+  logActive("Distancia en atras: " + String(wallDistances[1]), true, 0, 6);
+  logActive("Distancia en izquierda: " + String(wallDistances[2]), true, 0, 7);
+  logActive("Distancia en derecha: " + String(wallDistances[3]), true, 0, 8);
 }
 
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
@@ -310,7 +313,7 @@ char Sensors::getTCSInfo()
 float Sensors::getDistInfo(int direction)
 {
   // Debug using leds
-  if (usingLidar)
+  if (usingLidar && false)
   {
     toggleRightLed();
     delay(20);
@@ -541,4 +544,8 @@ void Sensors::logActive(double n, String s, String divider, bool oled, int x, in
 {
   String newMsg = String(n) + divider + s;
   logActive(newMsg, oled, x, y);
+}
+
+void Sensors::resetScreen(){
+  screen.resetScreen();
 }

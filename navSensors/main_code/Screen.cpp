@@ -26,9 +26,11 @@ void Screen::setStyle()
 
 void Screen::display(String message, int x, int y)
 {
+    y *= 7;
     if (!CK::debugOled)
         return;
-    screen.clearDisplay();
+    resetLine(y);
+
     screen.setCursor(x, y);
     screen.println(message);
     screen.display();
@@ -44,4 +46,45 @@ void Screen::display(double num, String message, String divider, int x, int y)
 {
     String newMessage = String(num) + divider + message;
     display(newMessage, x, y);
+}
+
+void Screen::resetLine(int start)
+{
+    int min = start;
+    int max = min + 7;
+    for (int y = min; y < max; y++)
+    {
+        for (int x = 0; x < 127; x++)
+        {
+            screen.drawPixel(x, y, SH110X_BLACK);
+        }
+    }
+}
+
+void Screen::resetScreen()
+{
+    screen.clearDisplay();
+}
+
+void Screen::testdraw()
+{
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 127; x++)
+        {
+            screen.drawPixel(x, y + 50, SH110X_WHITE);
+        }
+    }
+
+    screen.display();
+
+    delay(5000);
+    for (int y = 2; y < 3; y++)
+    {
+        for (int x = 0; x < 127; x++)
+        {
+            screen.drawPixel(x, y + 50, SH110X_BLACK);
+        }
+    }
+    screen.display();
 }
