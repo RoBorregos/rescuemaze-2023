@@ -523,8 +523,10 @@ bool Sensors::isValid(double d)
 }
 
 // High level methods to interact with oled.
-void Sensors::logActive(String s, bool oled, int x, int y)
+void Sensors::logActive(String s, bool oled, int x, int y, bool absolute)
 {
+  if (!absolute)
+   return;
   if (CK::debugOled && oled)
     screen.display(s, x, y);
   if (!CK::kusingROS)

@@ -79,7 +79,9 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     break;
   case 0x01: // Get VLX
     if (packet_size == 1)
-    { // Check packet size
+    { 
+      cmdCounter[0]++;
+      // Check packet size
       float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_left)};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
@@ -87,6 +89,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x02: // get_goal_state
     if (packet_size == 1)
     { // Check packet size
+    cmdCounter[1]++;
       float data[] = {state_};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
@@ -94,6 +97,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x03: // set_goal
     if (packet_size == 5)
     { // Check packet size
+    cmdCounter[2]++;
       int move;
       memcpy(&move, buffer, sizeof(move));
       cmdMovementCallback(move);
@@ -103,6 +107,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x04: // send_lidar
     if (packet_size == 17)
     { // Check packet size
+    cmdCounter[3]++;
       float front, back, left, right;
       // Copy data from buffer to variables
       memcpy(&front, buffer, sizeof(front));
@@ -117,6 +122,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     if (packet_size == 5)
     { // Check packet size
       int victims;
+      cmdCounter[4]++;
       // Copy data from buffer to variables
       memcpy(&victims, buffer, sizeof(victims));
       writeSerial(true, nullptr, 0);
@@ -126,6 +132,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x06: // get_start_state
     if (packet_size == 1)
     { // Check packet size
+    cmdCounter[5]++;
       bool data[] = {sensors_->readMotorInit()};
       if (!sensors_->readMotorInit())
         robot_->resetMovement();
@@ -135,6 +142,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x07: // get_lidar
     if (packet_size == 1)
     { // Check packet size
+    cmdCounter[6]++;
       float data[] = {sensors_->wallDistances[0], sensors_->wallDistances[1], sensors_->wallDistances[2], sensors_->wallDistances[3]};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
@@ -142,6 +150,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   case 0x08: // get goal
     if (packet_size == 1)
     {
+      cmdCounter[7]++;
       int data[] = {this->goal};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
@@ -165,6 +174,15 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   default:
     break;
   }
+  cmdCounterT += 1;
+  sensors_->logActive("Cmds: " + String(cmdCounterT), true, 0, 0, true);
+  sensors->logActive("Vlx: " + String(cmdCounter[0], true, 0, 1, true));
+  sensors->logActive("Gs: " + String(cmdCounter[1], true, 0, 2, true));
+  sensors->logActive("Sg: " + String(cmdCounter[2], true, 0, 3, true));
+  sensors->logActive("Sl: " + String(cmdCounter[3], true, 0, 4, true));
+  sensors->logActive("Sv: " + String(cmdCounter[4], true, 0, 5, true));
+  sensors->logActive("Ss: " + String(cmdCounter[5], true, 0, 6, true));
+  sensors->logActive("Gl: " + String(cmdCounter[6], true, 0, 7, true));
 }
 
 void RosBridge2::writeSerial(bool success, uint8_t *payload, int elements)
@@ -239,6 +257,64 @@ void RosBridge2::readSerial()
   }
 }
 
+bool RosBridge2::readLidar()
+{
+  static uint8_t buffer[24];
+  static uint8_t index = 0;
+  static uint8_t packet_size = 0;
+  static uint8_t command = 0;
+  static uint8_t check_sum = 0;
+
+  while (Serial.available())
+  {
+    buffer[index++] = Serial.read();
+
+    // Check packet header
+    if (index == 1 && buffer[0] != 0xFF)
+    {
+      index = 0;
+      packet_size = 0;
+      command = 0;
+    }
+    if (index == 2 && buffer[1] != 0xAA)
+    {
+      packet_size = 0;
+      command = 0;
+      index = 0;
+    }
+
+    // Read packet size and command
+    if (index == 4)
+    {
+      packet_size = buffer[2];
+      command = buffer[3];
+    }
+
+    // Check if the entire packet has been received
+    if (index == 3 + (packet_size) + 1)
+    {
+      check_sum = buffer[index - 1];
+      if (check_sum != command + 1)
+      {
+        // Checksum error
+        index = 0;
+        packet_size = 0;
+        command = 0;
+        continue;
+      }
+      // Execute the command
+      executeCommand(packet_size, command, &buffer[4]);
+      if (command == 0x04)
+        return true;
+
+      // Reset index and packet_size
+      index = 0;
+      packet_size = 0;
+    }
+  }
+  return false;
+}
+
 //////////////////////////////////Run//////////////////////////////////////
 void RosBridge2::run()
 {
@@ -255,4 +331,13 @@ void RosBridge2::run()
 void RosBridge2::readOnce()
 {
   readSerial();
+}
+
+void RosBridge2::readUntilLidar()
+{
+  bool lidarRead = false;
+  while (!lidarRead)
+  {
+    lidarRead = readLidar();
+  }
 }

@@ -11,52 +11,55 @@
 
 inline int sign(int a) { return min(1, max(-1, a)); };
 
-class Sensors; // Forward declaration of Sensors
+class Sensors;  // Forward declaration of Sensors
 class Movement; // Forward declaration of Movement
 
-class RosBridge2{
-    public:
-        //////////////////////////////////Constructor//////////////////////////////////////
-        RosBridge2(Movement *robot, Sensors *sensors, BNO *bno);
-        
-        
-        //////////////////////////////////Run//////////////////////////////////////
-        // Calls publish and verify it is still receiving commands.
-        void run();
+class RosBridge2
+{
+public:
+    //////////////////////////////////Constructor//////////////////////////////////////
+    RosBridge2(Movement *robot, Sensors *sensors, BNO *bno);
 
-        // Reads until Serial.available() is 0.
-        void readOnce();
+    //////////////////////////////////Run//////////////////////////////////////
+    // Calls publish and verify it is still receiving commands.
+    void run();
 
-    private:
-        //////////////////////////////////Velocity Suscriber//////////////////////////////////////
-        // Receives movement commands.
-        void cmdMovementCallback(int move);
+    // Reads until Serial.available() is 0.
+    void readOnce();
 
-        // Updates new distances to walls.
-        void updateDistLidar(float front, float back, float left, float right);
+private:
+    //////////////////////////////////Velocity Suscriber//////////////////////////////////////
+    // Receives movement commands.
+    void cmdMovementCallback(int move);
 
-        // Callback to disense kits.
-        void callDispenser(int victims);
+    // Updates new distances to walls.
+    void updateDistLidar(float front, float back, float left, float right);
 
-        void readSerial();
+    // Callback to disense kits.
+    void callDispenser(int victims);
 
-        Movement *robot_;
-        BNO *bno_;
-        Sensors *sensors_;
-        int state_ = -1;
+    void readSerial();
 
-        int goal = 0;
+    bool readLidar();
 
-        // Suscriber.
-        static constexpr uint16_t kWatchdogPeriod = 500;
+    Movement *robot_;
+    BNO *bno_;
+    Sensors *sensors_;
+    int state_ = -1;
+    int cmdCounter = {0, 0, 0, 0, 0, 0, 0};
+    int goal = 0;
+    long int cmdCounterT = 0;
 
-        // Timers.
-        unsigned long odom_timer_ = 0;
-        unsigned long watchdog_timer_ = 0;
+    // Suscriber.
+    static constexpr uint16_t kWatchdogPeriod = 500;
 
-        void executeCommand(uint8_t packet_size, uint8_t command, uint8_t* buffer);
-        void writeSerial(bool success, uint8_t* payload, int elements);
+    // Timers.
+    unsigned long odom_timer_ = 0;
+    unsigned long watchdog_timer_ = 0;
+
+    void executeCommand(uint8_t packet_size, uint8_t command, uint8_t *buffer);
+    void writeSerial(bool success, uint8_t *payload, int elements);
+    void readUntilLidar();
 };
-
 
 #endif

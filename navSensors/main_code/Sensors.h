@@ -135,7 +135,7 @@ public:
   void bothLedOff();
 
   // Oled methods
-  void logActive(String s, bool oled = true, int x = 0, int y = 0);
+  void logActive(String s, bool oled = true, int x = 0, int y = 0, bool absolute = false);
   void logActive(String s, double n, String divider = ": ", bool oled = true, int x = 0, int y = 0);
   void logActive(double n, String s, String divider = ": ", bool oled = true, int x = 0, int y = 0);
 
