@@ -680,6 +680,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   {
     while (dist > target && dist > 0.03)
     {
+      sensors->logActive("En advanceXMeters", true, 0);
       rosBridge->readOnce();
       if (!sensors->readMotorInit())
         return -2;
@@ -724,6 +725,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
+      sensors->logActive("En advanceXMeters", true, 0);
       rosBridge->readOnce();
       if (!sensors->readMotorInit())
         return -2;
@@ -733,7 +735,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       rearrangeAngle();
 
       dist = sensors->getDistInfo(dist_front);
-      sensors->logActive("Distancia recorrida advanceXMeters:" + String(initial - dist), true, 0, 1);
+      sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
 
       // If robot hasn't moved significantly in backStuckTimer, break.
       if (millis() - changeT > backStuckTimer)
@@ -976,7 +978,7 @@ void Movement::rearrangeAngle()
 {
   double angleError = getAngleError(dirToAngle(rDirection));
   if (abs(angleError) > kErrorVlxReading)
-    goToAngle(dirToAngle(rDirection), true);
+    goToAngle(dirToAngle(rDirection), false);
 }
 
 double Movement::getDistanceToCenter()
@@ -1022,9 +1024,9 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   double diff = getAngleError(targetAngle);
 
-  while (abs(diff) > 1)
+  while (abs(diff) > 3)
   {
-    rosBridge->readOnce();
+    //rosBridge->readOnce();
     sensors->logActive("GotoAngle");
     if (!sensors->readMotorInit())
       return;
@@ -1042,29 +1044,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
     diff = getAngleError(targetAngle);
 
-    if (CK::debugGoToAngle && !CK::kusingROS)
-    {
-      Serial.print("Target angle: ");
-      Serial.print(targetAngle);
-      Serial.print(", Diff: ");
-      Serial.print(diff);
-      if (turnRight)
-      {
-        Serial.print(" turning right, angle: ");
-        Serial.println(bno->getAngleX());
-      }
-      else
-      {
-        Serial.print(" turning left, angle: ");
-        Serial.println(bno->getAngleX());
-      }
-      Serial.print("Front left: ");
-      getMotorStatus(FRONT_LEFT);
-      Serial.print("Front right: ");
-      getMotorStatus(FRONT_RIGHT);
-      Serial.print("Back left: ");
-      getMotorStatus(BACK_LEFT);
-    }
+    sensors->logActive("Diff: " + String(diff), true, 0, 3);
   }
 
   stop();

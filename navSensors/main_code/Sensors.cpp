@@ -194,24 +194,22 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
   {
     usingLidar = true;
   }
-  // wallDistances[0] = front;
-  // wallDistances[1] = back;
-  // wallDistances[2] = left;
-  // wallDistances[3] = right;
+  wallDistances[0] = front;
+  wallDistances[1] = back;
+  wallDistances[2] = left;
+  wallDistances[3] = right;
 
   // 19*18
   // Update values adding constant error
-  wallDistances[0] = front - 19 / 200.0;
-  wallDistances[1] = back - 19 / 200.0;
-  wallDistances[2] = left - 18 / 200.0;
-  wallDistances[3] = right - 18 / 200.0;
+  //wallDistances[0] = front - 19 / 200.0;
+  //wallDistances[1] = back - 19 / 200.0;
+  //wallDistances[2] = left - 18 / 200.0;
+  //wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
 
-  logActive("Distancias con lidar", true, 0, 4);
-  logActive("Distancia en frente: " + String(wallDistances[0]), true, 0, 5);
-  logActive("Distancia en atras: " + String(wallDistances[1]), true, 0, 6);
-  logActive("Distancia en izquierda: " + String(wallDistances[2]), true, 0, 7);
-  logActive("Distancia en derecha: " + String(wallDistances[3]), true, 0, 8);
+  logActive("Fr: " + String(wallDistances[0]) + " Back: " + String(wallDistances[1]), true, 0, 6);
+  logActive("L: " + String(wallDistances[2]) + " R: " + String(wallDistances[3]), true, 0, 7);
+
 }
 
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
@@ -313,14 +311,11 @@ char Sensors::getTCSInfo()
 float Sensors::getDistInfo(int direction)
 {
   // Debug using leds
-  if (usingLidar && false)
+  if (usingLidar)
   {
-    toggleRightLed();
-    delay(20);
-    toggleRightLed();
-    delay(20);
-    toggleRightLed();
-    delay(20);
+    logActive("Usando lidar", true, 0, 5);
+  } else {
+    logActive("NO usando lidar", true, 0, 5);
   }
 
   if (lidarAttemptCount > 15)
@@ -328,6 +323,8 @@ float Sensors::getDistInfo(int direction)
     // Lidar is not working, use vlx
     usingLidar = false;
   }
+
+  usingLidar = false;
 
   if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
@@ -338,7 +335,7 @@ float Sensors::getDistInfo(int direction)
       if (isValid(wallDistances[direction]))
       {
         lidarAttemptCount = 0;
-        return wallDistances[direction];
+        return wallDistances[direction] - 19/200.0; // Subtract distance from lidar to robot's wall
       }
       else
       {
