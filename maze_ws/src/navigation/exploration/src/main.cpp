@@ -64,13 +64,12 @@ void printTile(Tile *tile)
 
 bool checkRestartAlgorithm()
 {
-    return false;
-    // if (!bridge->startAlgorithm)
-    // {
-    //     return true;
-    // }
+    if (!bridge->checkStart())
+    {
+        return true;
+    }
 
-    // return false;
+    return false;
 }
 
 int moveForward(int &rDirection, Map &mapa)
@@ -596,6 +595,11 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
         bridge->pubDebug("Move to the: " + path.top());
         tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa, path);
 
+        if (tile == nullptr)
+        {
+            return nullptr;
+        }
+
         // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
         // ROS_INFO("Move to the: %s", path.top().c_str());
         path.pop();
@@ -968,6 +972,13 @@ void explore(bool checkpoint, int argc, char **argv)
                 if (rosDebug)
                     bridge->pubDebug("Restarting algorithm");
 
+                // wait for motors to turn on again
+                while (checkRestartAlgorithm())
+                {
+                    ros::spinOnce();
+                    ros::Duration(0.1).sleep();
+                }
+
                 break;
             }
 
@@ -1086,6 +1097,10 @@ void explore(bool checkpoint, int argc, char **argv)
 
         Tile* prevTile = followPath(path, mapa.tile, mapa);
 
+        if (prevTile == nullptr)
+        {
+            continue;
+        }
         if (prevTile == mapa.tile)
         {
             ROS_INFO("Adding back to unvisited");
@@ -1167,10 +1182,11 @@ int main(int argc, char **argv)
 
         bridge->pubDebug("Starting main algorithm");
 
-        // while (!bridge->startAlgorithm)
-        // {
-        //     ros::spinOnce();
-        // }
+        while (checkRestartAlgorithm())
+        {
+            ROS_INFO("Waiting for start");
+            ros::spinOnce();
+        }
         explore(false, argc, argv);
     }
     catch (const ros::Exception &e)

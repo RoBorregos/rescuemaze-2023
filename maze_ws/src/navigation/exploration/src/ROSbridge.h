@@ -382,6 +382,20 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
 
 #endif
 
+bool ROSbridge::checkStart()
+{
+    // call service and return value
+    std_srvs::Trigger srv;
+    robotStartClient.waitForExistence();
+    ROS_INFO("Waiting for start service");
+    robotStartClient.call(srv);
+
+    startAlgorithm = srv.response.success;
+    ROS_INFO("Start service returned: %d", startAlgorithm);
+
+    return startAlgorithm;
+}
+
 // Subscriber callbacks
 
 #ifdef useNavStack

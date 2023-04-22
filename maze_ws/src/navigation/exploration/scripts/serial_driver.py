@@ -407,6 +407,12 @@ def pub_imu(data):
         rospy.logerr("IMU exception triggered")
         return
 
+def restart_callback(data):
+    global controller
+    print("Restarting connection")
+    controller.close()
+    controller = Microcontroller(port=port, baud=baud, timeout=timeout)
+    controller.connect()
 
 if __name__ == '__main__':
 
@@ -440,6 +446,7 @@ if __name__ == '__main__':
     rospy.Subscriber("/unit_movement", Int8, goal_callback)
     rospy.Subscriber("/dispenser", Int8, victims_callback)
     rospy.Subscriber("/lidar_data", Int8, arduino_lidar_callback)
+    rospy.Subscriber("/restart_serial", Int8, restart_callback)
 
     # Goal status service
     s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
