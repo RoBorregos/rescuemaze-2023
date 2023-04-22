@@ -259,7 +259,8 @@ class Microcontroller:
     def send_lidar(self, df, db, dr, dl):
         ''' Send the current lidar state on the serial port.
         '''
-        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x11, 0x04) + struct.pack("4f", df, db, dr, dl) + struct.pack("B", 0x05)
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x05, 0x04) + struct.pack("f", df) + struct.pack("B", 0x05)
+        # cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x11, 0x04) + struct.pack("4f", df) + struct.pack("B", 0x05)
         if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
            return  self.SUCCESS
         else:
@@ -327,7 +328,16 @@ class Microcontroller:
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
            return self.FAIL, False
-           
+    
+    def send_specific_goal(self, d):
+        ''' Send a specific goal to the arduino.
+        '''
+        cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x05, 0x0B) + struct.pack("f", d) + struct.pack("B", 0x0C)
+        if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
+              return  self.SUCCESS
+        else:
+            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
+            return self.FAIL
 
 def goal_callback(data):
     global controller, goalCounter
@@ -424,6 +434,10 @@ def restart_callback(data):
     # controller = Microcontroller(port=port, baud=baud, timeout=timeout)
     controller.open()
 
+def send_specific_goal_callback(data):
+    global controller
+    controller.send_specific_goal(data.data)
+
 if __name__ == '__main__':
 
     global counter, lidarCounter, goalCounter
@@ -462,6 +476,7 @@ if __name__ == '__main__':
     rospy.Subscriber("/dispenser", Int8, victims_callback)
     rospy.Subscriber("/lidar_data", Int8, arduino_lidar_callback)
     rospy.Subscriber("/restart_serial", Int8, restart_callback)
+    rospy.Subscriber("/send_specific_goal", Float32, send_specific_goal_callback)
 
     # Goal status service
     s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
