@@ -966,6 +966,8 @@ void explore(bool checkpoint, int argc, char **argv)
         {
             if (checkRestartAlgorithm())
             {
+                bridge->restartSerial();
+                
                 mapa.pos = mapa.recovpos;
                 mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
 
