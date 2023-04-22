@@ -219,6 +219,8 @@ public:
   float getDistInfo(int direction);
 
   bool isValid(double d);
+
+  void resetScreen();
 };
 
 #endif

@@ -202,7 +202,7 @@ void GeneralChecks::checkWheelDirections()
     robot->motor[BACK_RIGHT].motorBackward();
     delay(2000);
     robot->motor[BACK_RIGHT].motorStop();
-    
+
     delay(1000);
 }
 
@@ -214,7 +214,6 @@ void GeneralChecks::checkUnitaryMovements()
 void GeneralChecks::log(String s, bool newLine)
 {
     robot->sensors->logActive(s);
-    
 }
 
 void GeneralChecks::test()
@@ -250,18 +249,12 @@ void GeneralChecks::test()
     }*/
 
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
-    
-    while (true){
-        robot->sensors->printInfo(false, false, false, true);
-        delay(10);
-        int m = robot->sensors->readMotorInit();
-        if (m == 1){
-            Serial.println("Motors is 1");
-        } else {
-            Serial.println("Motors is 0");
-        }
+
+    while (true)
+    {
+        robot->handleSwitches();
     }
-    
+
     while (true)
     {
         robot->cmdMovement(0, 1);
@@ -330,6 +323,42 @@ void GeneralChecks::test()
  }
 }
 */
+
+void GeneralChecks::checkOled()
+{
+    /**
+    Serial.println("Next test");
+    robot->sensors->screen.resetScreen();
+    robot->sensors->screen.testdraw();
+
+    end();
+    */
+    robot->sensors->screen.resetScreen();
+    robot->sensors->logActive("Hola 1", true, 0, 1);
+    robot->sensors->logActive("Hola 2", true, 0, 2);
+    robot->sensors->logActive("Hola 3", true, 0, 3);
+    robot->sensors->logActive("Hola 4", true, 0, 4);
+    robot->sensors->logActive("Hola 5", true, 0, 5);
+    robot->sensors->logActive("Hola 6", true, 0, 6);
+    robot->sensors->logActive("Hola 7", true, 0, 7);
+    robot->sensors->logActive("Hola 8", true, 0, 8);
+    robot->sensors->logActive("Remplazo hola 2", true, 0, 2);
+    //robot->sensors->screen.resetLine(2);
+    end();
+
+    end();
+    robot->sensors->screen.resetScreen();
+    robot->sensors->logActive("Hola abajo", true, 0, 1);
+    robot->sensors->logActive("Hola", true, 0, 0);
+    robot->sensors->logActive("remplazo", true, 0, 0);
+
+    long int dt = millis();
+    robot->sensors->logActive("remplaso2", true, 0, 1);
+    Serial.println("Dt: " + String((millis() - dt) / 1000.0));
+    Serial.println("Remplazado");
+    robot->sensors->screen.resetLine(2);
+    end();
+}
 
 void GeneralChecks::printRevolutions()
 {

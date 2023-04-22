@@ -48,7 +48,7 @@ private:
   // Sensors
   Sensors *sensors;
 
-  RosBridge2 *rosBridge2;
+  RosBridge2 *rosBridge;
 
   bool firstMove = true; // Used to update angles after the first movement.
 
@@ -226,6 +226,8 @@ public:
   // Sets the current angle as the expected angle for given rDirection.
   // Updates all angles accordingly.
   void updateAngleReference();
+  
+  void updateAngleReference(int newAngle);
 
   void printAngleReference();
 

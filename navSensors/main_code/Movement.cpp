@@ -341,17 +341,14 @@ double Movement::cmdMovement(const int action, const int option)
     return -2;
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
-  if (firstMove && !CK::kusingROS)
-  {
-    firstMove = false;
-    updateAngleReference();
-    Serial.println("Updated angle reference");
-  }
 
   if (firstMove)
   {
+    sensors->resetScreen();
     firstMove = false;
+
     updateAngleReference();
+    sensors->logActive("Updated angle reference", true, 0, 1);
     sensors->bothLedOn();
     delay(50);
     sensors->bothLedOff();
@@ -466,6 +463,7 @@ void Movement::rotateRobot(int option, int dir)
     delay(100);
 
     stop();
+    updateAngleReference();
     /*
     // Align robot with back wall.
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
@@ -580,7 +578,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
 bool Movement::checkColor()
 {
   // nh->loginfo("checkColor called");
-  //sensors->toggleRightLed();
+  // sensors->toggleRightLed();
   char c = sensors->getTCSInfo();
   if (!CK::kusingROS)
   {
@@ -588,7 +586,7 @@ bool Movement::checkColor()
     Serial.println(c);
   }
 
-  //sensors->toggleRightLed();
+  // sensors->toggleRightLed();
   return c == 'N';
 }
 
@@ -682,6 +680,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   {
     while (dist > target && dist > 0.03)
     {
+      rosBridge->readOnce();
       if (!sensors->readMotorInit())
         return -2;
       handleSwitches();
@@ -711,7 +710,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       }
 
       dist = sensors->getDistInfo(dist_front);
-      sensors->logActive("Distancia en frente: ", dist);
+      sensors->logActive("Distancia en frente: " + String(dist), true, 0, 1);
 
       // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
     }
@@ -725,6 +724,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
     while (dist < target)
     {
+      rosBridge->readOnce();
       if (!sensors->readMotorInit())
         return -2;
       updateVelocityDecider(-kMovementRPMs, straightPidType);
@@ -733,7 +733,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       rearrangeAngle();
 
       dist = sensors->getDistInfo(dist_front);
-      sensors->logActive("Distancia recorrida advanceXMeters:", initial - dist);
+      sensors->logActive("Distancia recorrida advanceXMeters:" + String(initial - dist), true, 0, 1);
 
       // If robot hasn't moved significantly in backStuckTimer, break.
       if (millis() - changeT > backStuckTimer)
@@ -755,7 +755,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   stop();
   resetEncoders();
 
-  sensors->logActive("Distancia final recorrida advanceXMeters: ", initial - dist);
+  sensors->logActive("Distancia final recorrida advanceXMeters: " + String(initial - dist), true, 0, 1);
 
   // Indicate the robot went backwards because of black tile.
   if (forceBackward)
@@ -771,15 +771,12 @@ void Movement::handleSwitches()
   if (right)
   {
     handleRightLimitSwitch();
-    sensors->logActive("Handled right limit switch");
+    sensors->logActive("Handled right limit switch", true, 0, 0);
   }
-  return;
-  if (left)
+  else if (left)
   {
     handleLeftLimitSwitch();
-    if (!CK::kusingROS)
-      Serial.print("Handled left limit switch");
-    sensors->logActive("Handled right limit switch");
+    sensors->logActive("Handled left limit switch", true, 0, 0);
   }
 }
 /*
@@ -887,6 +884,26 @@ void Movement::updateAngleReference()
   }
 }
 
+void Movement::updateAngleReference(int newAngle)
+{
+  int currAngle = newAngle;
+  int currRdir = rDirection;
+  angleDirs[currRdir] = currAngle;
+
+  for (int i = 0; i < 3; i++)
+  {
+    currRdir++;
+    currAngle += 90;
+
+    if (currRdir > 4)
+      currRdir = 0;
+    if (currAngle > 360)
+      currAngle -= 360;
+
+    angleDirs[currRdir] = currAngle;
+  }
+}
+
 void Movement::printAngleReference()
 {
   if (CK::kusingROS)
@@ -932,7 +949,8 @@ double Movement::stabilizePitch(int straightPidType)
   }
   while (outOfPitch())
   {
-    sensors->logActive("Stabilize pitch running.");
+    rosBridge->readOnce();
+    sensors->logActive("Stabilize pitch running.", true, 0, 0);
     if (!sensors->readMotorInit())
       return -2;
     if (!CK::kusingROS && CK::debugRamp)
@@ -979,12 +997,14 @@ void Movement::advanceUntilCentered()
 
   while (dist < 0.25)
   {
+    rosBridge->readOnce();
     sensors->logActive("Advance until centered");
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
   }
   while (dist > 0.25)
   {
+    rosBridge->readOnce();
     sensors->logActive("Advance until centered");
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
@@ -1004,6 +1024,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   while (abs(diff) > 1)
   {
+    rosBridge->readOnce();
     sensors->logActive("GotoAngle");
     if (!sensors->readMotorInit())
       return;
@@ -1241,16 +1262,18 @@ void Movement::handleRightLimitSwitch()
 
   for (int i = 0; i < 5; i++)
   {
-    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
-    delay(10);
+    updateStraightPID(-kMovementRPMs);
+    delay(80);
   }
 
   stop();
   delay(100);
-  int targetAngle = bno->getAngleX() - 20;
-  if (targetAngle < 0)
-    targetAngle += 360;
-  goToAngle(targetAngle, true);
+  int newAngle = bno->getAngleX() - 2;
+  if (newAngle < 0)
+    newAngle += 360;
+
+  updateAngleReference(newAngle);
+  goToAngle(newAngle, true);
   stop();
 }
 
@@ -1258,16 +1281,18 @@ void Movement::handleLeftLimitSwitch()
 {
   for (int i = 0; i < 5; i++)
   {
-    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
-    delay(10);
+    updateStraightPID(-kMovementRPMs);
+    delay(80);
   }
 
   stop();
   delay(100);
-  int targetAngle = bno->getAngleX() + 20;
-  if (targetAngle > 360)
-    targetAngle -= 360;
-  goToAngle(targetAngle, true);
+  int newAngle = bno->getAngleX() + 2;
+  if (newAngle > 360)
+    newAngle -= 360;
+
+  updateAngleReference(newAngle);
+  goToAngle(newAngle, true);
   stop();
 }
 
