@@ -267,9 +267,9 @@ void Motor::motorRotateIzqPID(double target_angle, double current_angle)
   {
     tmp_pwm = 70;
   }
-  else if (tmp_pwm > 255)
+  else if (tmp_pwm > 200)
   {
-    tmp_pwm = 255;
+    tmp_pwm = 200;
   }
   setPWM(tmp_pwm);
 }
@@ -283,9 +283,9 @@ void Motor::motorRotateDerPID(double target_angle, double current_angle)
   {
     tmp_pwm = 70;
   }
-  else if (tmp_pwm > 255)
+  else if (tmp_pwm > 200)//55)
   {
-    tmp_pwm = 255;
+    tmp_pwm = 200; //255;
   }
   setPWM(tmp_pwm);
 }

@@ -109,7 +109,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       memcpy(&right, buffer + sizeof(front), sizeof(back));
       memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
       memcpy(&back, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
-      updateDistLidar(front, back, left, right);
+      // updateDistLidar(front, back, left, right);
       writeSerial(true, nullptr, 0);
     }
     break;

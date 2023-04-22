@@ -102,7 +102,7 @@ private:
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
   static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
-  static constexpr double kDistanceWall = 0.08; // Distance to consider detection as wall.
+  static constexpr double kDistanceWall = 0.15; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
   static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
   static constexpr double distToCheck = 0.05;
