@@ -24,7 +24,7 @@ void VLX::init()
     //   Serial.println("ERROR VLX");
   }
 
-  //vlx.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY);
+  // vlx.configSensor(Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY);
 }
 
 /*
@@ -52,7 +52,7 @@ double VLX::getDistance()
 
   double dist = measure.RangeMilliMeter / 1000.000;
 
-  // Ignore values greater than 3 meters.
+  /* Ignore values greater than 3 meters.
   if (dist > 3)
   {
     dist = prevDist;
@@ -60,7 +60,8 @@ double VLX::getDistance()
   else
   {
     prevDist = dist;
-  }
+  }*/
+  // Sometimes vlx detects long distances as 0. In this case, replace value with max possible.
   return dist;
 }
 
@@ -68,7 +69,7 @@ void VLX::printDistance()
 {
   if (CK::kusingROS)
     return;
-    
+
   // Serial.print("Distancia: ");
   // Serial.print(VLX::getDistance());
   // Serial.println(" M");

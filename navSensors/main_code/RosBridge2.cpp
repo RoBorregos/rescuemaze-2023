@@ -198,6 +198,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     { // Check packet size
       float distance;
       memcpy(&distance, buffer, sizeof(distance));
+      sensors_->logActive("Adv abs: " + String(distance), true, 0, 5);
       writeSerial(true, nullptr, 0);
       advanceXMeters(distance);
     }

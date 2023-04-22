@@ -105,8 +105,8 @@ private:
   static constexpr double kDistanceWall = 0.15; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
   static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
-  static constexpr double distToCheck = 0.05;
-  static constexpr double backStuckTimer = 100000;
+  static constexpr double distToCheck = 0.06;
+  static constexpr double backStuckTimer = 5000;
 
   int leftM = 0;
   int rightM = 0;
@@ -272,6 +272,10 @@ public:
   // @param forceBackwards Param used internally for robot to move back if it detects a black tile.
   double advanceXMeters(double x, int straightPidType, bool forceBackwards = false);
   
+  double advanceXMetersVLX(double x, int straightPidType, bool forceBackward);
+
+  double advanceXMetersEncoders(double x, int straightPidType, bool forceBackward);
+
   // Advance distance, without performing any color checks, or pitch checks.
   void advanceXMetersAbs(float x, int straightPIDType);
 

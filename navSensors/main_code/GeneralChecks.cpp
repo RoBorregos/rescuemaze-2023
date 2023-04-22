@@ -252,15 +252,30 @@ void GeneralChecks::test()
 
     while (true)
     {
-        robot->handleSwitches();
+        // robot->handleSwitches();
+        break;
+        robot->sensors->printInfo(false, true, false, false);
+    }
+    Serial.println("Moveng advanceX abs");
+    robot->updateAngleReference();
+    while (true){
+        robot->advanceXMeters(0.3,1);
+        end();
+    }
+
+    end();
+
+    while (true)
+    {
+        // robot->handleSwitches();
+        robot->sensors->printInfo(false, true, false, false);
     }
 
     while (true)
     {
         robot->cmdMovement(0, 1);
         delay(1000);
-        robot->cmdMovement(1, 1);
-        delay(1000);
+        end();
     }
 
     robot->cmdMovement(0, 1);
@@ -343,7 +358,7 @@ void GeneralChecks::checkOled()
     robot->sensors->logActive("Hola 7", true, 0, 7);
     robot->sensors->logActive("Hola 8", true, 0, 8);
     robot->sensors->logActive("Remplazo hola 2", true, 0, 2);
-    //robot->sensors->screen.resetLine(2);
+    // robot->sensors->screen.resetLine(2);
     end();
 
     end();
