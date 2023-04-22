@@ -36,7 +36,7 @@ Tile *cheapestUnknown(map<string, Tile *> &tiles, map<Tile *, bool> &visited, ma
 }
 
 // Algoritmo de Dijkstra: Determina la tile no visitada con el menor costo para ir y regresa el camino mas corto desde el tile de inicio hasta esa tile
-stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, Tile *> tiles, vector<string> &keys)
+stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, Tile *> tiles, vector<string> &keys, Tile* bestTile)
 {
     for (auto &&tile : unvisited)
     {
@@ -119,6 +119,8 @@ stack<string> bestUnvisited(Tile *start, vector<Tile *> &unvisited, map<string, 
         bestPath.push(path.second);
         path = paths[path.first];
     }
+
+    bestTile = lowTile;
 
     unvisited.erase(remove(unvisited.begin(), unvisited.end(), lowTile), unvisited.end());
 

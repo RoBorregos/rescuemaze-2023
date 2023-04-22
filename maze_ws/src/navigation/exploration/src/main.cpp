@@ -28,7 +28,7 @@ int rDirection = 0;
 #define mapSimDebug false
 #define useros true
 #define rosDebug true
-#define canMoveBackward true
+#define canMoveBackward false
 
 ROSbridge *bridge;
 
@@ -64,12 +64,13 @@ void printTile(Tile *tile)
 
 bool checkRestartAlgorithm()
 {
-    if (!bridge->startAlgorithm)
-    {
-        return true;
-    }
-
     return false;
+    // if (!bridge->startAlgorithm)
+    // {
+    //     return true;
+    // }
+
+    // return false;
 }
 
 int moveForward(int &rDirection, Map &mapa)
@@ -592,19 +593,40 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 {
     while (!path.empty())
     {
-        if (checkRestartAlgorithm())
-        {
-            return nullptr;
-        }
-
         bridge->pubDebug("Move to the: " + path.top());
         tile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa, path);
+
         // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
         // ROS_INFO("Move to the: %s", path.top().c_str());
         path.pop();
     }
 
     return tile;
+
+    // Tile *newTile = tile;
+    // while (!path.empty())
+    // {
+    //     if (checkRestartAlgorithm())
+    //     {
+    //         return nullptr;
+    //     }
+
+
+    //     bridge->pubDebug("Move to the: " + path.top());
+    //     newTile = move(tile, path.top(), mapa.xMaze, mapa.yMaze, rDirection, mapa, path);
+
+    //     if (newTile == tile)
+    //     {
+    //         return tile;
+    //     }
+
+    //     tile = newTile;
+    //     // cout << path.top() << "\t" << mapa.pos[0] << ", " << mapa.pos[1] << ", " << mapa.pos[2] << endl;
+    //     // ROS_INFO("Move to the: %s", path.top().c_str());
+    //     path.pop();
+    // }
+
+    // return newTile;
 }
 
 int checkVictims() // use ros
@@ -931,7 +953,9 @@ void explore(bool checkpoint, int argc, char **argv)
         mapa.tile->visited = true;
         mapa.setVisitedChar();
 
+        #ifndef simulateRos
         vector<bool> walls = getWalls();
+        #endif
 
         // Se revisan las casillas adyacentes
         for (auto &&key : keys)
@@ -963,7 +987,11 @@ void explore(bool checkpoint, int argc, char **argv)
             // ROS_INFO("Checking key: %s", key.c_str());
 
             // if (useros && walls[directions[key]] == 1 && !mapa.tile->walls[key])
+            #ifndef simulateRos
             if (useros && isWall(key, walls) && !mapa.tile->walls[key])
+            #else
+            if (useros && isWall(key, mapa) && !mapa.tile->walls[key])
+            #endif
             {
                 // ROS_INFO("Wall detected");
                 if (rosDebug)
@@ -1038,7 +1066,10 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug("Current tile: " + posvectorToString(mapa.tile->pos));
             printTile(mapa.tile);
         }
-        path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys);
+
+        Tile* nextTile = nullptr;
+
+        path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys, nextTile);
 
         if (rosDebug && path.empty())
         {
@@ -1053,7 +1084,25 @@ void explore(bool checkpoint, int argc, char **argv)
             bridge->pubDebug(stackToString(path));
         }
 
-        mapa.tile = followPath(path, mapa.tile, mapa);
+        Tile* prevTile = followPath(path, mapa.tile, mapa);
+
+        if (prevTile == mapa.tile)
+        {
+            ROS_INFO("Adding back to unvisited");
+            if (nextTile)
+            {
+                mapa.unvisited.push_back(nextTile);
+                printTile(nextTile);
+            }
+            else
+            {
+                ROS_INFO("null tile");
+            }
+        }
+        else
+        {
+            mapa.tile = prevTile;
+        }
 
         if (rosDebug)
             bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
@@ -1067,6 +1116,8 @@ void explore(bool checkpoint, int argc, char **argv)
         if (!useros && mapa.tile->victim != 0)
         {
         }
+
+        ROS_INFO("steps: %d", steps);
 
         {
             std::ofstream ofs("./checkpoint.txt");
@@ -1089,15 +1140,17 @@ void explore(bool checkpoint, int argc, char **argv)
             steps--;
         }
 
-    } while (ros::ok() && (!mapa.unvisited.empty() || steps > 0));
+    } while (ros::ok() && (steps > 0));
 
     if (rosDebug)
         ROS_INFO("Visited all tiles, returning to start");
         // bridge->pubDebug("No unvisited tiles");
 
 
+    Tile* tile_ = nullptr;
+
     mapa.unvisited.push_back(startTile);
-    path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys);
+    path = bestUnvisited(mapa.tile, mapa.unvisited, mapa.tiles, keys, tile_);
     mapa.tile = followPath(path, mapa.tile, mapa);
 
     // mapa.printMaze(rDirection);
