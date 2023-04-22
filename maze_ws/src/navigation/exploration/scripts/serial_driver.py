@@ -333,13 +333,13 @@ def goal_callback(data):
     global controller, goalCounter
     controller.set_goal(data.data)    
     goalCounter += 1
-    print(goalCounter)
+    print("Goal Counter:",goalCounter)
 
 def lidar_callback(data):
     global controller, lidarCounter
     controller.send_lidar(data.data[0], data.data[1], data.data[2], data.data[3])
     lidarCounter += 1
-    print(lidarCounter)
+    print("Lidar counter:",lidarCounter)
 
 def victims_callback(data):
     global controller
