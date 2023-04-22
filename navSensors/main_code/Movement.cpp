@@ -580,7 +580,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
 bool Movement::checkColor()
 {
   // nh->loginfo("checkColor called");
-  sensors->toggleRightLed();
+  //sensors->toggleRightLed();
   char c = sensors->getTCSInfo();
   if (!CK::kusingROS)
   {
@@ -588,7 +588,7 @@ bool Movement::checkColor()
     Serial.println(c);
   }
 
-  sensors->toggleRightLed();
+  //sensors->toggleRightLed();
   return c == 'N';
 }
 
@@ -711,12 +711,9 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       }
 
       dist = sensors->getDistInfo(dist_front);
+      sensors->logActive("Distancia en frente: ", dist);
 
-      if (!CK::kusingROS && CK::debugAdvanceX)
-      {
-        Serial.print("Distancia recorrida advanceXMeters: ");
-        Serial.println(initial - dist);
-      }
+      // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
     }
   }
   else
@@ -736,12 +733,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
       rearrangeAngle();
 
       dist = sensors->getDistInfo(dist_front);
-
-      if (!CK::kusingROS && CK::debugAdvanceX)
-      {
-        Serial.print("Distancia recorrida advanceXMeters: ");
-        Serial.println(initial - dist);
-      }
+      sensors->logActive("Distancia recorrida advanceXMeters:", initial - dist);
 
       // If robot hasn't moved significantly in backStuckTimer, break.
       if (millis() - changeT > backStuckTimer)
@@ -763,11 +755,7 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
   stop();
   resetEncoders();
 
-  if (!CK::kusingROS && CK::debugAdvanceX)
-  {
-    Serial.print("Distancia final recorrida advanceXMeters: ");
-    Serial.println(initial - dist);
-  }
+  sensors->logActive("Distancia final recorrida advanceXMeters: ", initial - dist);
 
   // Indicate the robot went backwards because of black tile.
   if (forceBackward)
@@ -783,8 +771,7 @@ void Movement::handleSwitches()
   if (right)
   {
     handleRightLimitSwitch();
-    if (!CK::kusingROS)
-      Serial.print("Handled right limit switch");
+    sensors->logActive("Handled right limit switch");
   }
   return;
   if (left)
@@ -792,6 +779,7 @@ void Movement::handleSwitches()
     handleLeftLimitSwitch();
     if (!CK::kusingROS)
       Serial.print("Handled left limit switch");
+    sensors->logActive("Handled right limit switch");
   }
 }
 /*
@@ -944,6 +932,7 @@ double Movement::stabilizePitch(int straightPidType)
   }
   while (outOfPitch())
   {
+    sensors->logActive("Stabilize pitch running.");
     if (!sensors->readMotorInit())
       return -2;
     if (!CK::kusingROS && CK::debugRamp)
@@ -990,11 +979,13 @@ void Movement::advanceUntilCentered()
 
   while (dist < 0.25)
   {
+    sensors->logActive("Advance until centered");
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
   }
   while (dist > 0.25)
   {
+    sensors->logActive("Advance until centered");
     updateVelocityDecider(kMovementRPMs, CK::useBNO);
     dist = sensors->getDistInfo(dist_front);
   }
@@ -1013,6 +1004,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   while (abs(diff) > 1)
   {
+    sensors->logActive("GotoAngle");
     if (!sensors->readMotorInit())
       return;
     bool turnRight = false;
@@ -1154,6 +1146,7 @@ double Movement::traverseRamp(int option)
   {
     while (millis() - start < kAdvanceToRampTime)
     {
+      sensors->logActive("Traversing ramp");
       if (!sensors->readMotorInit())
         return -2;
       updateVelocityDecider(kMovementRPMs, CK::useBNO);

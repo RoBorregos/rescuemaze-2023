@@ -50,8 +50,14 @@ void Sensors::initSensors()
   initSwitches();
   initLeds();
 
+  if (CK::debugOled)
+  {
+    screen.init();
+  }
+
   if (CK::calibrateBNO)
   {
+    logActive("Calibrating BNO");
     bothLedOn();
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
@@ -71,9 +77,7 @@ void Sensors::initSensors()
 
       if (millis() - initialT > maxBNOTime)
       {
-
-        if (!CK::kusingROS && CK::debugBNOCalibration)
-          Serial.println("BNO calibration timed out.");
+        logActive("BNO calibration timed out.");
         // Led blink to indicate that BNO calibration timed out.
         bothLedOff();
         delay(1000);
@@ -86,8 +90,6 @@ void Sensors::initSensors()
         break;
       }
     }
-
-    printInfo(true, false, false, false);
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
@@ -110,9 +112,8 @@ void Sensors::initSensors()
       if (!CK::kusingROS && CK::debugBNOCalibration)
       {
 
-        Serial.print("Place robot on the ground in ");
-        Serial.print((timeToPlaceRobot - (millis() - initialT)) / 1000);
-        Serial.println(" seconds.");
+        String m = "Place robot on the ground in " + String((timeToPlaceRobot - (millis() - initialT)) / 1000) + " seconds";
+        logActive(m);
       }
       delay(100);
     }
@@ -123,6 +124,7 @@ void Sensors::initSensors()
   {
     bno->setExtCUse();
   }
+  logActive("Sensors initiated");
 }
 
 // Sensor Methods
@@ -187,7 +189,9 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
 
     // rosBridge->updateDistLidar();
     return;
-  } else {
+  }
+  else
+  {
     usingLidar = true;
   }
   // wallDistances[0] = front;
@@ -196,13 +200,15 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
   // wallDistances[3] = right;
 
   // 19*18
-
+  turnRightLedOn();
   // Update values adding constant error
   wallDistances[0] = front - 19 / 200.0;
   wallDistances[1] = back - 19 / 200.0;
   wallDistances[2] = left - 18 / 200.0;
   wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
+  delay(20);
+  turnRightLedOff();
 }
 
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
@@ -219,7 +225,7 @@ void Sensors::getLidarDistances(double &front, double &back, double &left, doubl
 bool Sensors::readMotorInit()
 {
 
-  int val = digitalRead(22);
+  int val = digitalRead(kMotorPin);
   return val == HIGH;
 }
 
@@ -416,20 +422,20 @@ void Sensors::debugLimitSwitches()
 
   if (val == HIGH)
   {
-    Serial.println("Switch 0 is open");
+    Serial.println("Left switch is 1");
   }
   else
   {
-    Serial.println("Switch 0 is closed");
+    Serial.println("Left switch is 0");
   }
   int val2 = digitalRead(kDigitalPinsLimitSwitch[1]);
   if (val2 == HIGH)
   {
-    Serial.println("Switch 1 is open");
+    Serial.println("Right switch is 1");
   }
   else
   {
-    Serial.println("Switch 1 is closed");
+    Serial.println("Right switch is 0");
   }
 }
 
@@ -458,6 +464,17 @@ void Sensors::toggleRightLed()
     rightLedOn = true;
     digitalWrite(kDigitalPinsLEDS[1], HIGH);
   }
+}
+
+void Sensors::turnRightLedOn()
+{
+  rightLedOn = true;
+  digitalWrite(kDigitalPinsLEDS[1], HIGH);
+}
+void Sensors::turnRightLedOff()
+{
+  rightLedOn = false;
+  digitalWrite(kDigitalPinsLEDS[1], LOW);
 }
 
 void Sensors::toggleLeftLed()
@@ -503,4 +520,25 @@ bool Sensors::isValid(double d)
     return false;
   }
   return true;
+}
+
+// High level methods to interact with oled.
+void Sensors::logActive(String s, bool oled, int x, int y)
+{
+  if (CK::debugOled && oled)
+    screen.display(s, x, y);
+  if (!CK::kusingROS)
+    Serial.println(s);
+}
+
+void Sensors::logActive(String s, double n, String divider, bool oled, int x, int y)
+{
+  String newMsg = s + divider + String(n);
+  logActive(newMsg, oled, x, y);
+}
+
+void Sensors::logActive(double n, String s, String divider, bool oled, int x, int y)
+{
+  String newMsg = String(n) + divider + s;
+  logActive(newMsg, oled, x, y);
 }

@@ -43,7 +43,7 @@ class RosBridge2{
         Movement *robot_;
         BNO *bno_;
         Sensors *sensors_;
-        int state_ = 8;
+        int state_ = -1;
 
         int goal = 0;
 

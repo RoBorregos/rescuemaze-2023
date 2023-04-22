@@ -202,7 +202,7 @@ void GeneralChecks::checkWheelDirections()
     robot->motor[BACK_RIGHT].motorBackward();
     delay(2000);
     robot->motor[BACK_RIGHT].motorStop();
-    ;
+    
     delay(1000);
 }
 
@@ -211,19 +211,10 @@ void GeneralChecks::checkUnitaryMovements()
 {
 }
 
-void GeneralChecks::log(const char *s, bool newLine)
+void GeneralChecks::log(String s, bool newLine)
 {
-    if (publishRos || CK::kusingROS)
-    {
-        robot->nh->loginfo(s);
-    }
-    else
-    {
-        if (newLine)
-            Serial.println(s);
-        else
-            Serial.print(s);
-    }
+    robot->sensors->logActive(s);
+    
 }
 
 void GeneralChecks::test()
@@ -259,6 +250,18 @@ void GeneralChecks::test()
     }*/
 
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
+    
+    while (true){
+        robot->sensors->printInfo(false, false, false, true);
+        delay(10);
+        int m = robot->sensors->readMotorInit();
+        if (m == 1){
+            Serial.println("Motors is 1");
+        } else {
+            Serial.println("Motors is 0");
+        }
+    }
+    
     while (true)
     {
         robot->cmdMovement(0, 1);
