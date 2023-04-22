@@ -6,6 +6,7 @@
 #include "BNO.h"
 #include "VLX.h"
 #include "TCS.h"
+#include "Screen.h"
 #include "CommonK.h"
 // #include "RosBridge.h"
 #include "RosBridge2.h"
@@ -60,6 +61,7 @@ class Sensors
   RosBridge2 *rosBridge = nullptr;
   VLX vlx[3];
   TCS tcs;
+  Screen screen;
   bool rightLedOn = false;
   bool leftLedOn = false;
 
@@ -81,6 +83,7 @@ class Sensors
 
   // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches
+  static constexpr uint8_t kMotorPin = 23;
   // Leds
   static constexpr uint8_t kDigitalPinsLEDS[2] = {41, 42};
 
@@ -125,9 +128,16 @@ public:
   void toggleRightLed();
   void toggleLeftLed();
   void toggleBothLeds();
+  void turnRightLedOn();
+  void turnRightLedOff();
 
   void bothLedOn();
   void bothLedOff();
+
+  // Oled methods
+  void logActive(String s, bool oled = true, int x = 0, int y = 0);
+  void logActive(String s, double n, String divider = ": ", bool oled = true, int x = 0, int y = 0);
+  void logActive(double n, String s, String divider = ": ", bool oled = true, int x = 0, int y = 0);
 
   // BNO data
 

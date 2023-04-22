@@ -49,7 +49,7 @@ public:
     void checkAll();
 
     // Helper function to log messages.
-    void log(const char *s, bool newLine = true);
+    void log(String s, bool newLine = true);
 
     // Do specific tests. Use to avoid polluting main_code.ino and seize access as friend class.
     void test();

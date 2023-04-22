@@ -18,6 +18,7 @@ namespace CK
     const bool usePid = true;
     const bool useBNO = true;
     const bool rotatePID = true;
+    const bool debugOled = true;
 
     // Tune constants such that motors all motors move at desired speed.
     const int basePwmBackLeft = 100;

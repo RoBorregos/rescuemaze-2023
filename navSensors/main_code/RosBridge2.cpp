@@ -16,6 +16,9 @@ void RosBridge2::cmdMovementCallback(int move)
 
   double response = robot_->cmdMovement(move, 1);
 
+  if (response == -2)
+    return response;
+
   if (response == 0)
   {
     // do nothing
