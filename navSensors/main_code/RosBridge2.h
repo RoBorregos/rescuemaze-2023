@@ -46,7 +46,7 @@ private:
     BNO *bno_;
     Sensors *sensors_;
     int state_ = -1;
-    int cmdCounter = {0, 0, 0, 0, 0, 0, 0};
+    int cmdCounter[7] = {0, 0, 0, 0, 0, 0, 0};
     int goal = 0;
     long int cmdCounterT = 0;
 

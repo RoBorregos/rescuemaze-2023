@@ -176,13 +176,13 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   }
   cmdCounterT += 1;
   sensors_->logActive("Cmds: " + String(cmdCounterT), true, 0, 0, true);
-  sensors->logActive("Vlx: " + String(cmdCounter[0], true, 0, 1, true));
-  sensors->logActive("Gs: " + String(cmdCounter[1], true, 0, 2, true));
-  sensors->logActive("Sg: " + String(cmdCounter[2], true, 0, 3, true));
-  sensors->logActive("Sl: " + String(cmdCounter[3], true, 0, 4, true));
-  sensors->logActive("Sv: " + String(cmdCounter[4], true, 0, 5, true));
-  sensors->logActive("Ss: " + String(cmdCounter[5], true, 0, 6, true));
-  sensors->logActive("Gl: " + String(cmdCounter[6], true, 0, 7, true));
+  //sensors_->logActive("Vlx: " + String(cmdCounter[0]), true, 0, 1, true);
+  sensors_->logActive("Gs: " + String(cmdCounter[1]), true, 0, 2, true);
+  sensors_->logActive("Sg: " + String(cmdCounter[2]), true, 0, 3, true);
+  sensors_->logActive("Sl: " + String(cmdCounter[3]), true, 0, 4, true);
+  //sensors_->logActive("Sv: " + String(cmdCounter[4]), true, 0, 5, true);
+  //sensors_->logActive("Ss: " + String(cmdCounter[5]), true, 0, 6, true);
+  sensors_->logActive("Gl: " + String(cmdCounter[6]), true, 0, 7, true);
 }
 
 void RosBridge2::writeSerial(bool success, uint8_t *payload, int elements)
