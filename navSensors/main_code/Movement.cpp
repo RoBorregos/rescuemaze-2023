@@ -454,7 +454,7 @@ void Movement::rotateRobot(int option, int dir)
     motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
     motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
     motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, -1);
-    delay(1000);
+    delay(2000);
 
     motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, 1);
     motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, 1);
@@ -463,7 +463,10 @@ void Movement::rotateRobot(int option, int dir)
     delay(100);
 
     stop();
-    updateAngleReference();
+    // updateAngleReference();
+
+    resetEncoders();
+    return;
     /*
     // Align robot with back wall.
     updateVelocityDecider(-kMovementRPMs, CK::useBNO);
@@ -512,6 +515,11 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
     getMotorStatus(FRONT_LEFT);
     getMotorStatus(BACK_LEFT);
   }
+
+  motor[FRONT_LEFT].motorForward();
+  motor[BACK_LEFT].motorForward();
+  motor[FRONT_RIGHT].motorForward();
+  motor[BACK_RIGHT].motorForward();
 
   // nh->loginfo("updateStraightPID called");
   if (useBNO)
@@ -673,12 +681,12 @@ double Movement::advanceXMeters(double x, int straightPidType, bool forceBackwar
     dist = meanDistanceTraveled();
   }*/
   double initial = dist;
-  double target = dist - x;
+  double target = dist - x + 0.02;
   double lastTCS = millis();
 
   if (x > 0)
   {
-    while (dist > target && dist > 0.03)
+    while (dist > target && dist > 0.08)
     {
       sensors->logActive("En advanceXMeters", true, 0);
       rosBridge->readOnce();
@@ -960,7 +968,7 @@ double Movement::stabilizePitch(int straightPidType)
       Serial.print("Robot out of stable pitch: ");
       Serial.println(sensors->getAngleY());
     }
-    updateVelocityDecider(kMovementRPMs, straightPidType);
+    updateVelocityDecider(10, straightPidType);
   }
 
   double dt = (millis() - start) / 1000.0;
@@ -1024,7 +1032,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   double diff = getAngleError(targetAngle);
 
-  while (abs(diff) > 3)
+  while (abs(diff) > 2)
   {
     //rosBridge->readOnce();
     sensors->logActive("GotoAngle");
@@ -1067,12 +1075,12 @@ void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
   else
   {
     girarIzquierda();
-    motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
-    motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+    motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
     if (!oneSide)
     {
-      motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
-      motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+      motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+      motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
     }
 
     if (CK::debugGoToAngle && !CK::kusingROS)
@@ -1240,39 +1248,72 @@ void Movement::logDebug(String data, double data2)
 void Movement::handleRightLimitSwitch()
 {
 
-  for (int i = 0; i < 5; i++)
+  // int newAngle = bno->getAngleX() + 2;
+  for (int i = 0; i < 8; i++)
   {
     updateStraightPID(-kMovementRPMs);
-    delay(80);
+    delay(150);
   }
 
   stop();
+
+  {
+    int newAngle = bno->getAngleX() - 75;
+    if (newAngle < 0)
+      newAngle += 360;
+    goToAngle(newAngle, true);
+
+    rearrangeAngle();
+    stop();
+    return;
+  }
+
   delay(100);
   int newAngle = bno->getAngleX() - 2;
   if (newAngle < 0)
     newAngle += 360;
 
-  updateAngleReference(newAngle);
-  goToAngle(newAngle, true);
+  // updateAngleReference(newAngle);
+  // goToAngle(newAngle, true);
+  rearrangeAngle();
   stop();
 }
 
 void Movement::handleLeftLimitSwitch()
 {
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 8; i++)
   {
     updateStraightPID(-kMovementRPMs);
-    delay(80);
+    delay(150);
   }
 
   stop();
+
+  {
+    int newAngle = bno->getAngleX() + 75;
+    if (newAngle > 360)
+      newAngle -= 360;
+    goToAngle(newAngle, true);
+
+    // newAngle -= 50;
+    // if (newAngle < 0)
+    //   newAngle += 360;
+    // goToAngle(newAngle, true);
+
+    rearrangeAngle();
+    stop();
+    return;
+  }
+
   delay(100);
   int newAngle = bno->getAngleX() + 2;
   if (newAngle > 360)
     newAngle -= 360;
 
-  updateAngleReference(newAngle);
+  // updateAngleReference(newAngle);
+
   goToAngle(newAngle, true);
+  rearrangeAngle();
   stop();
 }
 
