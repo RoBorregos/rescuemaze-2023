@@ -176,10 +176,13 @@ class Microcontroller:
     def execute(self, cmd):
         ''' Thread safe execution of "cmd" on the Microcontroller returning a single integer value.
         '''
-        global counter
+        global counter, initT
         counter += 1
-        print(counter)
+        end_time = time.time()
+        print("Total cmds:", counter, ". Time: ", end_time - initT)
+        
         self.mutex.acquire()
+        
         
         try:
             self.port.flushInput()
@@ -369,7 +372,8 @@ def lidar_status(req):
     return TriggerResponse(controller.get_lidar_use()[1], "Lidar status")
 
 def pub_imu(data):
-    global controller, imuPub, imuAnglePub, imu_frame_id
+    global controller, imuPub, imuAnglePub, imu_frame_id, initT
+    initT = time.time()
     controller.get_imu_val()
     
     try:

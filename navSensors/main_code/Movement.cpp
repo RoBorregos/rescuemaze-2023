@@ -395,7 +395,8 @@ double Movement::cmdMovement(const int action, const int option)
   case 4:
     // nh->loginfo("Traversing ramp");
     // Traverse ramp
-    return traverseRamp(option);
+    traverseRamp(option);
+    return 5;
     break;
 
   case 5:
@@ -862,6 +863,74 @@ bool turnRight = false;
       goToAngle(rAngle, turnRight);
 */
 
+void Movement::advanceXMetersAbs(float x, int straightPidType)
+{
+  // nh->loginfo("AdvanceXMeters called");
+  double dist = sensors->getDistInfo(dist_front);
+
+  double initial = dist;
+  double target = dist - x + 0.02;
+  double changeT = millis();
+
+  if (x > 0)
+  {
+    while (dist > target && dist > 0.08)
+    {
+      if (millis() - changeT > 5000)
+       return;
+      sensors->logActive("En advanceXMetersAbs", true, 0);
+      // rosBridge->readOnce();
+      if (!sensors->readMotorInit())
+        return;
+      handleSwitches();
+      updateVelocityDecider(kMovementRPMs, straightPidType);
+
+      // Get dist reading after correcting angle.
+      rearrangeAngle();
+
+      dist = sensors->getDistInfo(dist_front);
+    }
+  }
+  else
+  {
+    // Use to check if robot is stuck.
+    double changeT = millis();
+    double prevDist = dist;
+
+    // Don't check color and stable pitch. Assume negative movement only for black tiles.
+    while (dist < target)
+    {
+      rosBridge->readOnce();
+      if (!sensors->readMotorInit())
+        return;
+      updateVelocityDecider(-kMovementRPMs, straightPidType);
+
+      // Get dist reading after correcting angle.
+      rearrangeAngle();
+      dist = sensors->getDistInfo(dist_front);
+
+      // If robot hasn't moved significantly in backStuckTimer, break.
+      if (millis() - changeT > backStuckTimer)
+      {
+        if (abs(prevDist - dist) < 0.02)
+        {
+          break;
+        }
+        else
+        {
+          changeT = millis();
+        }
+      }
+
+      prevDist = dist;
+    }
+  }
+
+  stop();
+  resetEncoders();
+  sensors->logActive("Distancia final recorrida advanceXMetersAbs: " + String(initial - dist), true, 0, 1);
+}
+
 void Movement::advanceSlow(bool direction)
 {
   if (direction)
@@ -1034,7 +1103,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
 
   while (abs(diff) > 2)
   {
-    //rosBridge->readOnce();
+    // rosBridge->readOnce();
     sensors->logActive("GotoAngle");
     if (!sensors->readMotorInit())
       return;

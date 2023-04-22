@@ -17,6 +17,7 @@ void Screen::init()
     screen.setTextSize(1);
     screen.setTextColor(SH110X_WHITE);
     screen.setCursor(0, 0);
+    screen.display();
 }
 
 void Screen::setStyle()

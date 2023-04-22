@@ -271,6 +271,9 @@ public:
   // @param straigthPidType 1 for using BNO to move straight. 0 to use vlx.
   // @param forceBackwards Param used internally for robot to move back if it detects a black tile.
   double advanceXMeters(double x, int straightPidType, bool forceBackwards = false);
+  
+  // Advance distance, without performing any color checks, or pitch checks.
+  void advanceXMetersAbs(float x, int straightPIDType);
 
   // Rotate the robot in the specified dir. 0 for left and 1 for right.
   // Option specifies if the robot should move back to realign to wall.

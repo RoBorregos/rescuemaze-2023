@@ -41,6 +41,8 @@ private:
     void readSerial();
 
     bool readLidar();
+    
+    void advanceXMeters(float meters);
 
     Movement *robot_;
     BNO *bno_;
@@ -49,6 +51,7 @@ private:
     int cmdCounter[7] = {0, 0, 0, 0, 0, 0, 0};
     int goal = 0;
     long int cmdCounterT = 0;
+    //long int countReadSerial = 0;
 
     // Suscriber.
     static constexpr uint16_t kWatchdogPeriod = 500;

@@ -313,9 +313,9 @@ float Sensors::getDistInfo(int direction)
   // Debug using leds
   if (usingLidar)
   {
-    logActive("Usando lidar", true, 0, 5);
+    logActive("Usando lidar", true, 0, 5, true);
   } else {
-    logActive("NO usando lidar", true, 0, 5);
+    logActive("NO usando lidar", true, 0, 5, true);
   }
 
   if (lidarAttemptCount > 15)
@@ -525,7 +525,7 @@ bool Sensors::isValid(double d)
 // High level methods to interact with oled.
 void Sensors::logActive(String s, bool oled, int x, int y, bool absolute)
 {
-  if (!absolute)
+  if (absolute)
    return;
   if (CK::debugOled && oled)
     screen.display(s, x, y);
