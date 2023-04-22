@@ -212,6 +212,7 @@ private:
     ros::Publisher dispenserpub;
     ros::Publisher lidarserialpub;
     ros::Publisher debugpub;
+    ros::Publisher restartserialpub;
 
     ros::ServiceClient victimsClient;
     ros::ServiceClient wallsDistClient;
@@ -253,6 +254,7 @@ public:
     vector<bool> getWalls();
     int getVictims();
     bool checkStart();
+    void restartSerial();
 
     void pubDebug(string msg);
 };
@@ -369,6 +371,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     debugpub = nh->advertise<std_msgs::String>("/debug", 1000);
 
     unitmovementpub = nh->advertise<std_msgs::Int8>("/unit_movement", 1000);
+    restartserialpub = nh->advertise<std_msgs::Int8>("/restart_serial", 1000);
 
     victimsClient = nh->serviceClient<openmv_camera::BothCameras>("/get_victims");
 
@@ -381,6 +384,20 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
 }
 
 #endif
+
+bool ROSbridge::checkStart()
+{
+    // call service and return value
+    std_srvs::Trigger srv;
+    robotStartClient.waitForExistence();
+    ROS_INFO("Waiting for start service");
+    robotStartClient.call(srv);
+
+    startAlgorithm = srv.response.success;
+    ROS_INFO("Start service returned: %d", startAlgorithm);
+
+    return startAlgorithm;
+}
 
 // Subscriber callbacks
 
@@ -1944,6 +1961,14 @@ int ROSbridge::getVictims()
 }
 
 #endif
+
+void ROSbridge::restartSerial()
+{
+    std_msgs::Int8 msg;
+    msg.data = 1;
+
+    restartserialpub.publish(msg);
+}
 
 void ROSbridge::pubDebug(string m)
 {
