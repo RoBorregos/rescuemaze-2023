@@ -65,6 +65,11 @@ void RosBridge2::updateDistLidar(float front, float back, float left, float righ
   sensors_->updateDistLidar(front, back, left, right);
 }
 
+void RosBridge2::updateDistLidar(float front)
+{
+  sensors_->updateDistLidar(front);
+}
+
 void RosBridge2::advanceXMeters(float meters)
 {
   state_ = -1;
@@ -127,16 +132,18 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     }
     break;
   case 0x04: // send_lidar
-    if (packet_size == 17)
+    // if (packet_size == 17)
+    if (packet_size == 5)
     { // Check packet size
       cmdCounter[3]++;
-      float front, back, left, right;
+      float front;
       // Copy data from buffer to variables
       memcpy(&front, buffer, sizeof(front));
-      memcpy(&right, buffer + sizeof(front), sizeof(back));
-      memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
-      memcpy(&back, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
-      updateDistLidar(front, back, left, right);
+      // memcpy(&right, buffer + sizeof(front), sizeof(back));
+      // memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
+      // memcpy(&back, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
+      updateDistLidar(front);
+      // updateDistLidar(front, back, left, right);
       writeSerial(true, nullptr, 0);
     }
     break;

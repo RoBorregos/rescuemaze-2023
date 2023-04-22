@@ -212,6 +212,40 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
 
 }
 
+void Sensors::updateDistLidar(float front)
+{
+  // Values weren't updated
+  if (wallDistances[0] == front)
+  {
+    lidarAttemptCount++;
+    if (lidarAttemptCount > 15)
+    {
+      // Lidar is not working, use vlx
+      usingLidar = false;
+      return;
+    }
+    rosBridge->readOnce();
+
+    // rosBridge->updateDistLidar();
+    return;
+  }
+  else
+  {
+    usingLidar = true;
+  }
+  wallDistances[0] = front;
+
+  // 19*18
+  // Update values adding constant error
+  //wallDistances[0] = front - 19 / 200.0;
+  //wallDistances[1] = back - 19 / 200.0;
+  //wallDistances[2] = left - 18 / 200.0;
+  //wallDistances[3] = right - 18 / 200.0;
+  lidarAttemptCount = 0;
+
+  logActive("Fr: " + String(wallDistances[0]), true, 0, 6);
+}
+
 void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
 {
   if (rosBridge == nullptr)
