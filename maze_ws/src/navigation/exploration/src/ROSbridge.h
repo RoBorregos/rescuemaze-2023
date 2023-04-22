@@ -4,6 +4,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Char.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 #include <std_msgs/Int16.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Float32MultiArray.h>
@@ -213,6 +214,7 @@ private:
     ros::Publisher lidarserialpub;
     ros::Publisher debugpub;
     ros::Publisher restartserialpub;
+    ros::Publisher sendspecificgoalpub;
 
     ros::ServiceClient victimsClient;
     ros::ServiceClient wallsDistClient;
@@ -372,6 +374,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
 
     unitmovementpub = nh->advertise<std_msgs::Int8>("/unit_movement", 1000);
     restartserialpub = nh->advertise<std_msgs::Int8>("/restart_serial", 1000);
+    sendspecificgoalpub = nh->advertise<std_msgs::Float32>("/send_specific_goal", 1000);
 
     victimsClient = nh->serviceClient<openmv_camera::BothCameras>("/get_victims");
 
@@ -720,7 +723,7 @@ int ROSbridge::checkUpRamp()
     vlxDistClient.waitForExistence();
     vlxDistClient.call(vlxDistSrv);
 
-    distVlxFront = vlxDistSrv.response.front ;
+    distVlxFront = vlxDistSrv.response.front;
     distVlxRight = vlxDistSrv.response.right;
     distVlxLeft = vlxDistSrv.response.left;
 
@@ -929,6 +932,45 @@ int ROSbridge::sendGoalJetson(int movement)
     } while (scope.status == -1);
 
     scope.result = scope.status;
+
+    // Check new distance from lidar
+    if (scope.result != 0 && scope.result != 4 && scope.result != 5)
+    {
+        // Call get_walls_dist service
+        nav_main::GetWallsDist walls;
+        wallsDistClient.waitForExistence();
+        wallsDistClient.call(walls);
+
+        if (debugging)
+        {
+            ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+        }
+
+        double diff = 30 - (distLidar - walls.response.front);
+
+        if (diff >= 3 && diff <= 20)
+        {
+            ROS_INFO("Adjusting distance: %f", diff);
+            std_msgs::Float32 diffmsg;
+            diffmsg.data = diff;
+            sendspecificgoalpub.publish(diffmsg);
+
+            // wait for message from jetson (jetsonresultsub)
+            do
+            {
+                // call status service
+                exploration::GoalStatus statusSrv;
+                goalStatusClient.waitForExistence();
+                goalStatusClient.call(statusSrv);
+
+                scope.status = statusSrv.response.status;
+
+                ROS_INFO("Status %d: ", scope.status);
+
+                ros::Duration(0.1).sleep();
+            } while (!scope.result != -1);
+        }
+    }
 
     ROS_INFO("Received status: %d", scope.status);
 
