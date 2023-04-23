@@ -92,6 +92,8 @@ void Sensors::initSensors()
         break;
       }
     }
+    Serial.print("BNO calibration: ");
+    bno->displayCalStatus();
 
     if (!CK::kusingROS && CK::debugBNOCalibration)
     {
@@ -561,10 +563,13 @@ bool Sensors::isValid(double d)
 // High level methods to interact with oled.
 void Sensors::logActive(String s, bool oled, int x, int y, bool absolute)
 {
-  if (!absolute)
+  bool trace = true;
+  if (absolute)
    return;
   if (CK::debugOled && oled)
     screen.display(s, x, y);
+  if (trace)
+    screen.display(s, x, 8);
   if (!CK::kusingROS)
     Serial.println(s);
 }

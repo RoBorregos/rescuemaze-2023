@@ -51,7 +51,8 @@ void BNO::anglesInfo()
     Serial.print(F(", Y = "));
     Serial.print(y, 4);
     Serial.print(F(", Z = "));
-    Serial.println(z, 4);
+    Serial.print(z, 4);
+    Serial.print('\t');
   }
 }
 

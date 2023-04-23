@@ -104,11 +104,11 @@ private:
   static constexpr double checkTCSTimer = 50;   // Time to check TCS in ms.
   static constexpr double kDistanceWall = 0.15; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
-  static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
+  static constexpr int kAdvanceToRampTime = 2000; // Time to advance to ramp in traverseRamp();
   static constexpr double distToCheck = 0.06;
   static constexpr double backStuckTimer = 5000;
   static constexpr double timeoutPivot = 3000;
-
+  
   int leftM = 0;
   int rightM = 0;
 
@@ -123,6 +123,7 @@ private:
   static constexpr int kMinAngle = 0.0;
 
   int angleDirs[4] = {0, 90, 180, 270};
+  int basePitch = 0;
 
 public:
   // Motor Array.

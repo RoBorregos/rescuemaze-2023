@@ -249,8 +249,18 @@ void GeneralChecks::test()
     }*/
 
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
-    robot->updateAngleReference();
-
+    //robot->updateAngleReference();
+    //robot->basePitch = robot->sensors->getAngleY();
+    robot->cmdMovement(4,1);
+    while (true){
+        /*
+        if (robot->outOfPitch()){
+            Serial.println("Out of pitch");
+        } else {
+            Serial.println("In pitch");
+        }*/
+        robot->sensors->printInfo(true, false, false, false);
+    }
     while (true)
     {
         robot->advanceXMetersVLX(0.7, 0, false);
