@@ -232,7 +232,7 @@ void GeneralChecks::test()
   */
     // robot->nh->loginfo("Running Test");
 
-    // Serial.println("Running Test");
+    Serial.println("Running Test");
 
     /*
     while (true){
@@ -249,17 +249,52 @@ void GeneralChecks::test()
     }*/
 
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
+    robot->updateAngleReference();
 
     while (true)
     {
-        // robot->handleSwitches();
-        break;
-        robot->sensors->printInfo(false, true, false, false);
+
+        robot->cmdMovement(0, 1);
+        delay(1000);
+        robot->cmdMovement(0, 1);
+        delay(1000);
+        robot->cmdMovement(1, 1);
+        delay(1000);
+        robot->cmdMovement(0, 1);
+        delay(1000);
+        robot->cmdMovement(1, 1);
+        delay(1000);
+        robot->cmdMovement(1, 1);
+        end();
+        delay(2000);
+    }
+
+    delay(1000);
+    end();
+    robot->translationX(-0.3);
+    end();
+
+    // robot->testMotor();
+    robot->cmdMovement(3, 1);
+    // robot->updateAngleReference();
+    delay(1000);
+    robot->advanceXMeters(0.3, 1);
+    end();
+    robot->updateAngleReference();
+    delay(1000);
+    robot->advanceXMeters(0.3, 1);
+    end();
+    robot->updateAngleReference();
+
+    while (true)
+    {
+        robot->handleSwitches();
     }
     Serial.println("Moveng advanceX abs");
     robot->updateAngleReference();
-    while (true){
-        robot->advanceXMeters(0.3,1);
+    while (true)
+    {
+        robot->advanceXMeters(0.3, 1);
         end();
     }
 
@@ -382,14 +417,14 @@ void GeneralChecks::printRevolutions()
     robot->motor[BACK_RIGHT].motorForward();
     robot->motor[BACK_LEFT].motorForward();
 
-    robot->motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight);
-    robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
-    robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
-    robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
-    // robot->motor[FRONT_RIGHT].setPWM(255);
-    // robot->motor[FRONT_LEFT].setPWM(255);
-    // robot->motor[BACK_RIGHT].setPWM(255);
-    // robot->motor[BACK_LEFT].setPWM(255);
+    // robot->motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight);
+    // robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
+    // robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
+    // robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
+    robot->motor[FRONT_RIGHT].setPWM(255);
+    robot->motor[FRONT_LEFT].setPWM(255);
+    robot->motor[BACK_RIGHT].setPWM(255);
+    robot->motor[BACK_LEFT].setPWM(255);
 
     while (true)
     {

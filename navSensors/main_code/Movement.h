@@ -53,7 +53,7 @@ private:
   bool firstMove = true; // Used to update angles after the first movement.
 
   // Straight PID with VLX.
-  unsigned int lastUpdateVLX = millis();  
+  unsigned int lastUpdateVLX = millis();
   double correctionVLX = 0.0;
   unsigned int kVlxErrorTimer = 250; // Wait x ms before next error calculation.
 
@@ -98,15 +98,16 @@ private:
   static constexpr bool kUsingPID = true;
 
   // Control constants
-  static constexpr double kErrorVlxReading = 2; // Error to consider a reading as valid, in degrees.
+  static constexpr double kErrorVlxReading = 4; // Error to consider a reading as valid, in degrees.
   static constexpr double minPitch = -10.0;
   static constexpr double maxPitch = 10.0;
-  static constexpr double checkTCSTimer = 50; // Time to check TCS in ms.
+  static constexpr double checkTCSTimer = 50;   // Time to check TCS in ms.
   static constexpr double kDistanceWall = 0.15; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
   static constexpr int kAdvanceToRampTime = 1000; // Time to advance to ramp in traverseRamp();
   static constexpr double distToCheck = 0.06;
   static constexpr double backStuckTimer = 5000;
+  static constexpr double timeoutPivot = 3000;
 
   int leftM = 0;
   int rightM = 0;
@@ -152,6 +153,10 @@ public:
   void handleLeftLimitSwitch();
 
   void advanceUntilCentered();
+
+  void translationX(double dist);
+
+  void pivotWheels(int targetAngle, bool pivotRight);
 
   // Initialization
 
@@ -211,10 +216,10 @@ public:
   void girarIzquierda();
 
   // Rotates the robot to the specified angle.
-  void goToAngle(int targetAngle, bool oneSide=false);
-
+  void goToAngle(int targetAngle, bool oneSide = false, bool handleSwitches = false, double timeout = 0);
+  // void goToAngle(int targetAngle, bool oneSide = false);
   // Updates individual motor speed using the angle error and PID.
-  void updateRotatePID(int RPMs, bool right, bool oneSide=false);
+  void updateRotatePID(int RPMs, bool right, bool oneSide = false);
 
   void updateRotateDecider(int targetAngle, bool right, bool oneSide);
 
@@ -226,7 +231,7 @@ public:
   // Sets the current angle as the expected angle for given rDirection.
   // Updates all angles accordingly.
   void updateAngleReference();
-  
+
   void updateAngleReference(int newAngle);
 
   void printAngleReference();
@@ -253,9 +258,11 @@ public:
   // Updates pwm given to each motor, choose between corrections using bno or vlx.
   void updateVelPwm(int RPMs, bool useBNO);
 
+  void updateBasePWM(int dir);
+
   // Update pwm given to each motor, choose between corrections to pwm or
   // get closer to RPMs via PID. Use flag from CommonK.h
-  void updateVelocityDecider(int RPMs, bool useBNO=true);
+  void updateVelocityDecider(int RPMs, bool useBNO = true);
 
   // Calls straight PID method for all motors, each with its specific target RMPs.
   // @param rpm Kinematic object with target rpms per wheel.
@@ -271,7 +278,7 @@ public:
   // @param straigthPidType 1 for using BNO to move straight. 0 to use vlx.
   // @param forceBackwards Param used internally for robot to move back if it detects a black tile.
   double advanceXMeters(double x, int straightPidType, bool forceBackwards = false);
-  
+
   double advanceXMetersVLX(double x, int straightPidType, bool forceBackward);
 
   double advanceXMetersEncoders(double x, int straightPidType, bool forceBackward);
@@ -301,7 +308,7 @@ public:
   bool checkColor();
 
   // If error in yaw is greater than kErrorVlxReading, then use BNO to correct.
-  void rearrangeAngle();
+  void rearrangeAngle(double tolerance = kErrorVlxReading);
 
   // TODO: Correct logic for this method.
   double getDistanceToCenter();
@@ -326,6 +333,7 @@ public:
 
   void resetMovement();
   
+  double validAngle(double angle);
 };
 
 #endif

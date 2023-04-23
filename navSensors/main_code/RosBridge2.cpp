@@ -15,6 +15,7 @@ void RosBridge2::cmdMovementCallback(int move)
   state_ = -1; // Stauts code to indicate that the robot is moving
 
   double response = robot_->cmdMovement(move, 1);
+  robot_->rearrangeAngle(2.0);
 
   if (response == -2)
     return response;
@@ -73,8 +74,8 @@ void RosBridge2::updateDistLidar(float front)
 void RosBridge2::advanceXMeters(float meters)
 {
   state_ = -1;
-  robot_->advanceXMetersAbs(meters, 1);
-  sensors_->logActive("Adv Abs", true, 0);
+  robot_->advanceXMeters(meters, 1);
+  sensors_->logActive("Adv x M", true, 0);
   state_ = 1;
 }
 
@@ -94,7 +95,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   sensors_->logActive("Sl: " + String(cmdCounter[3]), true, 0, 4, true);
   // sensors_->logActive("Sv: " + String(cmdCounter[4]), true, 0, 5, true);
   // sensors_->logActive("Ss: " + String(cmdCounter[5]), true, 0, 6, true);
-  sensors_->logActive("Gl: " + String(cmdCounter[6]), true, 0, 7, true);
+  //sensors_->logActive("Gl: " + String(cmdCounter[6]), true, 0, 7, true);
   switch (command)
   {
   case 0x00: // Baud
@@ -127,8 +128,9 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       cmdCounter[2]++;
       int move;
       memcpy(&move, buffer, sizeof(move));
-      writeSerial(true, nullptr, 0);
+      sensors_->logActive("Move: " + String(move), true, 0, 7, true);
       cmdMovementCallback(move);
+      writeSerial(true, nullptr, 0);
     }
     break;
   case 0x04: // send_lidar
@@ -154,8 +156,8 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
       cmdCounter[4]++;
       // Copy data from buffer to variables
       memcpy(&victims, buffer, sizeof(victims));
-      writeSerial(true, nullptr, 0);
       callDispenser(victims);
+      writeSerial(true, nullptr, 0);
     }
     break;
   case 0x06: // get_start_state
@@ -201,13 +203,13 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     }
     break;
   case 0x0B: // Move specific distance
-    if (packet_size == 1)
+    if (packet_size == 5)
     { // Check packet size
       float distance;
       memcpy(&distance, buffer, sizeof(distance));
-      sensors_->logActive("Adv abs: " + String(distance), true, 0, 5);
+      sensors_->logActive("Adv abs: " + String(distance), true, 0, 6, true);
+      robot_->advanceXMetersAbs(distance, 1);
       writeSerial(true, nullptr, 0);
-      advanceXMeters(distance);
     }
     break;
   default:

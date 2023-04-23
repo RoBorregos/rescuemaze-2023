@@ -464,20 +464,16 @@ void Movement::rotateRobot(int option, int dir)
     delay(100);
 
     stop();
-    // updateAngleReference();
-
     resetEncoders();
-    return;
-    /*
-    // Align robot with back wall.
-    updateVelocityDecider(-kMovementRPMs, CK::useBNO);
-    delay(kMillisBackAccomodate);
     updateAngleReference();
-
-    // Move to center of tile
-    advanceXMeters(0.03, true);
-    */
   }
+
+  delay(100);
+  if (dir == 1)
+    translationX(0.3);
+  else
+    translationX(-0.3);
+
   stop();
   resetEncoders();
 }
@@ -657,6 +653,14 @@ void Movement::updateVelPwm(int RPMs, bool useBNO)
   motor[BACK_RIGHT].setPWM(rightM + CK::basePwmBackRight, speed_sign);
 }
 
+void Movement::updateBasePWM(int dir)
+{
+  motor[FRONT_LEFT].setPWM(leftM + CK::basePwmFrontLeft, dir);
+  motor[BACK_LEFT].setPWM(leftM + CK::basePwmBackLeft, dir);
+  motor[FRONT_RIGHT].setPWM(rightM + CK::basePwmFrontRight, dir);
+  motor[BACK_RIGHT].setPWM(rightM + CK::basePwmBackRight, dir);
+}
+
 void Movement::updateVelocityDecider(int RPMs, bool useBNO)
 {
   // nh->loginfo("updateVelocityDecider called");
@@ -790,12 +794,13 @@ double Movement::advanceXMeters(double x, int straigthPidType, bool forceBackwar
 
   if (dist > 1.15)
   {
-    sensors->logActive("Use encoders advance", true, 0, 0);
+    // sensors->logActive("Use encoders advance", true, 0, 6, true);
     return advanceXMetersEncoders(x, straigthPidType, forceBackwards);
   }
   else
   {
-    sensors->logActive("Use encoders vlx", true, 0, 0);
+    // sensors->logActive("Use vlx", true, 0, 6, true);
+
     return advanceXMetersVLX(x, straigthPidType, forceBackwards);
   }
 }
@@ -848,7 +853,7 @@ double Movement::advanceXMetersEncoders(double x, int straightPidType, bool forc
   else
   {
     double changeT = millis();
-    while (target < dist)
+    while (dist > target)
     {
       // rosBridge->readOnce();
       if (!sensors->readMotorInit())
@@ -933,7 +938,7 @@ void Movement::advanceXMetersAbs(float x, int straightPidType)
     double prevDist = dist;
 
     // Don't check color and stable pitch. Assume negative movement only for black tiles.
-    while (target < dist)
+    while (dist > target)
     {
       // rosBridge->readOnce();
       if (!sensors->readMotorInit())
@@ -941,6 +946,7 @@ void Movement::advanceXMetersAbs(float x, int straightPidType)
       updateVelocityDecider(-kMovementRPMs, straightPidType);
       dist = meanDistanceTraveled();
 
+      sensors->logActive("Distancia recorrida advanceXMetersAbs: " + String(initial - dist), true, 0, 4, true);
       // If robot hasn't moved significantly in backStuckTimer, break.
       if (millis() - changeT > backStuckTimer)
       {
@@ -952,8 +958,7 @@ void Movement::advanceXMetersAbs(float x, int straightPidType)
   }
 
   stop();
-  resetEncoders();
-  sensors->logActive("Distancia final recorrida advanceXMetersAbs: " + String(initial - dist), true, 0, 1);
+  sensors->logActive("Distancia final recorrida advanceXMetersAbs: " + String(initial - dist), true, 0, 1, true);
 }
 
 void Movement::advanceSlow(bool direction)
@@ -979,13 +984,14 @@ void Movement::updateAngleReference()
     currRdir++;
     currAngle += 90;
 
-    if (currRdir > 4)
+    if (currRdir > 3)
       currRdir = 0;
     if (currAngle > 360)
       currAngle -= 360;
 
     angleDirs[currRdir] = currAngle;
   }
+  printAngleReference();
 }
 
 void Movement::updateAngleReference(int newAngle)
@@ -1076,10 +1082,10 @@ bool Movement::outOfPitch()
   return pitch > maxPitch || pitch < minPitch;
 }
 
-void Movement::rearrangeAngle()
+void Movement::rearrangeAngle(double tolerance)
 {
   double angleError = getAngleError(dirToAngle(rDirection));
-  if (abs(angleError) > kErrorVlxReading)
+  if (abs(angleError) > tolerance)
     goToAngle(dirToAngle(rDirection), false);
 }
 
@@ -1114,7 +1120,55 @@ void Movement::advanceUntilCentered()
     dist = sensors->getDistInfo(dist_front);
   }
 }
+// New implementation
+void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, double timeout)
+{
+  double currentAngle = bno->getAngleX();
 
+  double diff = getAngleError(targetAngle);
+
+  long int start = millis();
+
+  while (abs(diff) > 2)
+  {
+    // rosBridge->readOnce();
+    sensors->logActive("GotoAngle");
+    /*
+    if (!sensors->readMotorInit() || (timeout && (millis() - start) > timeout)){
+      stop();
+      return;
+    }*/
+
+    if (handleSwitches)
+    {
+      bool l, r;
+      sensors->getLimitSwitches(l, r);
+      if (l || r)
+      {
+        updateBasePWM(-1);
+        delay(100);
+        stop();
+      }
+    }
+    bool turnRight = false;
+    if (diff > 0 && diff < 180 || diff < -180)
+    {
+      turnRight = true;
+    }
+    else
+    {
+      turnRight = false;
+    }
+
+    updateRotateDecider(targetAngle, turnRight, oneSide);
+
+    diff = getAngleError(targetAngle);
+    sensors->logActive("Diff: " + String(diff), true, 0, 3);
+  }
+
+  stop();
+}
+/*
 void Movement::goToAngle(int targetAngle, bool oneSide)
 {
   double currentAngle = bno->getAngleX();
@@ -1144,7 +1198,7 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
   }
 
   stop();
-}
+}*/
 
 void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
 {
@@ -1234,6 +1288,101 @@ void Movement::dropDecider(int ros_sign_callback)
   sensors->toggleRightLed();
 }
 
+// Possitive dist to move to the right.
+void Movement::translationX(double dist)
+{
+  sensors->logActive("Translation X");
+  double startAngle = bno->getAngleX();
+
+  // TODO: vary translation depending on dist arg.
+  // double startAngle = factor * dist;
+
+  // Translate in X axis.
+  if (dist > 0)
+  {
+    double targetAngle = startAngle - 40;
+    targetAngle = validAngle(targetAngle);
+
+    goToAngle(targetAngle, false, true, 3000);
+    // goToAngle(startAngle + 40, false);
+    delay(100);
+
+    pivotWheels(dirToAngle(rDirection), true);
+
+    // goToAngle(startAngle, true); // Move only one side of wheels to cause translation.
+  }
+  else
+  {
+    double targetAngle = startAngle + 40;
+    targetAngle = validAngle(targetAngle);
+
+    goToAngle(targetAngle, false, true, false);
+    delay(100);
+    pivotWheels(dirToAngle(rDirection), true);
+    // goToAngle(startAngle, true);
+  }
+
+  // Reaccomodate in Y axis.
+  advanceXMetersAbs(-0.05, 1);
+
+  stop();
+}
+
+void Movement::pivotWheels(int targetAngle, bool pivotRight)
+{
+  double currentAngle = bno->getAngleX();
+
+  double diff = getAngleError(targetAngle);
+  long int dt = millis();
+  while (abs(diff) > 2)
+  {
+    if (millis() - dt > timeoutPivot)
+      return;
+    // rosBridge->readOnce();
+    if (!sensors->readMotorInit())
+      return;
+    bool turnRight = false;
+    if (diff > 0 && diff < 180 || diff < -180)
+      turnRight = true;
+    else
+      turnRight = false;
+
+    currentAngle = bno->getAngleX();
+
+    if (turnRight)
+      girarDerecha();
+    else
+      girarIzquierda();
+
+    // Right not moving, thus acting as pivot
+    if (pivotRight)
+    {
+      motor[FRONT_LEFT].motorRotateDerPID(targetAngle, currentAngle);
+      // motor[BACK_LEFT].motorRotateDerPID(targetAngle, currentAngle);
+      motor[BACK_LEFT].setPWM(255);
+
+      motor[FRONT_RIGHT].motorBackward(); // Move slightly backwards to avoid being moved
+
+      motor[FRONT_RIGHT].setPWM(50);
+      motor[BACK_RIGHT].setPWM(0);
+    }
+    else
+    {
+      motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, currentAngle);
+      // motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, currentAngle);
+      motor[BACK_RIGHT].setPWM(255);
+
+      motor[FRONT_LEFT].motorBackward();
+      motor[FRONT_LEFT].setPWM(50);
+      motor[BACK_LEFT].setPWM(0);
+    }
+
+    diff = getAngleError(targetAngle);
+    sensors->logActive("Diff: " + String(diff), true, 0, 3);
+  }
+  stop();
+}
+
 double Movement::traverseRamp(int option)
 {
   // Advance first if option is set to 1
@@ -1260,24 +1409,20 @@ double Movement::traverseRamp(int option)
 
 void Movement::testMotor()
 {
+  motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, -1);
+  motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
+  motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
+  motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, -1);
+  delay(2000);
 
-  // Motor *m = &motor[FRONT_RIGHT];
-  Motor *m = &motor[BACK_LEFT];
-  // Motor *m = &motor[BACK_RIGHT];
-  //  Motor *m = &motor[FRONT_LEFT];
+  motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, 1);
+  motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, 1);
+  motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, 1);
+  motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, 1);
+  delay(100);
 
-  while (true)
-  {
-    if (!CK::kusingROS)
-    {
-      /* Display the results in the Serial Monitor */
-      Serial.print("Curr speed: ");
-      Serial.print(m->getCurrentSpeed());
-      Serial.print(", ");
-      Serial.print("Curr target: ");
-      Serial.println(m->getTargetSpeed());
-    }
-  }
+  stop();
+  updateAngleReference();
 }
 
 // Robot state
@@ -1335,31 +1480,19 @@ void Movement::logDebug(String data, double data2)
 
 void Movement::handleRightLimitSwitch()
 {
-
-  // int newAngle = bno->getAngleX() + 2;
+  int newAngle = bno->getAngleX();
   for (int i = 0; i < 8; i++)
   {
+    newAngle += 8;
+    if (newAngle > 360)
+      newAngle -= 360;
+
     updateStraightPID(-kMovementRPMs);
-    delay(150);
-  }
 
-  stop();
-
-  {
-    int newAngle = bno->getAngleX() - 75;
-    if (newAngle < 0)
-      newAngle += 360;
+    delay(80);
     goToAngle(newAngle, true);
-
-    rearrangeAngle();
-    stop();
-    return;
+    delay(50);
   }
-
-  delay(100);
-  int newAngle = bno->getAngleX() - 2;
-  if (newAngle < 0)
-    newAngle += 360;
 
   // updateAngleReference(newAngle);
   // goToAngle(newAngle, true);
@@ -1369,38 +1502,20 @@ void Movement::handleRightLimitSwitch()
 
 void Movement::handleLeftLimitSwitch()
 {
+  int newAngle = bno->getAngleX();
   for (int i = 0; i < 8; i++)
   {
+    newAngle -= 8;
+    if (newAngle < 0)
+      newAngle += 360;
+
     updateStraightPID(-kMovementRPMs);
-    delay(150);
-  }
 
-  stop();
-
-  {
-    int newAngle = bno->getAngleX() + 75;
-    if (newAngle > 360)
-      newAngle -= 360;
+    delay(80);
     goToAngle(newAngle, true);
-
-    // newAngle -= 50;
-    // if (newAngle < 0)
-    //   newAngle += 360;
-    // goToAngle(newAngle, true);
-
-    rearrangeAngle();
-    stop();
-    return;
+    delay(50);
   }
 
-  delay(100);
-  int newAngle = bno->getAngleX() + 2;
-  if (newAngle > 360)
-    newAngle -= 360;
-
-  // updateAngleReference(newAngle);
-
-  goToAngle(newAngle, true);
   rearrangeAngle();
   stop();
 }
@@ -1414,6 +1529,16 @@ void Movement::resetMovement()
 {
   firstMove = true;
   rDirection = 0;
+}
+
+double Movement::validAngle(double angle)
+{
+  while (angle > 360)
+    angle -= 360;
+  while (angle < 0)
+    angle += 360;
+
+  return angle;
 }
 /*
 

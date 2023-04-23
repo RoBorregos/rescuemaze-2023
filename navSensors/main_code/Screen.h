@@ -29,12 +29,13 @@ class Screen
 
 private:
     Adafruit_SH1106G screen = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    
+    bool ignoreAll = false;
 
 public:
     Screen();
 
     void init();
+    void RBRGS();
 
     void display(String message, int x=0, int y=0);
 

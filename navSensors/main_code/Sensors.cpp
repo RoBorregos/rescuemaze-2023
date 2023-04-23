@@ -53,6 +53,8 @@ void Sensors::initSensors()
   if (CK::debugOled)
   {
     screen.init();
+    // screen.RBRGS();
+    
   }
 
   if (CK::calibrateBNO)
@@ -259,7 +261,7 @@ void Sensors::getLidarDistances(double &front, double &back, double &left, doubl
 
 bool Sensors::readMotorInit()
 {
-
+  return true; // Temprarily: motors disconnected
   int val = digitalRead(kMotorPin);
   return val == HIGH;
 }
@@ -559,7 +561,7 @@ bool Sensors::isValid(double d)
 // High level methods to interact with oled.
 void Sensors::logActive(String s, bool oled, int x, int y, bool absolute)
 {
-  if (absolute)
+  if (!absolute)
    return;
   if (CK::debugOled && oled)
     screen.display(s, x, y);
