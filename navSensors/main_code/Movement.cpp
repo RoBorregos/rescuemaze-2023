@@ -573,9 +573,6 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
   if (CK::pidBoth)
   {
     double combinedCorrection = ((errorD * bnoFactor) * 1.5 + (correctionVLX) * .5) / 2;
-    Serial.print("Combined correction: " + String(combinedCorrection));
-    Serial.print("Error bno factor: " + String((errorD * bnoFactor)));
-    Serial.print("Correction vlx: " + String(correctionVLX));
     motor[FRONT_LEFT].motorSpeedPID(RPMs + combinedCorrection);
     motor[BACK_LEFT].motorSpeedPID(RPMs + combinedCorrection);
     motor[FRONT_RIGHT].motorSpeedPID(RPMs + combinedCorrection * -1);
