@@ -253,7 +253,8 @@ void GeneralChecks::test()
 
     while (true)
     {
-
+        robot->advanceXMetersVLX(0.7, 0, false);
+        end();
         robot->cmdMovement(0, 1);
         delay(1000);
         robot->cmdMovement(0, 1);

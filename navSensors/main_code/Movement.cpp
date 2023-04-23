@@ -506,6 +506,8 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 // Update PID with either VLX or BNO error.
 void Movement::updateStraightPID(int RPMs, bool useBNO)
 {
+  double errorD = 0;
+  double bnoFactor = 10;
   // Debug motors status
   if (!CK::kusingROS)
   {
@@ -513,25 +515,19 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
     getMotorStatus(BACK_LEFT);
   }
 
-  motor[FRONT_LEFT].motorForward();
-  motor[BACK_LEFT].motorForward();
-  motor[FRONT_RIGHT].motorForward();
-  motor[BACK_RIGHT].motorForward();
+  // motor[FRONT_LEFT].motorForward();
+  // motor[BACK_LEFT].motorForward();
+  // motor[FRONT_RIGHT].motorForward();
+  // motor[BACK_RIGHT].motorForward();
 
   // nh->loginfo("updateStraightPID called");
-  if (useBNO)
+  if (useBNO || CK::pidBoth)
   {
-    double errorD = getAngleError(dirToAngle(rDirection));
-    double factor = 10; // Increasing the factor increases the speed correction.
-
-    motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-    motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * factor));
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * factor * -1));
+    errorD = getAngleError(dirToAngle(rDirection));
 
     if (!CK::kusingROS)
     {
-      double correction = errorD * factor;
+      double correction = errorD * bnoFactor;
       Serial.print("ErrorD: ");
       Serial.print(correctionVLX);
       Serial.print(", Target rpm: left: ");
@@ -540,7 +536,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
       Serial.print(RPMs + correction * -1);
     }
   }
-  else
+  if (!useBNO || CK::pidBoth)
   {
     // Use VLX distance error to update target speeds.
     if (!CK::kusingROS)
@@ -560,11 +556,6 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
       this->correctionVLX = 100 * (rightDistance - leftDistance) * 2;
     }
 
-    motor[FRONT_LEFT].motorSpeedPID(RPMs + correctionVLX);
-    motor[BACK_LEFT].motorSpeedPID(RPMs + correctionVLX);
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
-    motor[BACK_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
-
     if (!CK::kusingROS && CK::vlxPID)
     {
 
@@ -577,6 +568,33 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
       Serial.print("Real Error: ");
       Serial.println(correctionVLX / 100);
     }
+  }
+
+  if (CK::pidBoth)
+  {
+    double combinedCorrection = ((errorD * bnoFactor) * 1.5 + (correctionVLX) * .5) / 2;
+    Serial.print("Combined correction: " + String(combinedCorrection));
+    Serial.print("Error bno factor: " + String((errorD * bnoFactor)));
+    Serial.print("Correction vlx: " + String(correctionVLX));
+    motor[FRONT_LEFT].motorSpeedPID(RPMs + combinedCorrection);
+    motor[BACK_LEFT].motorSpeedPID(RPMs + combinedCorrection);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs + combinedCorrection * -1);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs + combinedCorrection * -1);
+  }
+  else if (!CK::pidBoth && useBNO)
+  {
+    // Possitive errorD moves the robot towards the right
+    motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
+    motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
+    motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
+  }
+  else if (!CK::pidBoth && !useBNO)
+  {
+    motor[FRONT_LEFT].motorSpeedPID(RPMs + correctionVLX);
+    motor[BACK_LEFT].motorSpeedPID(RPMs + correctionVLX);
+    motor[FRONT_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
+    motor[BACK_RIGHT].motorSpeedPID(RPMs + correctionVLX * -1);
   }
 }
 
@@ -702,7 +720,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
       updateVelocityDecider(kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
-      rearrangeAngle();
+      rearrangeAngle(15);
 
       if (outOfPitch())
       {

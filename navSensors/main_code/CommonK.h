@@ -6,7 +6,7 @@
 namespace CK
 {
     // Determines if Serial.print should be used along the code. Serial.print may disrupt serial communication with ROS.
-    const bool kusingROS = false;
+    const bool kusingROS = true;
     const bool debugAdvanceX = true;
     const bool debugRamp = true;
     const bool debugGoToAngle = true;
@@ -19,6 +19,7 @@ namespace CK
     const bool useBNO = true;
     const bool rotatePID = true;
     const bool debugOled = true;
+    const bool pidBoth = true;
 
     // Tune constants such that motors all motors move at desired speed.
     const int basePwmBackLeft = 100;
