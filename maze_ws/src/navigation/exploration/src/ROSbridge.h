@@ -934,7 +934,7 @@ int ROSbridge::sendGoalJetson(int movement)
     scope.result = scope.status;
 
     // Check new distance from lidar
-    if (scope.result != 0 && scope.result != 4 && scope.result != 5)
+    if (false && scope.result != 0 && scope.result != 4 && scope.result != 5)
     {
         // Call get_walls_dist service
         nav_main::GetWallsDist walls;
@@ -946,9 +946,9 @@ int ROSbridge::sendGoalJetson(int movement)
             ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
         }
 
-        double diff = 30 - (distLidar - walls.response.front);
+        double diff = 0.30 - (distLidar - walls.response.front);
 
-        if (diff >= 3 && diff <= 20)
+        if (diff >= 0.03 && diff <= 0.30)
         {
             ROS_INFO("Adjusting distance: %f", diff);
             std_msgs::Float32 diffmsg;
@@ -975,7 +975,7 @@ int ROSbridge::sendGoalJetson(int movement)
     ROS_INFO("Received status: %d", scope.status);
 
     // Test lidar status
-    if (true)
+    if (false)
     {
         std_srvs::Trigger lidarSrv;
         test_lidar_client.waitForExistence();
