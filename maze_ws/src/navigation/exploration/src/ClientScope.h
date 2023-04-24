@@ -10,10 +10,10 @@ struct ClientScope
     string yfeedback;
     string zfeedback;
 
-    uint8_t result;
+    int result;
     string textRes;
     // int status;
-    uint8_t status;
+    int status;
     bool resultReceived;
     bool startedGoal;
 
