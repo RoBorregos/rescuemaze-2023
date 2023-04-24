@@ -22,10 +22,10 @@ namespace CK
     const bool pidBoth = true;
 
     // Tune constants such that motors all motors move at desired speed.
-    const int basePwmBackLeft = 100;
+    const int basePwmBackLeft = 150;
     const int basePwmBackRight = 150;
     const int basePwmFrontLeft = 150;
-    const int basePwmFrontRight = 120;
+    const int basePwmFrontRight = 150;
 
     const double kRampDt = 3;
 }

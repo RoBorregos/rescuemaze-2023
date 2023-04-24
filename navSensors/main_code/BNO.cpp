@@ -193,7 +193,7 @@ bool BNO::isCalibrated()
 {
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag); // Mag is calibrated at the moment, the others are preloaded
-  return mag == 3;
+  return mag == 3 && system > 0;
 }
 
 void BNO::displayCalStatus(void)

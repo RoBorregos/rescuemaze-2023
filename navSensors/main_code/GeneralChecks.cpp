@@ -233,11 +233,11 @@ void GeneralChecks::test()
     // robot->nh->loginfo("Running Test");
 
     Serial.println("Running Test");
-
-    /*
-    while (true){
-        robot->sensors->printInfo(false, true, false, false);
-    }*/
+    // robot->testMotor();
+    
+    // while (true){
+    //     robot->sensors->printInfo(true, false, false, false);
+    // }
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
 
@@ -249,10 +249,14 @@ void GeneralChecks::test()
     }*/
 
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
-    //robot->updateAngleReference();
-    //robot->basePitch = robot->sensors->getAngleY();
-    robot->cmdMovement(4,1);
-    while (true){
+    // robot->updateAngleReference();
+    // robot->basePitch = robot->sensors->getAngleY();
+    double pwm = 10;
+
+    robot->cmdMovement(3, 1);
+    end();
+    while (true)
+    {
         /*
         if (robot->outOfPitch()){
             Serial.println("Out of pitch");
@@ -285,7 +289,6 @@ void GeneralChecks::test()
     robot->translationX(-0.3);
     end();
 
-    // robot->testMotor();
     robot->cmdMovement(3, 1);
     // robot->updateAngleReference();
     delay(1000);
