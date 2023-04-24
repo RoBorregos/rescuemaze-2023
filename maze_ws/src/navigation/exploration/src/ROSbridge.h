@@ -65,6 +65,7 @@ class ROSbridge
 {
 private:
     bool debugging;
+    bool finishSetup;
 
     ros::NodeHandle *nh;
 
@@ -190,6 +191,8 @@ private:
 
     ClientScope scope;
 
+    int curGoal;
+
     bool upRamp;
 
     // VLX data
@@ -225,6 +228,8 @@ private:
 
     ros::ServiceClient test_lidar_client;
 
+    ros::Timer goalTimer;
+
     int checkUpRamp();
 
     void vlxFrontCallback(const sensor_msgs::Range::ConstPtr &msg);
@@ -232,6 +237,7 @@ private:
     void vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg);
 
     void startCallback(const std_msgs::Int8::ConstPtr &msg);
+    void goalTimeoutCallback(const ros::TimerEvent& event);
     int sendGoalJetson(int movement);
 
     void sendKit();
@@ -353,6 +359,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     receivedVlxLeft = false;
 
     startAlgorithm = true;
+    finishSetup = false;
 
     ROS_INFO("Creating ROSbridge");
     nh = n;
@@ -765,6 +772,23 @@ void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
     startAlgorithm = msg->data;
 }
 
+void ROSbridge::goalTimeoutCallback(const ros::TimerEvent& event)
+{
+    ros::spinOnce();
+
+    // Call get_walls_dist service
+    nav_main::GetWallsDist walls;
+
+    wallsDistClient.waitForExistence();
+    wallsDistClient.call(walls);
+
+    if (abs(walls.response.front - distLidar) < 0.05)
+    {
+        pubDebug("Resending goal");
+        sendGoalJetson(curGoal);
+    }
+}
+
 // 0: forward
 // 1: left
 // 3: right
@@ -779,6 +803,12 @@ void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
 int ROSbridge::sendGoalJetson(int movement)
 {
     ROS_INFO("Send goal to arduino");
+
+    if (!finishSetup)
+    {
+        ros::Duration(5).sleep();
+        finishSetup = true;
+    }
 
     ros::spinOnce();
 
@@ -826,21 +856,12 @@ int ROSbridge::sendGoalJetson(int movement)
         ROS_INFO("Turn left");
         movementmsg.data = 3;
     }
-    // if (movement == 4)
-    // {
-    //     ROS_INFO("Forward (ramp)");
-    //     movementmsg.data = 4;
-    // }
-    if (movement == 4)
-    {
-        // ROS_INFO("Backward");
-        // movementmsg.data = 2;
-    }
 
     unitmovementpub.publish(movementmsg);
     scope.startedGoal = true;
     scope.resultReceived = false;
     scope.status = -1;
+    ros::Timer goalTimer = nh->createTimer(ros::Duration(5), &ROSbridge::goalTimeoutCallback, this);
 
     ROS_INFO("Status %d: ", scope.status);
 
@@ -851,24 +872,25 @@ int ROSbridge::sendGoalJetson(int movement)
 
         ros::spinOnce();
 
+
         // Call get_walls_dist service
-        nav_main::GetWallsDist walls;
-        wallsDistClient.waitForExistence();
-        wallsDistClient.call(walls);
-        float distLidarFront = walls.response.front;
-        float distLidarRight = walls.response.right;
-        float distLidarLeft = walls.response.left;
-        float distLidarBack = walls.response.back;
+        // nav_main::GetWallsDist walls;
+        // wallsDistClient.waitForExistence();
+        // wallsDistClient.call(walls);
+        // float distLidarFront = walls.response.front;
+        // float distLidarRight = walls.response.right;
+        // float distLidarLeft = walls.response.left;
+        // float distLidarBack = walls.response.back;
 
-        // Make float multiarray msg for lidar
-        std_msgs::Float32MultiArray lidarserialmsg;
-        lidarserialmsg.data.clear();
-        lidarserialmsg.data.push_back(distLidarFront);
-        lidarserialmsg.data.push_back(distLidarRight);
-        lidarserialmsg.data.push_back(distLidarLeft);
-        lidarserialmsg.data.push_back(distLidarBack);
+        // // Make float multiarray msg for lidar
+        // std_msgs::Float32MultiArray lidarserialmsg;
+        // lidarserialmsg.data.clear();
+        // lidarserialmsg.data.push_back(distLidarFront);
+        // lidarserialmsg.data.push_back(distLidarRight);
+        // lidarserialmsg.data.push_back(distLidarLeft);
+        // lidarserialmsg.data.push_back(distLidarBack);
 
-        lidarserialpub.publish(lidarserialmsg);
+        // lidarserialpub.publish(lidarserialmsg);
 
         // call status service
         exploration::GoalStatus statusSrv;
@@ -878,6 +900,8 @@ int ROSbridge::sendGoalJetson(int movement)
         scope.status = statusSrv.response.status;
 
         ROS_INFO("Status %d: ", scope.status);
+
+
 
         // // check color
         // if (tcsdata == 'N' && !blackTile)
@@ -932,9 +956,10 @@ int ROSbridge::sendGoalJetson(int movement)
     } while (scope.status == -1);
 
     scope.result = scope.status;
+    ROS_INFO("Received status: %d", scope.status);
 
     // Check new distance from lidar
-    if (false && scope.result != 0 && scope.result != 4 && scope.result != 5)
+    if (movement == 0 && scope.result != 0 && scope.result != 4 && scope.result != 5)
     {
         // Call get_walls_dist service
         nav_main::GetWallsDist walls;
@@ -947,8 +972,9 @@ int ROSbridge::sendGoalJetson(int movement)
         }
 
         double diff = 0.30 - (distLidar - walls.response.front);
+        ROS_INFO("Distance difference: %f", diff);
 
-        if (diff >= 0.03 && diff <= 0.30)
+        if (diff >= 0.03 && diff <= 0.30 || diff <= -0.03 && diff >= -0.30)
         {
             ROS_INFO("Adjusting distance: %f", diff);
             std_msgs::Float32 diffmsg;
@@ -967,12 +993,10 @@ int ROSbridge::sendGoalJetson(int movement)
 
                 ROS_INFO("Status %d: ", scope.status);
 
-                ros::Duration(0.1).sleep();
-            } while (!scope.result != -1);
+                // ros::Duration(0.15).sleep();
+            } while (ros::ok() && scope.result == -1);
         }
     }
-
-    ROS_INFO("Received status: %d", scope.status);
 
     // Test lidar status
     if (false)

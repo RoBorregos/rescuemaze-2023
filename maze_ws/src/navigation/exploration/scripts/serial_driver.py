@@ -341,12 +341,14 @@ class Microcontroller:
 
 def goal_callback(data):
     global controller, goalCounter
+    print(f"Sending goal: {data.data}")
     controller.set_goal(data.data)    
     goalCounter += 1
     print("Goal Counter:",goalCounter)
 
 def lidar_callback(data):
     global controller, lidarCounter
+    
     controller.send_lidar(data.data[0], data.data[1], data.data[2], data.data[3])
     lidarCounter += 1
     print("Lidar counter:",lidarCounter)
@@ -365,10 +367,12 @@ def get_cur_goal(req):
 
 def goal_status(req):
     global controller
+    print("Requesting goal status")
     return GoalStatusResponse(controller.get_goal_state()[1])
 
 def get_vlx(req):
     global controller
+    print("Requesting VLX")
 
     dist = controller.get_VLX()
     return VLXDistResponse(dist[1], dist[2], dist[3])
@@ -440,6 +444,7 @@ def send_specific_goal_callback(data):
 
 if __name__ == '__main__':
 
+    global controller, imuPub, imuAnglePub, imu_frame_id
     global counter, lidarCounter, goalCounter, initT
     initT = time.time()
     counter = 0
@@ -466,6 +471,8 @@ if __name__ == '__main__':
 
     rospy.loginfo("Connecting to serial port %s at %d baud" % (port, baud))
 
+    controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
+    controller.connect()
     
     if only_test_lidar:
         rospy.wait_for_service('get_walls_dist')
@@ -479,6 +486,8 @@ if __name__ == '__main__':
     rospy.Subscriber("/restart_serial", Int8, restart_callback)
     rospy.Subscriber("/send_specific_goal", Float32, send_specific_goal_callback)
 
+    print("Initialized subscribers")
+
     # Goal status service
     s = rospy.Service('/get_goal_status', GoalStatus, goal_status)
     # VLX service
@@ -490,14 +499,12 @@ if __name__ == '__main__':
 
     s5 = rospy.Service('/get_lidar_status', Trigger, lidar_status)
 
-    global controller, imuPub, imuAnglePub, imu_frame_id
+    print("Initialized services")
 
     imuPub = rospy.Publisher('imu', Imu, queue_size=5)
     imuAnglePub = rospy.Publisher('imu_angle', Float32, queue_size=5)
     imu_frame_id = rospy.get_param('imu_frame_id', 'imu_base')
 
-    controller = Microcontroller(port=port, baudrate=baud, timeout=timeout)
-    controller.connect()
     rospy.spin()
 
     if only_test_lidar:
