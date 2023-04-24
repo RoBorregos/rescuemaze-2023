@@ -234,10 +234,22 @@ void GeneralChecks::test()
 
     Serial.println("Running Test");
     // robot->testMotor();
-    
-    // while (true){
-    //     robot->sensors->printInfo(true, false, false, false);
-    // }
+
+    Kinematics::output test = robot->kinematics.getRPM(0, 0, 3);
+    Serial.print("RPM: ");
+    Serial.print(test.rpm1);
+    Serial.print(" ");
+    Serial.print(test.rpm2);
+    Serial.print(" ");
+    Serial.print(test.rpm3);
+    Serial.print(" ");
+    Serial.println(test.rpm4);
+
+    end();
+    while (true)
+    {
+        robot->sensors->printInfo(false, false, false, true);
+    }
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
 
@@ -387,6 +399,26 @@ void GeneralChecks::test()
  }
 }
 */
+
+void GeneralChecks::checkPID()
+{
+    Plot plot(robot);
+    plot.startSequence();
+    long int time = millis();
+    long int interval = 8000;
+    double revolutions = 40;
+
+    while (true)
+    {
+        plot.plotTargetandCurrent();
+        robot->updateStraightPID(revolutions);
+        if (millis() - time > interval)
+        {
+            time = millis();
+            revolutions += 10;
+        }
+    }
+}
 
 void GeneralChecks::checkOled()
 {

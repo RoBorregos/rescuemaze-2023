@@ -54,6 +54,9 @@ public:
     // Helper function to log messages.
     void log(String s, bool newLine = true);
 
+    // Check PID constants and compare them with target velocity.
+    void checkPID();
+
     // Do specific tests. Use to avoid polluting main_code.ino and seize access as friend class.
     void test();
     
