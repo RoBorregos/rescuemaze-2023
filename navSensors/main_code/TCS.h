@@ -16,7 +16,7 @@ class TCS
 private:
   // Test with different integration times (2.4ms, 24ms, 50ms, 101ms, 154ms, 700ms). Note: integration time increases detection time.
   // Test with different gain values (1x, 4x, 16x, 60x)
-  Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
+  Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_1X);
   float red;
   float green;
   float blue;

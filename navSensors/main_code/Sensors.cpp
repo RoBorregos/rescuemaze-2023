@@ -54,7 +54,6 @@ void Sensors::initSensors()
   {
     screen.init();
     // screen.RBRGS();
-    
   }
 
   if (CK::calibrateBNO)
@@ -74,6 +73,9 @@ void Sensors::initSensors()
     // Calibrate Magnetometer by moving robot.
     while (!bno->isCalibrated())
     {
+      int system, gyro, accel, mag;
+      bno->getCalibration(system, gyro, accel, mag);
+      logActive("S=" + String(system) + ";Mag=" + String(mag) + ";G=" + String(gyro) + ";A=" + String(accel), true, 0, 3);
       if (!CK::kusingROS && CK::debugBNOCalibration)
         bno->displayCalStatus();
 
@@ -205,15 +207,14 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
 
   // 19*18
   // Update values adding constant error
-  //wallDistances[0] = front - 19 / 200.0;
-  //wallDistances[1] = back - 19 / 200.0;
-  //wallDistances[2] = left - 18 / 200.0;
-  //wallDistances[3] = right - 18 / 200.0;
+  // wallDistances[0] = front - 19 / 200.0;
+  // wallDistances[1] = back - 19 / 200.0;
+  // wallDistances[2] = left - 18 / 200.0;
+  // wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
 
   logActive("Fr: " + String(wallDistances[0]) + " Back: " + String(wallDistances[1]), true, 0, 6);
   logActive("L: " + String(wallDistances[2]) + " R: " + String(wallDistances[3]), true, 0, 7);
-
 }
 
 void Sensors::updateDistLidar(float front)
@@ -241,10 +242,10 @@ void Sensors::updateDistLidar(float front)
 
   // 19*18
   // Update values adding constant error
-  //wallDistances[0] = front - 19 / 200.0;
-  //wallDistances[1] = back - 19 / 200.0;
-  //wallDistances[2] = left - 18 / 200.0;
-  //wallDistances[3] = right - 18 / 200.0;
+  // wallDistances[0] = front - 19 / 200.0;
+  // wallDistances[1] = back - 19 / 200.0;
+  // wallDistances[2] = left - 18 / 200.0;
+  // wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
 
   logActive("Fr: " + String(wallDistances[0]), true, 0, 6);
@@ -263,7 +264,6 @@ void Sensors::getLidarDistances(double &front, double &back, double &left, doubl
 
 bool Sensors::readMotorInit()
 {
-  return true; // Temprarily: motors disconnected
   int val = digitalRead(kMotorPin);
   return val == HIGH;
 }
@@ -352,7 +352,9 @@ float Sensors::getDistInfo(int direction)
   if (usingLidar)
   {
     logActive("Usando lidar", true, 0, 5, true);
-  } else {
+  }
+  else
+  {
     logActive("NO usando lidar", true, 0, 5, true);
   }
 
@@ -373,7 +375,7 @@ float Sensors::getDistInfo(int direction)
       if (isValid(wallDistances[direction]))
       {
         lidarAttemptCount = 0;
-        return wallDistances[direction] - 19/200.0; // Subtract distance from lidar to robot's wall
+        return wallDistances[direction] - 19 / 200.0; // Subtract distance from lidar to robot's wall
       }
       else
       {
@@ -565,7 +567,7 @@ void Sensors::logActive(String s, bool oled, int x, int y, bool absolute)
 {
   bool trace = true;
   if (absolute)
-   return;
+    return;
   if (CK::debugOled && oled)
     screen.display(s, x, y);
   if (trace)
@@ -586,6 +588,7 @@ void Sensors::logActive(double n, String s, String divider, bool oled, int x, in
   logActive(newMsg, oled, x, y);
 }
 
-void Sensors::resetScreen(){
+void Sensors::resetScreen()
+{
   screen.resetScreen();
 }

@@ -90,12 +90,12 @@ void TCS::printRGB()
   // updateRGBC();
   if (!CK::kusingROS)
   {
-    // Serial.print("R: ");
-    // Serial.print(red);
-    // Serial.print("  G: ");
-    // Serial.print(green);
-    // Serial.print("  B: ");
-    // Serial.println(blue);
+    Serial.print("R: ");
+    Serial.print(red);
+    Serial.print("  G: ");
+    Serial.print(green);
+    Serial.print("  B: ");
+    Serial.println(blue);
   }
 }
 

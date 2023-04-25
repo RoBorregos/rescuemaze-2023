@@ -47,8 +47,8 @@ class Sensors
   // Each row represents the upper and lower limits for detecting a color.
   // colorThresholds[0] = {redMin, redmax, greenMin, greenMax, blueMin, blueMax}
   static constexpr int colorThresholds[colorAmount][6] = {
-      {0, 160, 0, 150, 0, 150},
-      {200, 280, 330, 405, 370, 450}};
+      {0, 30, 0, 25, 0, 20},
+      {30, 60, 50, 100, 80, 100}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.
