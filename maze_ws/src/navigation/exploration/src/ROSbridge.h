@@ -391,6 +391,9 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
     wallsDistClient = nh->serviceClient<nav_main::GetWallsDist>("/get_walls_dist");
 
     test_lidar_client = nh->serviceClient<std_srvs::Trigger>("/get_lidar_status");
+
+    // Wait 3 seconds
+    ros::Duration(3).sleep();
 }
 
 #endif
@@ -804,12 +807,6 @@ int ROSbridge::sendGoalJetson(int movement)
 {
     ROS_INFO("Send goal to arduino");
 
-    if (!finishSetup)
-    {
-        ros::Duration(5).sleep();
-        finishSetup = true;
-    }
-
     ros::spinOnce();
 
     // Call get_walls_dist service
@@ -851,10 +848,20 @@ int ROSbridge::sendGoalJetson(int movement)
         ROS_INFO("Backward");
         movementmsg.data = 2;
     }
-    if (movement == 3)
+    else if (movement == 3)
     {
         ROS_INFO("Turn left");
         movementmsg.data = 3;
+    }
+    else if (movement == 10)
+    {
+        ROS_INFO("forward (fast)");
+        movementmsg.data = 10;
+    }
+    else if (movement == 12)
+    {
+        ROS_INFO("backward (fast)");
+        movementmsg.data = 12;
     }
 
     unitmovementpub.publish(movementmsg);

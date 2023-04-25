@@ -371,6 +371,11 @@ double Movement::cmdMovement(const int action, const int option)
     // nh->loginfo("Moving forward");
     sensors->logActive("Moving forward", true, 0, 0);
     // Move forward 1 unit.
+    
+    motor[FRONT_LEFT].pidStraight.useConservative = true;
+    motor[FRONT_RIGHT].pidStraight.useConservative = true;
+    motor[BACK_LEFT].pidStraight.useConservative = true;
+    motor[BACK_RIGHT].pidStraight.useConservative = true;    
     return advanceXMeters(0.3, option);
     break;
 
@@ -386,6 +391,11 @@ double Movement::cmdMovement(const int action, const int option)
     // nh->loginfo("Moving backward");
     // Move back 1 unit
     sensors->logActive("Moving backward", true, 0, 0);
+    
+    motor[FRONT_LEFT].pidStraight.useConservative = true;
+    motor[FRONT_RIGHT].pidStraight.useConservative = true;
+    motor[BACK_LEFT].pidStraight.useConservative = true;
+    motor[BACK_RIGHT].pidStraight.useConservative = true;    
     return advanceXMeters(-0.3, option);
     break;
 
@@ -426,6 +436,32 @@ double Movement::cmdMovement(const int action, const int option)
     // Update angle reference.
     updateAngleReference();
     return 1;
+    break;
+
+  case 10:
+    // nh->loginfo("Moving forward (fast)");
+    // Move forward 1 unit.
+    sensors->logActive("Moving forward (fast)", true, 0, 0);
+    
+    motor[FRONT_LEFT].pidStraight.useConservative = false;
+    motor[FRONT_RIGHT].pidStraight.useConservative = false;
+    motor[BACK_LEFT].pidStraight.useConservative = false;
+    motor[BACK_RIGHT].pidStraight.useConservative = false;
+
+    return advanceXMeters(0.3, option);
+
+    break;
+
+  case 12:
+    sensors->logActive("Moving backward (fast)", true, 0, 0);
+    // Move back 1 unit
+    motor[FRONT_LEFT].pidStraight.useConservative = false;
+    motor[FRONT_RIGHT].pidStraight.useConservative = false;
+    motor[BACK_LEFT].pidStraight.useConservative = false;
+    motor[BACK_RIGHT].pidStraight.useConservative = false;
+
+    return advanceXMeters(-0.3, option);
+
     break;
 
   default:
