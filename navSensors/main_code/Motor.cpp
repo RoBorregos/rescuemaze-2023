@@ -11,7 +11,8 @@ Motor::Motor()
 }
 
 Motor::Motor(uint8_t digitalOne, uint8_t digitalTwo, int pwmPin, uint8_t encoderA, uint8_t encoderB, MotorID motorID) : pidStraight(kPStraight, kIStraight, kDStraight, kPidMinOutputLimit, kPidMaxOutputLimit, kPidMaxErrorSum, kPidMotorTimeSample),
-                                                                                                                        pidRotate(kPRotate, kIRotate, kDRotate, kPidMinOutputLimit, kPidMaxOutputLimit, kPidMaxErrorSum, kPidMotorTimeSample)
+                                                                                                                        pidRotate(kPRotate, kIRotate, kDRotate, kPidMinOutputLimit, kPidMaxOutputLimit, kPidMaxErrorSum, kPidMotorTimeSample),
+                                                                                                                        pidFastRotation(kPFRotate, kIFRotate, kDFRotate, kPidMinOutputRotate, kPidMaxOutputRotate, kPidMaxErrorSum, kPidMotorTimeSample)
 {
   this->digitalOne = digitalOne;
   this->digitalTwo = digitalTwo;
@@ -210,22 +211,26 @@ double Motor::Ms2Rps(double MS)
   return (MS / (kDistancePerRev));
 }
 
-void Motor::motorSpeedPID(double target_speed, bool debug)
+void Motor::motorSpeedPID(double target_speed, bool debug, bool ignoreDirection)
 {
   int speed_sign = min(1, max(-1, target_speed * 1000));
   this->targetSpeed = fabs(target_speed);
   double tmp_pwm = pwm;
-  switch (speed_sign)
+  if (!ignoreDirection)
   {
-  case 0:
-    motorStop();
-    break;
-  case 1:
-    motorForward();
-    break;
-  case -1:
-    motorBackward();
-    break;
+    // Serial.println("Direction not ignored");
+    switch (speed_sign)
+    {
+    case 0:
+      motorStop();
+      break;
+    case 1:
+      motorForward();
+      break;
+    case -1:
+      motorBackward();
+      break;
+    }
   }
 
   pidStraight.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
@@ -274,20 +279,68 @@ void Motor::motorRotateIzqPID(double target_angle, double current_angle)
   setPWM(tmp_pwm);
 }
 
+int Motor::motorRotatePID(double target_angle, double current_angle, bool right)
+{
+  double tmp_pwm = pwm;
+  if (right)
+  {
+    pidRotate.computeRotateDer(target_angle, current_angle, tmp_pwm);
+  } else {
+    pidRotate.computeRotateIzq(target_angle, current_angle, tmp_pwm);
+  }
+
+  return tmp_pwm;
+}
+
+void Motor::motorRotationPID(double target_speed, bool debug, bool ignoreDirection)
+{
+  int speed_sign = min(1, max(-1, target_speed * 1000));
+  this->targetSpeed = fabs(target_speed);
+  double tmp_pwm = pwm;
+  if (!ignoreDirection)
+  {
+    //Serial.println("Direction not ignored");
+    switch (speed_sign)
+    {
+    case 0:
+      motorStop();
+      break;
+    case 1:
+      motorForward();
+      break;
+    case -1:
+      motorBackward();
+      break;
+    }
+  }
+
+  pidFastRotation.computeSpeed(RPM2RPS(targetSpeed), currentSpeed, tmp_pwm, pidTics, kPulsesPerRevolution, kPidCountTimeSamplesInOneSecond, debug);
+  setPWM(tmp_pwm);
+}
+
 void Motor::motorRotateDerPID(double target_angle, double current_angle)
 {
   double tmp_pwm = pwm;
   pidRotate.computeRotateDer(target_angle, current_angle, tmp_pwm);
   tmp_pwm = fabs(tmp_pwm);
-  if (tmp_pwm < 70)
-  {
-    tmp_pwm = 70;
-  }
-  else if (tmp_pwm > 200)//55)
-  {
-    tmp_pwm = 200; //255;
-  }
   setPWM(tmp_pwm);
+}
+
+double Motor::motorRotateDerPID(double target_angle, double current_angle, int ignore)
+{
+  double tmp_pwm = pwm;
+  pidRotate.computeRotateDer(target_angle, current_angle, tmp_pwm);
+  tmp_pwm = fabs(tmp_pwm);
+
+  return tmp_pwm;
+}
+
+double Motor::motorRotateIzqPID(double target_angle, double current_angle, int ignore)
+{
+  double tmp_pwm = pwm;
+  pidRotate.computeRotateIzq(target_angle, current_angle, tmp_pwm);
+  tmp_pwm = fabs(tmp_pwm);
+  return tmp_pwm;
 }
 
 double Motor::getPWM()

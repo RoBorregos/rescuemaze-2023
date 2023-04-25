@@ -92,7 +92,7 @@ void Sensors::initSensors()
         break;
       }
     }
-    Serial.print("BNO calibration: ");
+    // Serial.print("BNO calibration: ");
     bno->displayCalStatus();
 
     if (!CK::kusingROS && CK::debugBNOCalibration)

@@ -459,16 +459,12 @@ void Movement::rotateRobot(int option, int dir)
       Serial.println("Reacomodating");
     }
 
-    motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, -1);
-    motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
-    motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
-    motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, -1);
+    updateBasePWM(-1);
+
     delay(2000);
 
-    motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, 1);
-    motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, 1);
-    motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, 1);
-    motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, 1);
+    updateBasePWM(1);
+
     delay(100);
 
     stop();
@@ -476,11 +472,11 @@ void Movement::rotateRobot(int option, int dir)
     updateAngleReference();
   }
 
-  delay(100);
-  if (dir == 1)
-    translationX(0.3);
-  else
-    translationX(-0.3);
+  // delay(100);
+  // if (dir == 1)
+  //   translationX(0.3);
+  // else
+  //   translationX(-0.3);
 
   stop();
   resetEncoders();
@@ -671,19 +667,16 @@ void Movement::updateVelPwm(int RPMs, bool useBNO)
   }
 
   // Update PWM taking into account error.
-  motor[FRONT_LEFT].setPWM(leftM + CK::basePwmFrontLeft, speed_sign);
-  motor[BACK_LEFT].setPWM(leftM + CK::basePwmBackLeft, speed_sign);
-  motor[FRONT_RIGHT].setPWM(rightM + CK::basePwmFrontRight, speed_sign);
-  motor[BACK_RIGHT].setPWM(rightM + CK::basePwmBackRight, speed_sign);
+  updateBasePWM(speed_sign, leftM, rightM);
 }
 
-void Movement::updateBasePWM(int dir)
+void Movement::updateBasePWM(int dir, double leftCorrection, double rightCorrection)
 {
   sensors->logActive("upd base pwm", true, 0, 2);
-  motor[FRONT_LEFT].setPWM(leftM + CK::basePwmFrontLeft, dir);
-  motor[BACK_LEFT].setPWM(leftM + CK::basePwmBackLeft, dir);
-  motor[FRONT_RIGHT].setPWM(rightM + CK::basePwmFrontRight, dir);
-  motor[BACK_RIGHT].setPWM(rightM + CK::basePwmBackRight, dir);
+  motor[FRONT_LEFT].setPWM(leftCorrection + CK::basePwmFrontLeft, dir);
+  motor[BACK_LEFT].setPWM(leftCorrection + CK::basePwmBackLeft, dir);
+  motor[FRONT_RIGHT].setPWM(rightCorrection + CK::basePwmFrontRight, dir);
+  motor[BACK_RIGHT].setPWM(rightCorrection + CK::basePwmBackRight, dir);
 }
 
 void Movement::updateVelocityDecider(int RPMs, bool useBNO)
@@ -1020,7 +1013,6 @@ void Movement::updateAngleReference()
   printAngleReference();
 }
 
-
 void Movement::updateAngleReference(int newAngle)
 {
   int currAngle = newAngle;
@@ -1162,8 +1154,9 @@ void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, dou
   {
     // rosBridge->readOnce();
     // sensors->logActive("GotoAngle");
-    
-    if (!sensors->readMotorInit() || (timeout && (millis() - start) > timeout)){
+
+    if (!sensors->readMotorInit() || (timeout && (millis() - start) > timeout))
+    {
       stop();
       return;
     }
@@ -1229,29 +1222,65 @@ void Movement::goToAngle(int targetAngle, bool oneSide)
   stop();
 }*/
 
+double Movement::map2(double value, double fromLow, double fromHigh, double toLow, double toHigh)
+{
+  // First, calculate the range of the input value
+  double fromRange = fromHigh - fromLow;
+  // Next, calculate the range of the output value
+  double toRange = toHigh - toLow;
+  // Then, calculate the scaled value
+  double scaledValue = (value - fromLow) * toRange / fromRange + toLow;
+  // Finally, return the scaled value
+  return scaledValue;
+}
+
 void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
 {
+  // Serial.println("new updateRotatePID");
   double current_angle = bno->getAngleX();
   if (right)
   {
+
     girarDerecha();
-    motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);
-    motor[BACK_LEFT].motorRotateDerPID(targetAngle, current_angle);
+
+    // motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);
+    // motor[BACK_LEFT].motorRotateDerPID(targetAngle, current_angle);
+
+    // Obtain pwm error
+    double pwm = motor[FRONT_LEFT].motorRotatePID(targetAngle, current_angle, true);
+    double angularV = map2(pwm, 0, 255, 0, maxAngular);
+    Kinematics::output rmpK = kinematics.getRPM(0, 0, angularV);
+
+    motor[FRONT_LEFT].motorRotationPID(rmpK.motor1);
+    motor[BACK_LEFT].motorRotationPID(rmpK.motor3);
+
     if (!oneSide)
     {
-      motor[FRONT_RIGHT].motorRotateDerPID(targetAngle, current_angle);
-      motor[BACK_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+      // motor[FRONT_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+      // motor[BACK_RIGHT].motorRotateDerPID(targetAngle, current_angle);
+      motor[FRONT_RIGHT].motorRotationPID(rmpK.motor2);
+      motor[BACK_RIGHT].motorRotationPID(rmpK.motor4);
     }
   }
   else
   {
     girarIzquierda();
-    motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
-    motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    // motor[FRONT_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+    // motor[BACK_RIGHT].motorRotateIzqPID(targetAngle, current_angle);
+
+    double pwm = motor[FRONT_RIGHT].motorRotatePID(targetAngle, current_angle, false);
+    double angularV = map2(pwm, 0, 255, 0, maxAngular);
+    Kinematics::output rmpK = kinematics.getRPM(0, 0, angularV);
+
+    motor[FRONT_RIGHT].motorRotationPID(rmpK.motor2);
+    motor[BACK_RIGHT].motorRotationPID(rmpK.motor4);
+
     if (!oneSide)
     {
-      motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
-      motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+      // motor[FRONT_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+      // motor[BACK_LEFT].motorRotateIzqPID(targetAngle, current_angle);
+      motor[FRONT_LEFT].motorRotationPID(rmpK.motor1);
+      motor[BACK_LEFT].motorRotationPID(rmpK.motor3);
     }
 
     if (CK::debugGoToAngle && !CK::kusingROS)
@@ -1260,6 +1289,11 @@ void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
       Serial.println(motor[FRONT_LEFT].getPWM());
     }
   }
+
+  // motor[FRONT_LEFT].motorStatus();
+  // motor[FRONT_RIGHT].motorStatus();
+  // motor[BACK_LEFT].motorStatus();
+  // motor[BACK_RIGHT].motorStatus();
 }
 
 void Movement::updateRotatePWM(int targetAngle, bool right)
@@ -1438,16 +1472,11 @@ double Movement::traverseRamp(int option)
 
 void Movement::testMotor()
 {
-  motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, -1);
-  motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, -1);
-  motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, -1);
-  motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, -1);
+
+  updateBasePWM(-1);
   delay(2000);
 
-  motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft, 1);
-  motor[BACK_LEFT].setPWM(CK::basePwmBackLeft, 1);
-  motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight, 1);
-  motor[BACK_RIGHT].setPWM(CK::basePwmBackRight, 1);
+  updateBasePWM(1);
   delay(100);
 
   stop();

@@ -11,6 +11,10 @@ PIDRb::PIDRb(const double kp, const double ki, const double kd, const double out
 {
   timePassed = millis();
   setTunings(kp, ki, kd);
+  // Initialize constants to same as base, which may then be changed.
+  setConservative(kp, ki, kd);
+  setAggressive(kp, ki, kd);
+
   sampleTime = sample_time;
 
   maxError = max_error_sum;
@@ -48,7 +52,7 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   const double error = setpoint - input; // Get error in terms of rev / s
 
-  flipMode(error);
+  //flipMode(error);
 
   errorSum += error * timeDiffSeconds;
 
@@ -66,13 +70,13 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   if (debug && !CK::kusingROS)
   {
-    // Serial.println("Time diff: " + String(timeDiff));
-    // Serial.println("Input: " + String(input));
-    // Serial.println("Error: " + String(error));
-    // Serial.println("ErrorPre: " + String(errorPre));
-    // Serial.println("Derivative: " + String(derivative));
-    // Serial.println("ErrorSum: " + String(errorSum));
-    // Serial.println("Output: " + String(output));
+    Serial.println("Time diff: " + String(timeDiff));
+    Serial.println("Input: " + String(input));
+    Serial.println("Error: " + String(error));
+    Serial.println("ErrorPre: " + String(errorPre));
+    Serial.println("Derivative: " + String(derivative));
+    Serial.println("ErrorSum: " + String(errorSum));
+    Serial.println("Output: " + String(output));
   }
 }
 
@@ -158,37 +162,6 @@ void PIDRb::setConservative(double kp, double ki, double kd)
   this->cons_kp = kp;
   this->cons_ki = ki;
   this->cons_kd = kd;
-}
-
-void PIDRb::compute(const double error, double &output, const byte flag)
-{
-  if (millis() - timePassed < sampleTime)
-  {
-    return;
-  }
-
-  if (errorPre * error <= 0)
-  {
-    errorPre = 0;
-    errorSum = 0;
-  }
-  if (flag == 0)
-  {
-    if (abs(error) <= 2)
-    {
-      errorPre = 0;
-      errorSum = 0;
-    }
-  }
-
-  output = error * kp + errorSum * ki + (error - errorPre) * kd;
-  errorPre = error;
-  errorSum += error;
-
-  errorSum = max(maxError * -1, min(maxError, errorSum));
-  output = max(minOutput, min(maxOutput, output));
-
-  timePassed = millis();
 }
 
 void PIDRb::setAggressive(double kp, double ki, double kd)

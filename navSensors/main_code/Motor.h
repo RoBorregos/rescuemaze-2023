@@ -56,7 +56,7 @@ private:
 
   // PID Data.
 
-  static constexpr uint8_t kPidMinOutputLimit = 30;
+  static constexpr uint8_t kPidMinOutputLimit = 70;
   static constexpr uint8_t kPidMaxOutputLimit = 255;
   static constexpr uint16_t kPidMaxErrorSum = 2000;
   static constexpr uint8_t kPidMotorTimeSample = 100; // Time before calculating speed again (ms)
@@ -78,6 +78,14 @@ private:
   static constexpr double kPRotate = 10; // 0.5
   static constexpr double kIRotate = 10;
   static constexpr double kDRotate = 5;
+
+  // PID controllers for rotations
+  PIDRb pidFastRotation;
+  static constexpr double kPFRotate = 100;
+  static constexpr double kIFRotate = 100;
+  static constexpr double kDFRotate = 3;
+  static constexpr uint8_t kPidMinOutputRotate = 150;
+  static constexpr uint8_t kPidMaxOutputRotate = 255;
 
 public:
   // Constructors
@@ -173,7 +181,9 @@ public:
 
   // Computes target speed using straight PID controller. Enter true as
   // second argument to print debug messages.
-  void motorSpeedPID(double target_speed, bool debug = false);
+  void motorSpeedPID(double target_speed, bool debug = false, bool ignoreDirection = false);
+
+  void motorRotationPID(double target_angle, bool debug = false, bool ignoreDirection = false);
 
   // Computes target speed without using PID controller, using PWM Kinematics
   void motorSpeedPWM(double target_speed);
@@ -183,6 +193,11 @@ public:
 
   // computes rotation using rotate PID controller (left rotation)
   void motorRotateIzqPID(double target_angle, double current_angle);
+
+  int motorRotatePID(double target_angle, double current_angle, bool right);
+
+  double motorRotateDerPID(double target_angle, double current_angle, int ignore);
+  double motorRotateIzqPID(double target_angle, double current_angle, int ignore);
 
   // PID METHODS
 

@@ -108,6 +108,7 @@ private:
   static constexpr double distToCheck = 0.06;
   static constexpr double backStuckTimer = 5000;
   static constexpr double timeoutPivot = 3000;
+  static constexpr double maxAngular = 0.787;
   
   int leftM = 0;
   int rightM = 0;
@@ -152,6 +153,7 @@ public:
   void handleSwitches();
   void handleRightLimitSwitch();
   void handleLeftLimitSwitch();
+  double map2(double value, double fromLow, double fromHigh, double toLow, double toHigh);
 
   void advanceUntilCentered();
 
@@ -259,7 +261,7 @@ public:
   // Updates pwm given to each motor, choose between corrections using bno or vlx.
   void updateVelPwm(int RPMs, bool useBNO);
 
-  void updateBasePWM(int dir);
+  void updateBasePWM(int dir, double leftCorrection=0, double rightCorrection=0);
 
   // Update pwm given to each motor, choose between corrections to pwm or
   // get closer to RPMs via PID. Use flag from CommonK.h

@@ -34,7 +34,7 @@ private:
   double maxOutput{255};
 
   unsigned long timePassed;
-  unsigned long sampleTime{50};
+  unsigned long sampleTime{100};
 
 public:
   // Constructors
@@ -66,8 +66,6 @@ public:
   // @param debug True to print messages.
   void computeSpeed(const double setpoint, double &input, double &output, int &reset_variable, const double pulses_per_rev,
                     const double count_time_samples_in_one_second, const bool debug = false);
-
-  void compute(double error, double &output, const byte flag);
 
   // Computes the speed of the motor using PID tunings and encoder tics for left rotation
   // @param desired Target angle

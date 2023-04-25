@@ -55,6 +55,7 @@ void GeneralChecks::calibrateSensors()
 
 void GeneralChecks::checkSensorData(int iterations)
 {
+
     // If information is being published to ROS, simply echo individual topics.
     if (!publishRos && !CK::kusingROS)
     {
@@ -232,24 +233,29 @@ void GeneralChecks::test()
   */
     // robot->nh->loginfo("Running Test");
 
-    Serial.println("Running Test");
-    // robot->testMotor();
+    double angular = 0.7;
 
-    Kinematics::output test = robot->kinematics.getRPM(0, 0, 3);
-    Serial.print("RPM: ");
-    Serial.print(test.rpm1);
-    Serial.print(" ");
-    Serial.print(test.rpm2);
-    Serial.print(" ");
-    Serial.print(test.rpm3);
-    Serial.print(" ");
-    Serial.println(test.rpm4);
-
+    // for (int i = 0; i < 5; i++)
+    // {
+    //     Kinematics::output test = robot->kinematics.getRPM(0, 0, angular);
+    //     Serial.println("RPM with angular" + String(angular) + ": ");
+    //     Serial.print("Front left: ");
+    //     Serial.println(test.motor1);
+    //     Serial.print("Front right: ");
+    //     Serial.println(test.motor2);
+    //     Serial.print("Back left: ");
+    //     Serial.println(test.motor3);
+    //     Serial.print("Back right: ");
+    //     Serial.println(test.motor4);
+    //     angular += 0.1;
+    // }
+    robot->cmdMovement(3, 1);
     end();
-    while (true)
-    {
-        robot->sensors->printInfo(false, false, false, true);
-    }
+
+    // while (true)
+    // {
+    //     robot->sensors->printInfo(false, false, false, true);
+    // }
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
 
@@ -410,7 +416,7 @@ void GeneralChecks::checkPID()
 
     while (true)
     {
-        plot.plotTargetandCurrent();
+        plot.plotPWM();
         robot->updateStraightPID(revolutions);
         if (millis() - time > interval)
         {
@@ -458,30 +464,51 @@ void GeneralChecks::checkOled()
 
 void GeneralChecks::printRevolutions()
 {
-    robot->motor[FRONT_RIGHT].motorForward();
-    robot->motor[FRONT_LEFT].motorForward();
-    robot->motor[BACK_RIGHT].motorForward();
-    robot->motor[BACK_LEFT].motorForward();
+    Plot graph(robot);
+    graph.startSequence();
+    // robot->motor[FRONT_RIGHT].motorBackward();
+    // robot->motor[BACK_RIGHT].motorBackward();
+    // robot->motor[FRONT_LEFT].motorForward();
+    // robot->motor[BACK_LEFT].motorForward();
 
     // robot->motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight);
     // robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
     // robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
     // robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
-    robot->motor[FRONT_RIGHT].setPWM(255);
-    robot->motor[FRONT_LEFT].setPWM(255);
-    robot->motor[BACK_RIGHT].setPWM(255);
-    robot->motor[BACK_LEFT].setPWM(255);
+
+    // robot->motor[FRONT_RIGHT].setPWM(255);
+    // robot->motor[FRONT_LEFT].setPWM(255);
+    // robot->motor[BACK_RIGHT].setPWM(255);
+    // robot->motor[BACK_LEFT].setPWM(255);
 
     while (true)
     {
-        Serial.print("Front left: ");
-        Serial.print(robot->motor[FRONT_LEFT].getRevolutions());
-        Serial.print(", Back left: ");
-        Serial.print(robot->motor[BACK_LEFT].getRevolutions());
-        Serial.print(", Front right: ");
-        Serial.print(robot->motor[FRONT_RIGHT].getRevolutions());
-        Serial.print(", Back right: ");
-        Serial.println(robot->motor[BACK_RIGHT].getRevolutions());
-        delay(100);
+        // robot->motor[FRONT_RIGHT].motorSpeedPID(40, false, 1);
+        // robot->motor[BACK_RIGHT].motorSpeedPID(40, false, 1);
+        // robot->motor[FRONT_LEFT].motorSpeedPID(40, false, 1);
+        // robot->motor[BACK_LEFT].motorSpeedPID(40, false, 1);
+        robot->motor[FRONT_RIGHT].motorRotationPID(40, true);
+        robot->motor[BACK_RIGHT].motorRotationPID(40);
+        robot->motor[FRONT_LEFT].motorRotationPID(-40);
+        robot->motor[BACK_LEFT].motorRotationPID(-40);
+
+        graph.plotPWM();
+        // graph.plotTargetandCurrent();
+        // Serial.print("Front left: ");
+        // Serial.print(robot->motor[FRONT_LEFT].getRevolutions());
+        // Serial.print(" speed: ");
+        // Serial.print(robot->motor[FRONT_LEFT].currentSpeed);
+        // Serial.print(", Back left: ");
+        // Serial.print(robot->motor[BACK_LEFT].getRevolutions());
+        // Serial.print(" speed: ");
+        // Serial.print(robot->motor[FRONT_LEFT].currentSpeed);
+        // Serial.print(", Front right: ");
+        // Serial.print(robot->motor[FRONT_RIGHT].getRevolutions());
+        // Serial.print(" speed: ");
+        // Serial.print(robot->motor[FRONT_LEFT].currentSpeed);
+        // Serial.print(", Back right: ");
+        // Serial.println(robot->motor[BACK_RIGHT].getRevolutions());
+        // Serial.print(" speed: ");
+        // Serial.print(robot->motor[FRONT_LEFT].currentSpeed);
     }
 }

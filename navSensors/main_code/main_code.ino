@@ -134,9 +134,10 @@ void setup()
 
   GeneralChecks checks(robot);
   //checks.checkWheelDirections();
+  //checks.checkSensorData();
   //checks.checkAll();
   //checks.checkOled();
-  //checks.printRevolutions();
+  // checks.printRevolutions();
   checks.test();
 }
 
