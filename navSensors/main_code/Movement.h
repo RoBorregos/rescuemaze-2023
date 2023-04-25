@@ -83,7 +83,7 @@ private:
 
   // Velocity maximum.
   static constexpr double kFrWheelsDist = 0.12; // 0.145;
-  static constexpr double kLrWheelsDist = 0.16 // 0.18;
+  static constexpr double kLrWheelsDist = 0.16; // 0.18;
   static constexpr double kWheelDiameter = 0.07;
   static constexpr double kRPM = 240;
   static constexpr double kRPS = kRPM / 60;

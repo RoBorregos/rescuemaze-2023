@@ -36,7 +36,9 @@ private:
   unsigned long timePassed;
   unsigned long sampleTime{50};
 
+
 public:
+  bool useConservative{true};
   // Constructors
 
   // Set PID with manually determined constants.

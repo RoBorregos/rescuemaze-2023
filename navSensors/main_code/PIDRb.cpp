@@ -200,7 +200,7 @@ void PIDRb::setAggressive(double kp, double ki, double kd)
 
 void PIDRb::flipMode(double error)
 {
-  if (error < 0.2)
+  if (error < 0.2 || useConservative)
   {
     setTunings(cons_kp, cons_ki, cons_kd);
   }
