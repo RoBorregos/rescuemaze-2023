@@ -67,7 +67,6 @@ private:
 
   // PID controllers for straight movement. Manual calibration
 
-  PIDRb pidStraight;
   static constexpr double kPStraight = 13; // 13; // 60
   static constexpr double kIStraight = 6;  // 6;  // 55
   static constexpr double kDStraight = 2;  // 2;  // 40
@@ -89,6 +88,8 @@ private:
 
 public:
   // Constructors
+
+  PIDRb pidStraight;
 
   Motor(uint8_t digitalOne, uint8_t digitalTwo, int pwmPin, uint8_t encoderA, uint8_t entcoderB, MotorID motorID);
   Motor();

@@ -90,6 +90,7 @@ int moveForward(int &rDirection, Map &mapa)
 
 #endif
 
+    
     int result = bridge->sendUnitGoal(0, rDirection);
     // bridge->publishIdealOrientation(rDirection);
 
@@ -230,6 +231,12 @@ int moveNorth(int &yMaze, int &rDirection, Map &mapa, bool visited)
     }
 
     rotateTo(rDirection, 0, mapa);
+    
+    if (visited)
+    {
+        return bridge->sendUnitGoal(10, rDirection);
+    }
+    
     return moveForward(rDirection, mapa);
 }
 
@@ -244,7 +251,14 @@ int moveSouth(int &yMaze, int &rDirection, Map &mapa, bool visited)
         return 1;
     }
 
+
     rotateTo(rDirection, 2, mapa);
+    
+    if (visited)
+    {
+        return bridge->sendUnitGoal(10, rDirection);
+    }
+    
     return moveForward(rDirection, mapa);
 }
 
@@ -259,7 +273,14 @@ int moveEast(int &xMaze, int &rDirection, Map &mapa, bool visited)
         return 1;
     }
 
+
     rotateTo(rDirection, 1, mapa);
+    
+    if (visited)
+    {
+        return bridge->sendUnitGoal(10, rDirection);
+    }
+    
     return moveForward(rDirection, mapa);
 }
 
@@ -274,7 +295,14 @@ int moveWest(int &xMaze, int &rDirection, Map &mapa, bool visited)
         return 1;
     }
 
+
     rotateTo(rDirection, 3, mapa);
+    
+    if (visited)
+    {
+        return bridge->sendUnitGoal(10, rDirection);
+    }
+    
     return moveForward(rDirection, mapa);
 }
 
@@ -379,7 +407,7 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
         // Change tile properties based on goal result
         if (goalResult == 0) // Black tile
         {
-            tile->black = true;
+            tile->adjacentTiles[key]->black = true;
             return tile;
         }
         else if (goalResult == 3) // Silver tile
@@ -392,7 +420,7 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
         }
         else if (goalResult >= 2) // Obstacle tile
         {
-            tile->weight = 100;
+            tile->adjacentTiles[key]->weight = 100;
         }
 
         if (goalResult == 4) // down ramp tile
