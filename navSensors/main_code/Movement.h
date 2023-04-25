@@ -104,7 +104,7 @@ private:
   static constexpr double checkTCSTimer = 50;   // Time to check TCS in ms.
   static constexpr double kDistanceWall = 0.15; // Distance to consider detection as wall.
   static constexpr int kMillisBackAccomodate = 700;
-  static constexpr int kAdvanceToRampTime = 2000; // Time to advance to ramp in traverseRamp();
+  static constexpr int kAdvanceToRampTime = 4000; // Time to advance to ramp in traverseRamp();
   static constexpr double distToCheck = 0.06;
   static constexpr double backStuckTimer = 5000;
   static constexpr double timeoutPivot = 3000;
@@ -302,7 +302,7 @@ public:
 
   // Advance straight until the pitch is stable.
   // @param straightPidType 1 for using BNO to move straight. 0 to use vlx.
-  double stabilizePitch(int straightPidType);
+  double stabilizePitch(int straightPidType, int stabilizePitch=kMovementRPMs);
 
   // Return true if robot is not straight in pitch axis.
   bool outOfPitch();

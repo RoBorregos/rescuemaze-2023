@@ -85,7 +85,7 @@ private:
   static constexpr double kIFRotate = 100;
   static constexpr double kDFRotate = 3;
   static constexpr uint8_t kPidMinOutputRotate = 150;
-  static constexpr uint8_t kPidMaxOutputRotate = 255;
+  static constexpr uint8_t kPidMaxOutputRotate = 220;
 
 public:
   // Constructors

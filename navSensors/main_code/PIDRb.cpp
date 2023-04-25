@@ -52,7 +52,7 @@ void PIDRb::computeSpeed(const double setpoint, double &input, double &output, i
 
   const double error = setpoint - input; // Get error in terms of rev / s
 
-  //flipMode(error);
+  flipMode(error);
 
   errorSum += error * timeDiffSeconds;
 

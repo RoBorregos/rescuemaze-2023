@@ -214,6 +214,16 @@ void BNO::displayCalStatus(void)
   Serial.println(mag, DEC);
 }
 
+void BNO::getCalibration(int &system, int &gyro, int &accel, int &mag)
+{
+  uint8_t system_, gyro_, accel_, mag_ = 0;
+  bno.getCalibration(&system_, &gyro_, &accel_, &mag_);
+  system = system_;
+  gyro = gyro_;
+  accel = accel_;
+  mag = mag_;
+}
+
 void BNO::restoreCalibration()
 {
   // Object to load to bno

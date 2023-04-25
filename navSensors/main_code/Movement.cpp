@@ -465,7 +465,7 @@ void Movement::rotateRobot(int option, int dir)
 
     updateBasePWM(1);
 
-    delay(100);
+    delay(200);
 
     stop();
     resetEncoders();
@@ -530,11 +530,14 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
   {
     errorD = getAngleError(dirToAngle(rDirection));
 
+    // Acotate error if it is too big.
+    errorD = min(45, max(-45, errorD));
+
     if (!CK::kusingROS)
     {
       double correction = errorD * bnoFactor;
       Serial.print("ErrorD: ");
-      Serial.print(correctionVLX);
+      Serial.print(correction);
       Serial.print(", Target rpm: left: ");
       Serial.print(RPMs + correction);
       Serial.print(", Target rpm: right: ");
@@ -721,7 +724,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
       updateVelocityDecider(kMovementRPMs, straightPidType);
 
       // Get dist reading after correcting angle.
-      rearrangeAngle(15);
+      rearrangeAngle(8);
 
       if (outOfPitch())
       {
@@ -1062,16 +1065,16 @@ double Movement::getAngleError(double expectedAngle)
   return expectedAngle - angle;
 }
 
-double Movement::stabilizePitch(int straightPidType)
+double Movement::stabilizePitch(int straightPidType, int RPMs)
 {
   sensors->logActive("stabilize p", true, 0, 7);
   double start = millis();
   double pitch = sensors->getAngleY();
 
   bool sign = true;
-  if (pitch > maxPitch + basePitch)
+  if (pitch < maxPitch + basePitch)
   {
-    sign = true; // robot is moving up
+    sign = true; // robot is moving up.
   }
   else
   {
@@ -1088,12 +1091,24 @@ double Movement::stabilizePitch(int straightPidType)
       Serial.print("Robot out of stable pitch: ");
       Serial.println(sensors->getAngleY());
     }
-    updateVelocityDecider(10, straightPidType);
+    updateVelocityDecider(RPMs, straightPidType);
   }
 
   double dt = (millis() - start) / 1000.0;
   dt = dt * (sign ? 1 : -1); // apply sign
-  return dt;                 // return dt in seconds.
+  stop();
+  sensors->logActive("End stabilize pitch");
+
+  if (sign)
+  {
+    sensors->logActive("Robot moved up.");
+  }
+  else
+  {
+    sensors->logActive("Robot moved down.");
+  }
+
+  return dt; // return dt in seconds.
 }
 
 bool Movement::outOfPitch()
@@ -1121,25 +1136,23 @@ double Movement::getDistanceToCenter()
 
 void Movement::advanceUntilCentered()
 {
-  return;
-  // Pending implementation.
-  double dist = sensors->getDistInfo(dist_front);
 
-  while (dist < 0.25)
+  double dist = sensors->getDistInfo(dist_front);
+  sensors->logActive("Dist: " + String(dist));
+  if (dist < 0.2)
   {
-    // rosBridge->readOnce();
-    // sensors->logActive("Advance until centered");
-    updateVelocityDecider(kMovementRPMs, CK::useBNO);
-    dist = sensors->getDistInfo(dist_front);
+    while (dist > 0.05)
+    {
+      updateVelocityDecider(10, CK::useBNO);
+      dist = sensors->getDistInfo(dist_front);
+      sensors->logActive("Dist: " + String(dist));
+      rearrangeAngle();
+    }
   }
-  while (dist > 0.25)
-  {
-    // rosBridge->readOnce();
-    // sensors->logActive("Advance until centered");
-    updateVelocityDecider(kMovementRPMs, CK::useBNO);
-    dist = sensors->getDistInfo(dist_front);
-  }
+
+  stop();
 }
+
 // New implementation
 void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, double timeout)
 {
@@ -1249,7 +1262,7 @@ void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
     // Obtain pwm error
     double pwm = motor[FRONT_LEFT].motorRotatePID(targetAngle, current_angle, true);
     double angularV = map2(pwm, 0, 255, 0, maxAngular);
-    Kinematics::output rmpK = kinematics.getRPM(0, 0, angularV);
+    Kinematics::output rmpK = kinematics.getRPM(0, 0, angularV * -1); // Angular velocity is negative for right turn.
 
     motor[FRONT_LEFT].motorRotationPID(rmpK.motor1);
     motor[BACK_LEFT].motorRotationPID(rmpK.motor3);
@@ -1451,6 +1464,7 @@ double Movement::traverseRamp(int option)
   // Advance first if option is set to 1
   long int start = millis();
 
+  Serial.println("In ramp");
   if (option == 1)
   {
     while (millis() - start < kAdvanceToRampTime)
@@ -1458,11 +1472,46 @@ double Movement::traverseRamp(int option)
       sensors->logActive("Traversing ramp");
       if (!sensors->readMotorInit())
         return -2;
-      updateVelocityDecider(kMovementRPMs, CK::useBNO);
+      updateVelocityDecider(80, CK::useBNO); // Use vlx to center in ramp
+      // motor[FRONT_LEFT].setPWM(255, 1);
+      // motor[BACK_LEFT].setPWM(255, 1);
+      // motor[FRONT_RIGHT].setPWM(255, 1);
+      // motor[BACK_RIGHT].setPWM(255, 1);
     }
   }
 
-  double dt = stabilizePitch(0);
+  double pitch = sensors->getAngleY();
+
+  bool sign = true;
+
+  if (pitch < maxPitch + basePitch)
+  {
+    sign = true; // robot is moving up.
+  }
+  else
+  {
+    sign = false; // robot is moving down
+  }
+  int RPMs = 0;
+
+  if (sign)
+  {
+    RPMs = 40;
+  }
+  else
+  {
+    RPMs = 10;
+  }
+
+  double dt = stabilizePitch(1, RPMs);
+
+  start = millis();
+  while (millis() - start < 1000)
+  {
+    updateVelocityDecider(40, CK::useBNO);
+  }
+  rearrangeAngle();
+  advanceUntilCentered();
 
   stop();
   resetEncoders();

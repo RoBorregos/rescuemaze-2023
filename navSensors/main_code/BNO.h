@@ -37,6 +37,7 @@ public:
   void displayCalStatus(void);
   bool isCalibrated();
   void restoreCalibration();
+  void getCalibration(int &system, int &gyro, int &accel, int &mag);
 
   // Events with quaternion.
   void updateEvents();

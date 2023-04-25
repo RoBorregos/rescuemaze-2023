@@ -133,7 +133,7 @@ void setup()
   //rosbridge.run();
 
   GeneralChecks checks(robot);
-  //checks.checkWheelDirections();
+  // checks.checkWheelDirections();
   //checks.checkSensorData();
   //checks.checkAll();
   //checks.checkOled();

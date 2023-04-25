@@ -233,7 +233,7 @@ void GeneralChecks::test()
   */
     // robot->nh->loginfo("Running Test");
 
-    double angular = 0.7;
+    // double angular = 0.7;
 
     // for (int i = 0; i < 5; i++)
     // {
@@ -249,13 +249,12 @@ void GeneralChecks::test()
     //     Serial.println(test.motor4);
     //     angular += 0.1;
     // }
-    robot->cmdMovement(3, 1);
-    end();
-
+   
     // while (true)
     // {
-    //     robot->sensors->printInfo(false, false, false, true);
+    //     robot->sensors->printInfo(true, false, false, false);
     // }
+
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
 
@@ -271,7 +270,7 @@ void GeneralChecks::test()
     // robot->basePitch = robot->sensors->getAngleY();
     double pwm = 10;
 
-    robot->cmdMovement(3, 1);
+    robot->cmdMovement(4, 1);
     end();
     while (true)
     {
@@ -281,7 +280,7 @@ void GeneralChecks::test()
         } else {
             Serial.println("In pitch");
         }*/
-        robot->sensors->printInfo(true, false, false, false);
+        robot->sensors->printInfo(false, false, false, false);
     }
     while (true)
     {
