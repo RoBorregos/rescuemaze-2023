@@ -18,8 +18,8 @@ sensor.set_auto_gain(False) # must be turned off for color tracking
 sensor.set_auto_whitebal(False) # must be turned off for color tracking
 
 # Flip the image 180 degrees
-sensor.set_vflip(True)
-sensor.set_hmirror(True)
+# sensor.set_vflip(True)
+# sensor.set_hmirror(True)
 
 omv.disable_fb(True)
 

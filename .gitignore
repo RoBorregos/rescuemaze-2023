@@ -15,3 +15,4 @@ sensors_simulation.py
 maze_ws/src/devices/openmv_camera/scripts/__pycache__
 maze_ws/src/devices/ydlidar/YDLidar-SDK/
 maze_ws/src/devices/openmv_camera/scripts/datasets/dataset2/
+maze_ws/src/devices/openmv_camera/scripts/datasets/dataset3/

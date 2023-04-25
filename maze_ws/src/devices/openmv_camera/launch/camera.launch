@@ -6,8 +6,8 @@
     
     <!-- Set arguments -->
     <arg name="rpc_path" default="$(find openmv_camera)/scripts"/>
-    <arg name="portLeft" default="/dev/port3"/>
-    <arg name="portRight" default="/dev/port3"/>
+    <arg name="portLeft" default="/dev/port4"/>
+    <arg name="portRight" default="/dev/port4"/>
     <arg name="debug" default="true"/>
     <arg name="debug_image" default="false"/>
 
