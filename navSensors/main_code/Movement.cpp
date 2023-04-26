@@ -1641,7 +1641,7 @@ void Movement::handleRightLimitSwitch()
 
   updateBasePWM(-1);
   delay(80);
-  translationX(-0.3);
+  translationX(0.3);
 
   // updateAngleReference(newAngle);
   // goToAngle(newAngle, true);
@@ -1668,7 +1668,7 @@ void Movement::handleLeftLimitSwitch()
 
   updateBasePWM(-1);
   delay(80);
-  translationX(0.3);
+  translationX(-0.3);
 
   rearrangeAngle();
   stop();

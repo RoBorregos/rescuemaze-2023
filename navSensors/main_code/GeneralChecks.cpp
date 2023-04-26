@@ -268,9 +268,9 @@ void GeneralChecks::test()
     // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
     // robot->updateAngleReference();
     // robot->basePitch = robot->sensors->getAngleY();
-    double pwm = 10;
+    // double pwm = 10;
 
-    robot->cmdMovement(4, 1);
+    robot->cmdMovement(0, 1);
     end();
     while (true)
     {

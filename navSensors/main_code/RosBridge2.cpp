@@ -52,6 +52,11 @@ void RosBridge2::cmdMovementCallback(int move)
     {
       response = 4;
     }
+    else if (response > 0)
+    {
+      // Went up stairs
+      response = 6;
+    }
     else
     {
       // ramp not detected

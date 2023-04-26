@@ -30,6 +30,7 @@ private:
         ar &visited;
         ar &defined;
         ar &black;
+        ar &stairs;
     }
 public:
     bool defined;
@@ -49,6 +50,8 @@ public:
     int rampa;
     int height1;
     int height2;
+
+    bool stairs;
 
     map<string, Tile *> adjacentTiles;
 
@@ -74,6 +77,7 @@ Tile::Tile()
     pos = {0, 0, 0};
     victim = 0;
     black = false;
+    stairs = false;
 
     rampa = -1;
     height1 = 0;
@@ -103,6 +107,7 @@ Tile::Tile(vector<int> p, int v, int vict)
     pos = p;
     victim = vict;
     black = false;
+    stairs = false;
 
     rampa = -1;
     height1 = 0;

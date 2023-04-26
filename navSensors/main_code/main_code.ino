@@ -130,7 +130,7 @@ void setup()
   initAll(&bno, true, true);
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
-  //rosbridge.run();
+  rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();

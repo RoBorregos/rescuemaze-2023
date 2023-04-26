@@ -520,6 +520,12 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 
             return tile->adjacentTiles[key]->adjacentTiles[key];
         }
+        else if (goalResult == 6)
+        {
+            bridge->pubDebug("Up stairs");
+
+            tile->adjacentTiles[key]->stairs = true;
+        }
 
         tile->adjacentTiles[key]->defined = true;
 
@@ -1039,6 +1045,14 @@ void explore(bool checkpoint, int argc, char **argv)
                 printTile(mapa.tile);
             }
 // ROS_INFO("Checking key: %s", key.c_str());
+
+            if (mapa.tile->stairs && (key == "east" || key == "west"))
+            {
+                if (rosDebug)
+                    bridge->pubDebug("in stairs, skipping");
+
+                continue;
+            }
 
 // if (useros && walls[directions[key]] == 1 && !mapa.tile->walls[key])
 #ifndef simulateRos
