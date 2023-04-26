@@ -48,7 +48,7 @@ void RosBridge2::cmdMovementCallback(int move)
       // ramp detected
       response = 5;
     }
-    else if (response > abs(CK::kRampDt))
+    else if (abs(response) > CK::kRampDt)
     {
       response = 4;
     }

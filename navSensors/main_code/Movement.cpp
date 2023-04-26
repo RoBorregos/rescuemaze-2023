@@ -774,8 +774,8 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         lastTCS = millis();
         if (checkColor())
         {
-          dist = sensors->getDistInfo(dist_front);
           stop();
+          dist = sensors->getDistInfo(dist_front);
           // return 0;
           return advanceXMeters(dist - initial, straightPidType, true);
         }
@@ -1639,9 +1639,18 @@ void Movement::handleRightLimitSwitch()
     delay(50);
   }*/
 
-  updateBasePWM(-1);
-  delay(80);
-  translationX(0.3);
+  double dist = sensors->getDistInfo(dist_front);
+
+  if (dist > 0.1)
+  {
+    updateBasePWM(-1);
+    delay(80);
+    translationX(-0.3);
+  }
+  else
+  {
+    advanceXMetersAbs(-0.03, 1);
+  }
 
   // updateAngleReference(newAngle);
   // goToAngle(newAngle, true);
@@ -1666,13 +1675,23 @@ void Movement::handleLeftLimitSwitch()
   }
 */
 
-  updateBasePWM(-1);
-  delay(80);
-  translationX(-0.3);
+  double dist = sensors->getDistInfo(dist_front);
+
+  if (dist > 0.1)
+  {
+    updateBasePWM(-1);
+    delay(80);
+    translationX(-0.3);
+  }
+  else
+  {
+    advanceXMetersAbs(-0.03, 1);
+  }
 
   rearrangeAngle();
   stop();
 }
+
 
 void Movement::getMotorStatus(int pos)
 {
