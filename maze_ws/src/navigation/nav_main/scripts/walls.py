@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import math
+
 """ Return if there is a wall in all directions.
 """
 
@@ -62,8 +64,47 @@ def detect_walls_dist(req):
 
     return GetWallsDistResponse(front_dist, back_dist, left_dist, right_dist)
     
+
+def calculate_cardinal_indices(scan_msg):
+    # Calculate the total number of laser measurements
+    num_measurements = int((scan_msg.angle_max - scan_msg.angle_min) / scan_msg.angle_increment) + 1
+    
+    # Calculate the index of each cardinal direction
+    north_idx = int(math.floor(num_measurements / 2))
+    east_idx = int(math.floor(north_idx - (math.pi / 2) / scan_msg.angle_increment))
+    south_idx = int(math.floor(north_idx + (math.pi / 2) / scan_msg.angle_increment))
+    west_idx = int(math.floor(north_idx + math.pi / scan_msg.angle_increment)) % num_measurements
+    
+    return north_idx, east_idx, south_idx, west_idx
+
+
+
 def get_dist():
     global scan_msg
+    # global left_dist
+    # global back_dist
+    # global right_dist
+    # global front_dist
+
+    global west_dist
+    global north_dist
+    global east_dist
+    global south_dist
+
+    global north_idx
+    global east_idx
+    global south_idx
+    global west_idx
+    
+    num_measurements = int((scan_msg.angle_max - scan_msg.angle_min) / scan_msg.angle_increment) + 1
+    north_idx, east_idx, south_idx, west_idx = calculate_cardinal_indices(scan_msg)
+
+    west_dist = scan_msg.ranges[west_idx]
+    north_dist = scan_msg.ranges[north_idx]
+    east_dist = scan_msg.ranges[east_idx]
+    south_dist = scan_msg.ranges[south_idx]
+
+    
 
     # Get the range values from the laser scan message
     ranges = scan_msg.ranges
@@ -92,16 +133,16 @@ def get_dist():
     new_left_dist = get_valid_number(350, angle_threshold) # Left of the robot
     new_back_dist = get_valid_number(425, angle_threshold) # Back of the robot
     new_right_dist = get_valid_number(601, angle_threshold) # Right of the robot
-    new_front_dist = get_valid_number(480, angle_threshold) # Front of the robot
+    new_front_dist = get_valid_number(164, angle_threshold) # Front of the robot
 
-    if debug:
-        print("Data from specific selections:")
-        print("Left: " + str(ranges[350]) + " Back: " + str(ranges[425]) + " Right: " + str(ranges[601]) + " Front: " + str(ranges[164]))
-        print("5 Data points above and below selections:")
-        print("Left: " + str(ranges[350-5:350+5]))
-        print("Back: " + str(ranges[435-5:425+5]))
-        print("Right: " + str(ranges[601-5:601+5]))
-        print("Front: " + str(ranges[164-5:164+5]))
+    # if debug:
+        # print("Data from specific selections:")
+        # print("Left: " + str(ranges[350]) + " Back: " + str(ranges[425]) + " Right: " + str(ranges[601]) + " Front: " + str(ranges[164]))
+        # print("5 Data points above and below selections:")
+        # print("Left: " + str(ranges[350-5:350+5]))
+        # print("Back: " + str(ranges[435-5:425+5]))
+        # print("Right: " + str(ranges[601-5:601+5]))
+        # print("Front: " + str(ranges[164-5:164+5]))
         
 
     # Update distances if they are valid. Else, leave them as they are.
@@ -163,6 +204,39 @@ def scan_callback(scan_msg_in):
 
     get_dist()
 
+def dist_callback_absolute(_):
+    global north_dist
+    global east_dist
+    global south_dist
+    global west_dist
+
+    global north_idx
+    global east_idx
+    global south_idx
+    global west_idx
+    
+    global dist_publisher
+
+    # Create a quaternion message to publish the distances
+    dist_msg = Quaternion()
+    dist_msg.x = north_dist
+    dist_msg.y = east_dist
+    dist_msg.z = south_dist
+    dist_msg.w = west_dist
+
+    print(f"north index {north_idx}")
+    print(f"east index {east_idx}")
+    print(f"south index {south_idx}")
+    print(f"west index {west_idx}")
+
+    if debug:
+        print("Distances returned:")
+        print("North: " + str (north_dist))
+        print("East: " + str (east_dist))
+        print("South: " + str (south_dist))
+        print("West: " + str (west_dist))
+
+    dist_publisher.publish(dist_msg)
 
 def dist_callback(_):
     global left_dist
@@ -211,7 +285,7 @@ if __name__ == '__main__':
 
     # Subscribe to laser scan topic
     rospy.Subscriber('/scan', LaserScan, scan_callback)
-    rospy.Subscriber("/dist_request", Empty, dist_callback)
+    rospy.Subscriber("/dist_request", Empty, dist_callback_absolute)
 
     global dist_publisher
     dist_publisher = rospy.Publisher('dist_walls', Quaternion, queue_size=5)

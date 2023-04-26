@@ -6,8 +6,8 @@
 
 <!-- Launch node to test serial communication implementation -->
   <node name="serial_node" pkg="exploration" type="serial_driver.py" respawn="true" respawn_delay="2" output="screen">
-        <param name="port" value="/dev/ttyUSB0"/>
+        <param name="port" value="/dev/port1"/>
         <param name="baud" value="57600"/> 
-        <param name="timeout" value="0.5"/>
+        <param name="timeout" value="2.5"/>
   </node>
 </launch>
