@@ -371,11 +371,11 @@ double Movement::cmdMovement(const int action, const int option)
     // nh->loginfo("Moving forward");
     sensors->logActive("Moving forward", true, 0, 0);
     // Move forward 1 unit.
-    
+
     motor[FRONT_LEFT].pidStraight.useConservative = true;
     motor[FRONT_RIGHT].pidStraight.useConservative = true;
     motor[BACK_LEFT].pidStraight.useConservative = true;
-    motor[BACK_RIGHT].pidStraight.useConservative = true;    
+    motor[BACK_RIGHT].pidStraight.useConservative = true;
     return advanceXMeters(0.3, option);
     break;
 
@@ -391,11 +391,11 @@ double Movement::cmdMovement(const int action, const int option)
     // nh->loginfo("Moving backward");
     // Move back 1 unit
     sensors->logActive("Moving backward", true, 0, 0);
-    
+
     motor[FRONT_LEFT].pidStraight.useConservative = true;
     motor[FRONT_RIGHT].pidStraight.useConservative = true;
     motor[BACK_LEFT].pidStraight.useConservative = true;
-    motor[BACK_RIGHT].pidStraight.useConservative = true;    
+    motor[BACK_RIGHT].pidStraight.useConservative = true;
     return advanceXMeters(-0.3, option);
     break;
 
@@ -442,7 +442,7 @@ double Movement::cmdMovement(const int action, const int option)
     // nh->loginfo("Moving forward (fast)");
     // Move forward 1 unit.
     sensors->logActive("Moving forward (fast)", true, 0, 0);
-    
+
     motor[FRONT_LEFT].pidStraight.useConservative = false;
     motor[FRONT_RIGHT].pidStraight.useConservative = false;
     motor[BACK_LEFT].pidStraight.useConservative = false;
@@ -544,7 +544,7 @@ void Movement::updatePIDKinematics(Kinematics::output rpm)
 }
 
 // Update PID with either VLX or BNO error.
-void Movement::updateStraightPID(int RPMs, bool useBNO)
+void Movement::updateStraightPID(int RPMs, bool useBNO, bool ramp)
 {
   sensors->logActive("upd s PID", true, 0, 2);
   double errorD = 0;
@@ -624,11 +624,45 @@ void Movement::updateStraightPID(int RPMs, bool useBNO)
   }
   else if (!CK::pidBoth && useBNO)
   {
-    // Possitive errorD moves the robot towards the right
-    motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
-    motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
-    motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
-    motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
+    if (ramp)
+    {
+      bool upwards;
+
+      if (sensors->getAngleY() < maxPitch + basePitch)
+        upwards = true; // robot is moving up.
+
+      // If robot is moving on ramp, dont reduce speed of one side.
+      double leftRPMs = max(RPMs + (errorD * bnoFactor), RPMs);
+      double rightRPMs = max(RPMs + (errorD * bnoFactor * -1), RPMs);
+
+      // Add rmps to side crashing against wall
+      bool l, r;
+      sensors->getLimitSwitches(l, r);
+
+      if (upwards)
+      {
+        leftRPMs += (l ? 10 : 0);
+        rightRPMs += (r ? 10 : 0);
+      }
+      else
+      {
+        leftRPMs += (r ? -10 : 0);
+        rightRPMs += (l ? -10 : 0);
+      }
+
+      motor[FRONT_LEFT].motorSpeedPID(leftRPMs);
+      motor[BACK_LEFT].motorSpeedPID(leftRPMs);
+      motor[FRONT_RIGHT].motorSpeedPID(rightRPMs);
+      motor[BACK_RIGHT].motorSpeedPID(rightRPMs);
+    }
+    else
+    {
+      // Possitive errorD moves the robot towards the right
+      motor[FRONT_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
+      motor[BACK_LEFT].motorSpeedPID(RPMs + (errorD * bnoFactor));
+      motor[FRONT_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
+      motor[BACK_RIGHT].motorSpeedPID(RPMs + (errorD * bnoFactor * -1));
+    }
   }
   else if (!CK::pidBoth && !useBNO)
   {
@@ -755,10 +789,10 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
       // rosBridge->readOnce();
       if (!sensors->readMotorInit())
         return -2;
-      handleSwitches();
 
       updateVelocityDecider(kMovementRPMs, straightPidType);
 
+      handleSwitches();
       // Get dist reading after correcting angle.
       rearrangeAngle(8);
 
@@ -1121,13 +1155,18 @@ double Movement::stabilizePitch(int straightPidType, int RPMs)
     // rosBridge->readOnce();
     // sensors->logActive("Stabilize pitch running.", true, 0, 0);
     if (!sensors->readMotorInit())
+    {
+      stop();
       return -2;
+    }
+
     if (!CK::kusingROS && CK::debugRamp)
     {
       Serial.print("Robot out of stable pitch: ");
       Serial.println(sensors->getAngleY());
     }
-    updateVelocityDecider(RPMs, straightPidType);
+    // updateVelocityDecider(RPMs, straightPidType);
+    updateStraightPID(80, CK::useBNO, true);
   }
 
   double dt = (millis() - start) / 1000.0;
@@ -1509,6 +1548,7 @@ double Movement::traverseRamp(int option)
       if (!sensors->readMotorInit())
         return -2;
       updateVelocityDecider(80, CK::useBNO); // Use vlx to center in ramp
+      // updateStraightPID(80, useBNO, true);
       // motor[FRONT_LEFT].setPWM(255, 1);
       // motor[BACK_LEFT].setPWM(255, 1);
       // motor[FRONT_RIGHT].setPWM(255, 1);
@@ -1541,13 +1581,8 @@ double Movement::traverseRamp(int option)
 
   double dt = stabilizePitch(1, RPMs);
 
-  start = millis();
-  while (millis() - start < 1000)
-  {
-    updateVelocityDecider(40, CK::useBNO);
-  }
-  rearrangeAngle();
-  advanceUntilCentered();
+  advanceXMetersAbs(0.05, 1);
+  rearrangeAngle(5);
 
   stop();
   resetEncoders();
@@ -1649,7 +1684,7 @@ void Movement::handleRightLimitSwitch()
   }
   else
   {
-    advanceXMetersAbs(-0.03, 1);
+    advanceXMetersAbs(0.03, 1);
   }
 
   // updateAngleReference(newAngle);
@@ -1691,7 +1726,6 @@ void Movement::handleLeftLimitSwitch()
   rearrangeAngle();
   stop();
 }
-
 
 void Movement::getMotorStatus(int pos)
 {
