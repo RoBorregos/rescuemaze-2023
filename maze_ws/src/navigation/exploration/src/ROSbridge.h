@@ -237,7 +237,7 @@ private:
     void vlxLeftCallback(const sensor_msgs::Range::ConstPtr &msg);
 
     void startCallback(const std_msgs::Int8::ConstPtr &msg);
-    void goalTimeoutCallback(const ros::TimerEvent& event);
+    void goalTimeoutCallback(const ros::TimerEvent &event);
     int sendGoalJetson(int movement);
 
     void sendKit();
@@ -260,7 +260,7 @@ public:
     int sendUnitGoal(int movement, int rDirection);
 
     vector<bool> getWalls();
-    int getVictims();
+    int getVictims(bool leftWall, bool rightWall);
     bool checkStart();
     void restartSerial();
 
@@ -775,7 +775,7 @@ void ROSbridge::startCallback(const std_msgs::Int8::ConstPtr &msg)
     startAlgorithm = msg->data;
 }
 
-void ROSbridge::goalTimeoutCallback(const ros::TimerEvent& event)
+void ROSbridge::goalTimeoutCallback(const ros::TimerEvent &event)
 {
     ros::spinOnce();
 
@@ -879,7 +879,6 @@ int ROSbridge::sendGoalJetson(int movement)
 
         ros::spinOnce();
 
-
         // Call get_walls_dist service
         // nav_main::GetWallsDist walls;
         // wallsDistClient.waitForExistence();
@@ -907,8 +906,6 @@ int ROSbridge::sendGoalJetson(int movement)
         scope.status = statusSrv.response.status;
 
         ROS_INFO("Status %d: ", scope.status);
-
-
 
         // // check color
         // if (tcsdata == 'N' && !blackTile)
@@ -1030,10 +1027,12 @@ int ROSbridge::sendGoalJetson(int movement)
     {
         // turn right and check if there's a ramp
         sendGoalJetson(1);
+        sendGoalJetson(1);
         if (checkUpRamp())
         {
             ROS_INFO("Turning and Returning 4 (down ramp)");
             // if there was a ramp, turn left and return the value
+            sendGoalJetson(3);
             sendGoalJetson(3);
             return 4;
         }
@@ -1042,7 +1041,8 @@ int ROSbridge::sendGoalJetson(int movement)
             ROS_INFO("Turning and Returning 2 (stairs)");
             // if there was no ramp, turn left and return the value
             sendGoalJetson(3);
-            return 0;
+            sendGoalJetson(3);
+            return 2;
         }
     }
 
@@ -1940,9 +1940,11 @@ int ROSbridge::getVictims()
 
 #else
 
-int ROSbridge::getVictims()
+int ROSbridge::getVictims(bool leftWall, bool rightWall)
 {
-    return 0;
+    if (!leftWall && !rightWall)
+        return 0;
+    
     // Normal tile, check victim
     openmv_camera::BothCameras bothCameras;
 
@@ -1951,80 +1953,96 @@ int ROSbridge::getVictims()
     victimsClient.waitForExistence();
     victimsClient.call(bothCameras);
 
-    if (bothCameras.response.left_cam == "H")
+    if (leftWall)
     {
-        // Drop three kits to the left
-        std_msgs::Int8 msg;
-        msg.data = -3;
-        dispenserpub.publish(msg);
+        if (bothCameras.response.left_cam == "H")
+        {
+            // Drop three kits to the left
+            std_msgs::Int8 msg;
+            msg.data = -3;
+            dispenserpub.publish(msg);
 
-        gotVictims = true;
+            gotVictims = true;
 
-        // ros::Duration(6).sleep();
+            // ros::Duration(6).sleep();
+        }
+        else if (bothCameras.response.left_cam == "S")
+        {
+            // Drop two kits to the left
+            std_msgs::Int8 msg;
+            msg.data = -2;
+            dispenserpub.publish(msg);
+
+            gotVictims = true;
+
+            // ros::Duration(4).sleep();
+        }
+        else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
+        {
+            // Drop one kit to the left
+            std_msgs::Int8 msg;
+            msg.data = -1;
+            dispenserpub.publish(msg);
+
+            gotVictims = true;
+
+            // ros::Duration(2).sleep();
+        }
     }
-    else if (bothCameras.response.right_cam == "H")
+
+    if (rightWall)
     {
-        // Drop three kits to the right
-        std_msgs::Int8 msg;
-        msg.data = 3;
-        dispenserpub.publish(msg);
+        if (bothCameras.response.right_cam == "H")
+        {
+            // Drop three kits to the right
+            std_msgs::Int8 msg;
+            msg.data = 3;
+            dispenserpub.publish(msg);
 
-        gotVictims = true;
+            gotVictims = true;
 
-        // ros::Duration(6).sleep();
-    }
-    else if (bothCameras.response.left_cam == "r" || bothCameras.response.left_cam == "S")
-    {
-        // Drop two kits to the left
-        std_msgs::Int8 msg;
-        msg.data = -2;
-        dispenserpub.publish(msg);
+            // ros::Duration(6).sleep();
+        }
+        else if (bothCameras.response.right_cam == "S")
+        {
+            // Drop two kits to the right
+            std_msgs::Int8 msg;
+            msg.data = 2;
+            dispenserpub.publish(msg);
 
-        gotVictims = true;
+            gotVictims = true;
 
-        // ros::Duration(4).sleep();
-    }
-    else if (bothCameras.response.right_cam == "S")
-    {
-        // Drop two kits to the right
-        std_msgs::Int8 msg;
-        msg.data = 2;
-        dispenserpub.publish(msg);
+            // ros::Duration(4).sleep();
+        }
+        else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
+        {
+            // Drop one kit to the right
+            std_msgs::Int8 msg;
+            msg.data = 1;
+            dispenserpub.publish(msg);
 
-        gotVictims = true;
+            gotVictims = true;
 
-        // ros::Duration(4).sleep();
-    }
-    else if (bothCameras.response.left_cam == "y" || bothCameras.response.left_cam == "r")
-    {
-        // Drop one kit to the left
-        std_msgs::Int8 msg;
-        msg.data = -1;
-        dispenserpub.publish(msg);
-
-        gotVictims = true;
-
-        // ros::Duration(2).sleep();
-    }
-    else if (bothCameras.response.right_cam == "y" || bothCameras.response.right_cam == "r")
-    {
-        // Drop one kit to the right
-        std_msgs::Int8 msg;
-        msg.data = 1;
-        dispenserpub.publish(msg);
-
-        gotVictims = true;
-
-        // ros::Duration(2).sleep();
+            // ros::Duration(2).sleep();
+        }
     }
 
     if (gotVictims)
     {
         // Wait for the dispenser to finish
+        scope.result = 0;
 
         while (scope.result != 6)
         {
-            ros::spinOnce();
+            // ros::spinOnce();
+
+            exploration::GoalStatus statusSrv;
+            goalStatusClient.waitForExistence();
+            goalStatusClient.call(statusSrv);
+
+            scope.status = statusSrv.response.status;
+
+            ROS_INFO("Status %d: ", scope.status);
         }
 
         return 1;

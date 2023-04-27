@@ -133,11 +133,11 @@ def get_dist():
     new_left_dist = get_valid_number(350, angle_threshold) # Left of the robot
     new_back_dist = get_valid_number(425, angle_threshold) # Back of the robot
     new_right_dist = get_valid_number(601, angle_threshold) # Right of the robot
-    new_front_dist = get_valid_number(164, angle_threshold) # Front of the robot
+    new_front_dist = get_valid_number(480, angle_threshold) # Front of the robot
 
     # if debug:
         # print("Data from specific selections:")
-        # print("Left: " + str(ranges[350]) + " Back: " + str(ranges[425]) + " Right: " + str(ranges[601]) + " Front: " + str(ranges[164]))
+        # print("Left: " + str(ranges[350]) + " Back: " + str(ranges[425]) + " Right: " + str(ranges[601]) + " Front: " + str(ranges[480]))
         # print("5 Data points above and below selections:")
         # print("Left: " + str(ranges[350-5:350+5]))
         # print("Back: " + str(ranges[435-5:425+5]))

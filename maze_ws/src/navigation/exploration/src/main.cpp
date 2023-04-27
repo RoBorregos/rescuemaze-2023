@@ -29,7 +29,8 @@ int rDirection = 0;
 #define useros true
 #define rosDebug true
 #define canMoveBackward true
-#define checkRestart false
+#define checkRestart true
+#define useCheckpoints false
 
 ROSbridge *bridge;
 
@@ -90,7 +91,6 @@ int moveForward(int &rDirection, Map &mapa)
 
 #endif
 
-    
     int result = bridge->sendUnitGoal(0, rDirection);
     // bridge->publishIdealOrientation(rDirection);
 
@@ -105,7 +105,7 @@ int moveForward(int &rDirection, Map &mapa)
 }
 
 // Gira a la derecha y modifica la direccion
-void right(int &rDirection, Map &mapa)
+void right(int &rDirection) //, Map &mapa)
 {
     // cout << "right" << endl;
     ROS_INFO("right");
@@ -131,7 +131,7 @@ void right(int &rDirection, Map &mapa)
 #endif
     if (mapSimDebug)
     {
-        mapa.printMaze(rDirection);
+        // mapa.printMaze(rDirection);
         // cin.get();
         ros::Duration(0.1).sleep();
     }
@@ -160,7 +160,7 @@ void moveBackward(int &rDirection, Map &mapa)
 }
 
 // Gira a la izquierda y modifica la direccion
-void left(int &rDirection, Map &mapa)
+void left(int &rDirection) //, Map &mapa)
 {
     // cout << "left" << endl;
     ROS_INFO(" Move: ");
@@ -188,7 +188,7 @@ void left(int &rDirection, Map &mapa)
 
     if (mapSimDebug)
     {
-        mapa.printMaze(rDirection);
+        // mapa.printMaze(rDirection);
         // cin.get();
         ros::Duration(0.1).sleep();
     }
@@ -206,16 +206,16 @@ void rotateTo(int &rDirection, int newDirection, Map &mapa)
     // ROS_INFO_STREAM("rotateTo: " << newDirection);
     if (rDirection + 2 == newDirection or rDirection - 2 == newDirection)
     {
-        left(rDirection, mapa);
-        left(rDirection, mapa);
+        left(rDirection);
+        left(rDirection);
     }
     else if (rDirection + 1 == newDirection or rDirection - 3 == newDirection)
     {
-        right(rDirection, mapa);
+        right(rDirection);
     }
     else if (rDirection - 1 == newDirection or rDirection + 3 == newDirection)
     {
-        left(rDirection, mapa);
+        left(rDirection);
     }
 }
 
@@ -231,12 +231,12 @@ int moveNorth(int &yMaze, int &rDirection, Map &mapa, bool visited)
     }
 
     rotateTo(rDirection, 0, mapa);
-    
+
     if (visited)
     {
         return bridge->sendUnitGoal(10, rDirection);
     }
-    
+
     return moveForward(rDirection, mapa);
 }
 
@@ -251,14 +251,13 @@ int moveSouth(int &yMaze, int &rDirection, Map &mapa, bool visited)
         return 1;
     }
 
-
     rotateTo(rDirection, 2, mapa);
-    
+
     if (visited)
     {
         return bridge->sendUnitGoal(10, rDirection);
     }
-    
+
     return moveForward(rDirection, mapa);
 }
 
@@ -273,14 +272,13 @@ int moveEast(int &xMaze, int &rDirection, Map &mapa, bool visited)
         return 1;
     }
 
-
     rotateTo(rDirection, 1, mapa);
-    
+
     if (visited)
     {
         return bridge->sendUnitGoal(10, rDirection);
     }
-    
+
     return moveForward(rDirection, mapa);
 }
 
@@ -297,7 +295,7 @@ int moveWest(int &xMaze, int &rDirection, Map &mapa, bool visited)
 
 
     rotateTo(rDirection, 3, mapa);
-    
+
     if (visited)
     {
         return bridge->sendUnitGoal(10, rDirection);
@@ -410,7 +408,7 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
             tile->adjacentTiles[key]->black = true;
             return tile;
         }
-        else if (goalResult == 3) // Silver tile
+        else if (useCheckpoints && goalResult == 3) // Silver tile
         {
             calcPos(mapa.pos, key, mapa);
             // Update checkpoint position
@@ -679,9 +677,26 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
     // return newTile;
 }
 
-int checkVictims() // use ros
+int checkVictims(bool leftWall, bool rightWall, bool frontWall) // use ros
 {
-    return bridge->getVictims();
+    int result = 0;
+    if (bridge->getVictims(leftWall, rightWall))
+    {
+        result = 1;
+    }
+
+    if (!frontWall)
+        return result;
+
+    // turn right and check left camera
+    right(rDirection);
+
+    if (bridge->getVictims(frontWall, false))
+    {
+        result = 1;
+    }
+
+    return result;
 }
 
 int checkVictims(Map &mapa)
@@ -933,11 +948,13 @@ void explore(bool checkpoint, int argc, char **argv)
     Map mapa;
     Tile *startTile;
 
-    if (true)
+    if (!useCheckpoints)
     {
         startTile = mapa.tile;
         startTile->visited = true;
         mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
+
+        mapa.tile->walls["south"] = true;
     }
     else
     {
@@ -1008,6 +1025,12 @@ void explore(bool checkpoint, int argc, char **argv)
         vector<bool> walls = getWalls();
 #endif
 
+        // check for victims
+        if (useros && mapa.tile->victim == 0 && checkVictims(walls[3], walls[1], walls[0]))
+        {
+            mapa.tile->victim = 1;
+        }
+
         // Se revisan las casillas adyacentes
         for (auto &&key : keys)
         {
@@ -1015,8 +1038,25 @@ void explore(bool checkpoint, int argc, char **argv)
             {
                 bridge->restartSerial();
 
-                mapa.pos = mapa.recovpos;
-                mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
+                if (useCheckpoints)
+                {
+                    mapa.pos = mapa.recovpos;
+                    mapa.tile = mapa.tiles.at(posvectorToString(mapa.pos));
+                }
+                else
+                {
+                    // restart map and all tiles
+                    // mapa = Map();
+                    // startTile = mapa.tile;
+                    // startTile->visited = true;
+
+                    // mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
+
+                    // mapa.tile->walls["south"] = true;
+                    
+                    explore(checkpoint, argc, argv);
+                    return;
+                }
 
                 if (rosDebug)
                     bridge->pubDebug("Restarting algorithm");
@@ -1044,7 +1084,7 @@ void explore(bool checkpoint, int argc, char **argv)
                 bridge->pubDebug("Tile: " + posvectorToString(mapa.tile->pos));
                 printTile(mapa.tile);
             }
-// ROS_INFO("Checking key: %s", key.c_str());
+            // ROS_INFO("Checking key: %s", key.c_str());
 
             if (mapa.tile->stairs && (key == "east" || key == "west"))
             {
@@ -1181,11 +1221,6 @@ void explore(bool checkpoint, int argc, char **argv)
         if (rosDebug)
             bridge->pubDebug("New tile: " + posvectorToString(mapa.tile->pos));
         printTile(mapa.tile);
-
-        if (useros && mapa.tile->victim == 0 && checkVictims())
-        {
-            mapa.tile->victim = 1;
-        }
 
         if (!useros && mapa.tile->victim != 0)
         {
