@@ -629,6 +629,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO, bool ramp)
   }
   else if (!CK::pidBoth && useBNO)
   {
+    ramp = false;
     if (ramp)
     {
       bool upwards;

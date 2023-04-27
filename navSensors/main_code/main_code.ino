@@ -134,8 +134,8 @@ void setup()
   // Serial.println("Execute4");
   initAll(&bno, true, true);
 
-  // RosBridge2 rosbridge(robot, s, &bno);
-  // s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+  RosBridge2 rosbridge(robot, s, &bno);
+  s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   // rosbridge.run();
 
   GeneralChecks checks(robot);
@@ -145,7 +145,8 @@ void setup()
   // checks.calibrateSensors();
   // checks.checkOled();
   // checks.printRevolutions();
-  // checks.test();
+  // checks.checkWheelSpeed();
+  checks.test();
 }
 
 int newAngle = 0;

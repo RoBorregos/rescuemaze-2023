@@ -26,10 +26,11 @@ void GeneralChecks::checkAll()
 
 void GeneralChecks::calibrateSensors()
 {
-    while (true){
+    while (true)
+    {
         robot->sensors->printInfo(false, false, true, false);
     }
-    
+
     // Only calibrate directly on arduino, because the code with new ranges
     // would still need to be uploaded.
     // if (publishRos)
@@ -105,6 +106,19 @@ void GeneralChecks::checkSensorData(int iterations)
         }
 
         Serial.println("Finished checking sensors.");
+
+        for (int i = 0; i < iterations; i++)
+        {
+            if (robot->sensors->readMotorInit())
+            {
+                Serial.println("Motors are on.");
+            }
+            else
+            {
+                Serial.println("Motors are off.");
+            }
+            delay(100);
+        }
     }
 }
 
@@ -155,11 +169,10 @@ void GeneralChecks::checkWheelDirections()
 {
     log("Testing all motors");
     delay(1000);
-
-    robot->motor[FRONT_RIGHT].setPWM(100);
-    robot->motor[FRONT_LEFT].setPWM(100);
-    robot->motor[BACK_RIGHT].setPWM(100);
-    robot->motor[BACK_LEFT].setPWM(100);
+    robot->motor[FRONT_RIGHT].setPWM(255);
+    robot->motor[FRONT_LEFT].setPWM(255);
+    robot->motor[BACK_RIGHT].setPWM(255);
+    robot->motor[BACK_LEFT].setPWM(255);
 
     log("FRONT RIGHT - Forward");
     robot->motor[FRONT_RIGHT].motorForward();
@@ -253,7 +266,7 @@ void GeneralChecks::test()
     //     Serial.println(test.motor4);
     //     angular += 0.1;
     // }
-   
+
     // while (true)
     // {
     //     robot->sensors->printInfo(true, false, false, false);
@@ -274,16 +287,20 @@ void GeneralChecks::test()
     // robot->basePitch = robot->sensors->getAngleY();
     // double pwm = 10;
     Serial.println("Running test");
-    while (true){
-        if (robot->sensors->readMotorInit()){
+    while (true)
+    {
+        if (robot->sensors->readMotorInit())
+        {
             Serial.println("Motors are on");
-        } else {
+        }
+        else
+        {
             Serial.println("Motors are off");
         }
     }
 
     Serial.println("Specific test");
-    robot->cmdMovement(7,1);
+    robot->cmdMovement(7, 1);
     end();
     robot->cmdMovement(0, 1);
     end();
@@ -437,6 +454,27 @@ void GeneralChecks::checkPID()
             time = millis();
             revolutions += 10;
         }
+    }
+}
+
+void GeneralChecks::checkWheelSpeed(){
+    Serial.println("Checking wheel speed");
+    robot->motor[FRONT_RIGHT].motorForward();
+    robot->motor[BACK_RIGHT].motorForward();
+    robot->motor[FRONT_LEFT].motorForward();
+    robot->motor[BACK_LEFT].motorForward();
+
+    // robot->motor[FRONT_RIGHT].setPWM(CK::basePwmFrontRight);
+    // robot->motor[FRONT_LEFT].setPWM(CK::basePwmFrontLeft);
+    // robot->motor[BACK_RIGHT].setPWM(CK::basePwmBackRight);
+    // robot->motor[BACK_LEFT].setPWM(CK::basePwmBackLeft);
+
+    robot->motor[FRONT_RIGHT].setPWM(255);
+    robot->motor[FRONT_LEFT].setPWM(255);
+    robot->motor[BACK_RIGHT].setPWM(255);
+    robot->motor[BACK_LEFT].setPWM(255);
+    while (true){
+        delay(500);
     }
 }
 
