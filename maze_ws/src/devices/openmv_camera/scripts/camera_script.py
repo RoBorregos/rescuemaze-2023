@@ -10,9 +10,15 @@ import image, network, omv, rpc, sensor, struct
 # Calibrate using Tools > Machine Vision > Threshold Editor
 
 # Minimums and maximums for the LAB L, A, and B channels respectively.
+thresholds = [(11, 31, 19, 53, 11, 64), # red_thresholds
+              (32, 52, -55, -11, -27, 35), # green_thresholds
+              (50, 75, -33, 24, 49, 91)] # yellow_thresholds
+
+"""Past thresholds  
 thresholds = [(27, 68, 33, 70, -1, 54), # red_thresholds
               (32, 66, -57, -25, 4, 40), # green_thresholds
               (30, 62, -19, 0, 20, 60)] # yellow_thresholds
+"""
 
 sensor.reset()
 sensor.set_pixformat(sensor.RGB565)

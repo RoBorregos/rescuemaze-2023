@@ -60,7 +60,7 @@ private:
   int rDirection = 0; // 0 is north, 1 is east, 2 is south, and 3 is west.
 
   // Servo
-  static constexpr uint8_t kServoPin = 0; // TODO: check pin
+  static constexpr uint8_t kServoPin = 6; // pin is 6
 
   // Motor.
   static constexpr int kMotorCount = 4;
@@ -252,7 +252,7 @@ public:
   // Use vlx or BNO for correction depending on flag.
   // @param RPMs The target speed in RPMs.
   // @param useBNO True to use BNO, false to use VLX.
-  void updateStraightPID(int RPMs, bool useBNO);
+  void updateStraightPID(int RPMs, bool useBNO, bool ramp = false);
 
   // Calls straight PID method for all motors. Updates pwm of motors to approach target RPMs.
   // @param RPMs The target speed in RPMs.

@@ -26,31 +26,35 @@ void GeneralChecks::checkAll()
 
 void GeneralChecks::calibrateSensors()
 {
+    while (true){
+        robot->sensors->printInfo(false, false, true, false);
+    }
+    
     // Only calibrate directly on arduino, because the code with new ranges
     // would still need to be uploaded.
-    if (publishRos)
-    {
-        if (robot->nh == nullptr)
-            return;
-        robot->nh->loginfo("Calibrate sensors only available directly on Arduino.");
-        robot->nh->loginfo("Change publishROS flag and connect to serial monitor or arduino IDE.");
-        return;
-    }
+    // if (publishRos)
+    // {
+    //     if (robot->nh == nullptr)
+    //         return;
+    //     robot->nh->loginfo("Calibrate sensors only available directly on Arduino.");
+    //     robot->nh->loginfo("Change publishROS flag and connect to serial monitor or arduino IDE.");
+    //     return;
+    // }
 
-    MUX2C mux;
+    // MUX2C mux;
 
-    // Print available i2c directions
-    mux.findI2C();
+    // // Print available i2c directions
+    // mux.findI2C();
 
-    // Re-initialize sensors because mux.findI2C cuts communication.
-    Sensors s;
-    s.initSensors();
-    while (1)
-    {
-        // Only print TCS info for calibration.
-        s.printInfo(false, false, true, false);
-        delay(200);
-    }
+    // // Re-initialize sensors because mux.findI2C cuts communication.
+    // Sensors s;
+    // s.initSensors();
+    // while (1)
+    // {
+    //     // Only print TCS info for calibration.
+    //     s.printInfo(false, false, true, false);
+    //     delay(200);
+    // }
 }
 
 void GeneralChecks::checkSensorData(int iterations)
@@ -269,7 +273,9 @@ void GeneralChecks::test()
     // robot->updateAngleReference();
     // robot->basePitch = robot->sensors->getAngleY();
     // double pwm = 10;
-
+    Serial.println("Specific test");
+    robot->cmdMovement(7,1);
+    end();
     robot->cmdMovement(0, 1);
     end();
     while (true)

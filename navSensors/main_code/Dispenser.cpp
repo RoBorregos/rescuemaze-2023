@@ -23,10 +23,21 @@ void Dispenser::initServo()
 
 void Dispenser::rightDrop()
 {
+  // dispenser.write(kRightMovement);
+  // delay(rightDelay);
+  // dispenser.write(kLeftMovement);
+  // delay(rightDelay);
+  // dispenser.write(kStopMovement);
+  // dispenser.write(kLeftMovement);
   dispenser.write(kRightMovement);
   delay(rightDelay);
   dispenser.write(kLeftMovement);
-  delay(leftDelay);
+  delay(rightDelay);
+  dispenser.write(kStopMovement);
+}
+
+void Dispenser::stop()
+{
   dispenser.write(kStopMovement);
 }
 
@@ -35,7 +46,7 @@ void Dispenser::leftDrop()
   dispenser.write(kLeftMovement);
   delay(leftDelay);
   dispenser.write(kRightMovement);
-  delay(rightDelay);
+  delay(leftDelay);
   dispenser.write(kStopMovement);
 }
 
