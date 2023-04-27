@@ -39,6 +39,7 @@ void Movement::initMovement(bool individualConstants)
   kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
   setMotors();
   this->dispenser = Dispenser(kServoPin);
+  dispenser.stop();
   if (individualConstants)
     setIndividualPID();
   initRobot();
@@ -337,8 +338,8 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 double Movement::cmdMovement(const int action, const int option)
 {
-  if (!sensors->readMotorInit())
-    return -2;
+  // if (!sensors->readMotorInit())
+  //   return -2;
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
 
@@ -1426,7 +1427,7 @@ void Movement::updateRotateDecider(int targetAngle, bool right, bool oneSide)
 // Gets sign which refers to where should a kit be dropped
 void Movement::dropDecider(int ros_sign_callback)
 {
-  sensors->toggleRightLed();
+  sensors->turnRightLedOn();
 
   double time = millis();
 
@@ -1436,7 +1437,7 @@ void Movement::dropDecider(int ros_sign_callback)
   while (((millis() - time) / 1000.0) < 5)
     delay(0.1);
 
-  sensors->toggleRightLed();
+  sensors->turnRightLedOff();
 }
 
 // Possitive dist to move to the right.

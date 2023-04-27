@@ -273,7 +273,9 @@ void GeneralChecks::test()
     // robot->updateAngleReference();
     // robot->basePitch = robot->sensors->getAngleY();
     // double pwm = 10;
-
+    Serial.println("Specific test");
+    robot->cmdMovement(7,1);
+    end();
     robot->cmdMovement(0, 1);
     end();
     while (true)

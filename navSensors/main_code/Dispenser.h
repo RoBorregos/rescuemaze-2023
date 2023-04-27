@@ -21,8 +21,8 @@ private:
   static constexpr int kStopMovement = 90;
   static constexpr int kRightMovement = 180;
 
-  static constexpr int rightDelay = 20; 
-  static constexpr int leftDelay = 20;
+  static constexpr int rightDelay = 2000; 
+  static constexpr int leftDelay = 200;
 
 public:
   // Constructor
@@ -33,6 +33,8 @@ public:
   // Initialization
 
   void initServo();
+
+  void stop();
 
   // Dispenser Functions
 

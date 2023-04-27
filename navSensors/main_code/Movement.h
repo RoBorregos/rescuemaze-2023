@@ -60,7 +60,7 @@ private:
   int rDirection = 0; // 0 is north, 1 is east, 2 is south, and 3 is west.
 
   // Servo
-  static constexpr uint8_t kServoPin = 0; // TODO: check pin
+  static constexpr uint8_t kServoPin = 6; // pin is 6
 
   // Motor.
   static constexpr int kMotorCount = 4;
