@@ -37,8 +37,8 @@ class Sensors
 
   // TCS constants
   static constexpr int kTCSPrecision = 100;                  // Precision for matching color values.
-  static constexpr uint8_t colorAmount = 2;                  // Number of colors
-  static constexpr char colorList[colorAmount + 1] = {"NA"}; // List of color initials
+  static constexpr uint8_t colorAmount = 3;                  // Number of colors
+  static constexpr char colorList[colorAmount + 1] = {"NAG"}; // List of color initials
   // RGB values for each color. Check TCS class for more details.
   static constexpr int colors[colorAmount][3] = {
       {100, 100, 100},
@@ -47,8 +47,9 @@ class Sensors
   // Each row represents the upper and lower limits for detecting a color.
   // colorThresholds[0] = {redMin, redmax, greenMin, greenMax, blueMin, blueMax}
   static constexpr int colorThresholds[colorAmount][6] = {
-      {0, 30, 0, 25, 0, 20},
-      {30, 60, 50, 100, 80, 100}};
+      {0, 40, 0, 35, 0, 25},
+      {70, 85, 140, 180, 155, 200},
+      {180, 240, 190, 210, 180, 210}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
   bool usingBNO; // Used to decide if BNO will be initialized.

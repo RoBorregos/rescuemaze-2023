@@ -134,11 +134,12 @@ void setup()
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
-  //checks.checkSensorData();
+  // checks.checkSensorData();
   //checks.checkAll();
+  //checks.calibrateSensors();
   //checks.checkOled();
   // checks.printRevolutions();
-  checks.test();
+  // checks.test();
 }
 
 int newAngle = 0;
