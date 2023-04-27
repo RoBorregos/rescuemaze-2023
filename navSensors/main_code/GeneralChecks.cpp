@@ -273,6 +273,15 @@ void GeneralChecks::test()
     // robot->updateAngleReference();
     // robot->basePitch = robot->sensors->getAngleY();
     // double pwm = 10;
+    Serial.println("Running test");
+    while (true){
+        if (robot->sensors->readMotorInit()){
+            Serial.println("Motors are on");
+        } else {
+            Serial.println("Motors are off");
+        }
+    }
+
     Serial.println("Specific test");
     robot->cmdMovement(7,1);
     end();

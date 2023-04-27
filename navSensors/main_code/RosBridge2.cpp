@@ -18,7 +18,7 @@ void RosBridge2::cmdMovementCallback(int move)
   robot_->rearrangeAngle(2.0);
 
   if (response == -2)
-    return response;
+    state_= response;
 
   if (response == 0)
   {

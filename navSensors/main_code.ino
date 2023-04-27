@@ -33,13 +33,14 @@ void setup()
 {
   Serial.begin(57600);
 
+
   // General options
   bool useVLX = true;
   bool setIndividualConstants = true;
-
+  
   ros::NodeHandle nh;
   nh.initNode();
-
+  
   while (!nh.connected())
   {
     nh.spinOnce();
@@ -51,12 +52,13 @@ void setup()
 
   nh.loginfo("Arduino node initialized");
 
-  // RosBridge rosbridge(robot, s, &nh);
+  //RosBridge rosbridge(robot, s, &nh);
 
-  // s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+  //s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
 
-  // rosbridge.rosBridgeTest();
-  // rosbridge.run();
+  
+  //rosbridge.rosBridgeTest();
+  //rosbridge.run();
 
   // Serial.begin(57600);
 
@@ -108,11 +110,12 @@ bool frontBlack = false;
 bool rightBlack = false;
 bool leftBlack = false;
 
-char color = 'B';
 // 0: front
 // 1: right
 // 3: left
 int priority = 0;
+
+char color = 'B';
 
 // Setup de todos los sensores. Set pins en Sensors.h
 void setup()
@@ -126,24 +129,20 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
-  // mux.findI2C();
-  //  Serial.println("Execute");
-
-  // Serial.println("Execute3");
+  //mux.findI2C();
+  
   bno.init();
-  // Serial.println("Execute4");
   initAll(&bno, true, true);
-
-  // RosBridge2 rosbridge(robot, s, &bno);
-  // s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+  RosBridge2 rosbridge(robot, s, &bno);
+  s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   // rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkSensorData();
-  // checks.checkAll();
-  // checks.calibrateSensors();
-  // checks.checkOled();
+  //checks.checkAll();
+  //checks.calibrateSensors();
+  //checks.checkOled();
   // checks.printRevolutions();
   // checks.test();
 }
@@ -152,7 +151,10 @@ int newAngle = 0;
 
 void loop()
 {
-  exploreFollowerWall2();
+
+  // return;
+  // s->printInfo(false, true, true, true);
+  // // forward();
 }
 
 void exploreDFS()
@@ -192,37 +194,7 @@ void exploreDFS()
   }
 }
 
-void exploreFollowerWall()
-{
-  while (true)
-  {
 
-    distancefront = getFrontDistance();
-    distanceright = getRightDistance();
-    distanceleft = getLeftDistance();
-
-    if (distancefront > 0.15)
-    {
-      Serial.println("forward");
-      forward();
-    }
-    else if (distanceright < 0.15)
-    {
-      Serial.println("left");
-      turnLeft();
-    }
-    // else if (distancefront < 0.07)
-    // {
-    //   turnLeft();
-    // }
-    else
-    {
-      Serial.println("right");
-      // forward(1);
-      turnRight();
-    }
-  }
-}
 
 void exploreFollowerWall2()
 {
@@ -251,12 +223,12 @@ void exploreFollowerWall2()
         Serial.println("forward");
         forward(1);
       }
-      else if (distanceright 0.15)
+      else if (distanceright < 0.15)
       {
         Serial.println("left");
         turnLeft();
       }
-      // else if (distancefront 0.07)
+      // else if (distancefront < 0.07)
       // {
       //   turnLeft();
       // }
@@ -307,11 +279,37 @@ void exploreFollowerWall2()
   }
 }
 
-bool checkRestart()
+void exploreFollowerWall()
 {
-  return !s->readMotorInit();
-}
+  while (true)
+  {
 
+    distancefront = getFrontDistance();
+    distanceright = getRightDistance();
+    distanceleft = getLeftDistance();
+
+    if (distancefront > 0.15)
+    {
+      Serial.println("forward");
+      forward();
+    }
+    else if (distanceright < 0.15)
+    {
+      Serial.println("left");
+      turnLeft();
+    }
+    // else if (distancefront < 0.07)
+    // {
+    //   turnLeft();
+    // }
+    else
+    {
+      Serial.println("right");
+      // forward(1);
+      turnRight();
+    }
+  }
+}
 
 // Maps rdirecion to angle
 int dirToAngle(int rdirection)
@@ -368,6 +366,11 @@ int getTurnDirection(int turn)
   return -1;
 }
 
+bool checkRestart()
+{
+  return !s->readMotorInit();
+}
+
 double getFrontDistance()
 {
   return s->getVLXInfo(front_vlx); // Get front distance
@@ -408,12 +411,12 @@ double getRightDistance()
 int forward()
 {
   // robot->advanceXMeters(0.3, 0);
-  return robot->cmdMovement(0, 3, 1);
+  return robot->cmdMovement(1);
 }
 
 int backward()
 {
-  return robot->cmdMovement(2, 1);
+  return robot->cmdMovement(4);
   // robot->advanceXMeters(-0.3, dirToAngle(rDirection));
 }
 
@@ -436,7 +439,7 @@ void backward(int times)
 void turnLeft()
 {
 
-  robot->cmdMovement(3, 1);
+  robot->cmdMovement(2, 1);
   return;
 
   // Check if there's a wall to the right
@@ -461,7 +464,7 @@ void turnLeft()
 void turnRight()
 {
 
-  robot->cmdMovement(1, 1);
+  robot->cmdMovement(3, 1);
   return;
 
   // Check if there's a wall
@@ -709,7 +712,6 @@ void shiftAngles(int error)
 // Inicializar todos los sensores.
 void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
 {
-  // Serial.println("Execute2");
   static Sensors sensors(bno, useVLX);
   s = &sensors;
 

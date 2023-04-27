@@ -338,8 +338,8 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 double Movement::cmdMovement(const int action, const int option)
 {
-  // if (!sensors->readMotorInit())
-  //   return -2;
+  if (!sensors->readMotorInit())
+    return -2;
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
 
