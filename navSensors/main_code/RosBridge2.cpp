@@ -91,6 +91,7 @@ void RosBridge2::callDispenser(int victims)
 
 void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *buffer)
 {
+  lastInstruction = millis();
   cmdCounterT += 1;
   sensors_->logActive("Cmds R: " + String(cmdCounterT), true, 0, 0, true);
   // sensors_->logActive("ReadSerial Count: " + String(countReadSerial), true, 0, 5, true);
@@ -357,13 +358,14 @@ bool RosBridge2::readLidar()
 //////////////////////////////////Run//////////////////////////////////////
 void RosBridge2::run()
 {
+  lastInstruction = millis();
   while (1)
   {
-    readSerial();
-    if ((millis() - watchdog_timer_) > kWatchdogPeriod)
-    {
-      // Decide to do something after ktime has passed without receiving a command
+    if (millis() - lastInstruction > kOnlyArduinoTimer){
+      // Return to void loop in main_code, which should run exploreFollowerWall2() or similar.
+      return;
     }
+    readSerial();
   }
 }
 

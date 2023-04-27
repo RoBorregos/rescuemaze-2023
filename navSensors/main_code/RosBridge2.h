@@ -53,6 +53,8 @@ private:
     int cmdCounter[7] = {0, 0, 0, 0, 0, 0, 0};
     int goal = 0;
     long int cmdCounterT = 0;
+    long int lastInstruction = millis();
+    long int kOnlyArduinoTimer = 25000; // 25 seconds for timeout.
     //long int countReadSerial = 0;
 
     // Suscriber.

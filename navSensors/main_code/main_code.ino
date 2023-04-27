@@ -218,7 +218,7 @@ void exploreFollowerWall()
     else
     {
       Serial.println("right");
-      // forward(1);
+      // forward();
       turnRight();
     }
   }
@@ -242,24 +242,33 @@ void exploreFollowerWall2()
 
       else if (priority == 0)
         priority = 1;
+
+      while (checkRestart())
+      {
+        delay(50);
+      }
+      robot->firstMove = true;
     }
 
     if (priority == 0)
     {
-      if (distancefront > 0.15)
+      if (distancefront > 0.15 && !frontBlack)
       {
         Serial.println("forward");
-        forward(1);
+        if (!forward())
+        {
+          frontBlack = true;
+        }
+        else
+        {
+          frontBlack = false;
+        }
       }
-      else if (distanceright 0.15)
+      else if (distanceright < 0.15)
       {
         Serial.println("left");
         turnLeft();
       }
-      // else if (distancefront 0.07)
-      // {
-      //   turnLeft();
-      // }
       else
       {
         Serial.println("right");
@@ -270,38 +279,73 @@ void exploreFollowerWall2()
 
     else if (priority == 1)
     {
-      if (distanceright > 0.15)
+      if (distanceright > 0.15 && !rightBlack)
       {
         Serial.println("right");
         turnRight();
-        forward();
+        if (!forward())
+        {
+          rightBlack = true;
+          turnLeft();
+        }
+        else
+        {
+          rightBlack = false;
+        }
       }
-      else if (distancefront > 0.05)
+      else if (distancefront > 0.15 && !frontBlack)
       {
-        forward();
+        if (!forward())
+          frontBlack = true;
+        else
+          frontBlack = false;
       }
       else
       {
         turnLeft();
-        forward();
+        if (!forward())
+        {
+          turnLeft();
+          forward();
+        }
       }
     }
     else if (priority == 3)
     {
-      if (distanceleft > 0.15)
+      if (distanceleft > 0.15 && !leftBlack)
       {
         Serial.println("left");
         turnLeft();
-        forward();
+        if (!forward())
+        {
+          leftBlack = true;
+          turnRight();
+        }
+        else
+        {
+          leftBlack = false;
+        }
       }
-      else if (distancefront > 0.05)
+      else if (distancefront > 0.05 && !frontBlack)
       {
-        forward();
+        if (!forward())
+        {
+          frontBlack = true;
+        }
+        else
+        {
+          frontBlack = false;
+        }
       }
       else
       {
         turnRight();
-        forward();
+        if (!forward())
+        {
+          turnRight();
+
+          forward();
+        }
       }
     }
   }
@@ -311,7 +355,6 @@ bool checkRestart()
 {
   return !s->readMotorInit();
 }
-
 
 // Maps rdirecion to angle
 int dirToAngle(int rdirection)
@@ -408,7 +451,14 @@ double getRightDistance()
 int forward()
 {
   // robot->advanceXMeters(0.3, 0);
-  return robot->cmdMovement(0, 3, 1);
+  double result = robot->cmdMovement(0, 1);
+
+  if (s->getTCSInfo() == 'A')
+  {
+    delay(5000);
+  }
+
+  return result;
 }
 
 int backward()

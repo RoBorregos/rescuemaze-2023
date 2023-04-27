@@ -50,8 +50,6 @@ private:
 
   RosBridge2 *rosBridge;
 
-  bool firstMove = true; // Used to update angles after the first movement.
-
   // Straight PID with VLX.
   unsigned int lastUpdateVLX = millis();
   double correctionVLX = 0.0;
@@ -129,6 +127,8 @@ private:
 public:
   // Motor Array.
   Motor motor[4]; // Public to allow access in encoder.ino.
+
+  bool firstMove = true; // Used to update angles after the first movement.
 
   // Constructors
 
