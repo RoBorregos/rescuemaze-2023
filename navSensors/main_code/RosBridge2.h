@@ -52,6 +52,7 @@ private:
     int state_ = -1;
     int cmdCounter[7] = {0, 0, 0, 0, 0, 0, 0};
     int goal = 0;
+    bool fistCmdExec = false;
     long int cmdCounterT = 0;
     long int lastInstruction = millis();
     long int kOnlyArduinoTimer = 25000; // 25 seconds for timeout.

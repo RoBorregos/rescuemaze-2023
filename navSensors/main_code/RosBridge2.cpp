@@ -221,6 +221,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   default:
     break;
   }
+  fistCmdExec = true;
   sensors_->logActive("Cmds exec: " + String(cmdCounterT), true, 0, 1, true);
 }
 
@@ -361,7 +362,7 @@ void RosBridge2::run()
   lastInstruction = millis();
   while (1)
   {
-    if (millis() - lastInstruction > kOnlyArduinoTimer){
+    if (millis() - lastInstruction > kOnlyArduinoTimer && fistCmdExec){
       // Return to void loop in main_code, which should run exploreFollowerWall2() or similar.
       return;
     }
