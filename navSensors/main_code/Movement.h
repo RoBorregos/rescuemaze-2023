@@ -94,6 +94,10 @@ private:
 
   // PID
   static constexpr bool kUsingPID = true;
+  static constexpr int maxPWM = 220;
+  int variableUpperPWM = 220;
+  int variableLowerPWM = 220;
+  static constexpr int minPWM = 150;
 
   // Control constants
   static constexpr double kErrorVlxReading = 4; // Error to consider a reading as valid, in degrees.
@@ -107,6 +111,8 @@ private:
   static constexpr double backStuckTimer = 5000;
   static constexpr double timeoutPivot = 3000;
   static constexpr double maxAngular = 0.787;
+  
+
 
   int leftM = 0;
   int rightM = 0;
@@ -339,6 +345,8 @@ public:
   void resetMovement();
 
   double validAngle(double angle);
+
+  void updateRPIDThresholds(int min, int max, bool reset=false);
 };
 
 #endif

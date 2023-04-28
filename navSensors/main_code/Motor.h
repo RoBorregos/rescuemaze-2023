@@ -211,5 +211,7 @@ public:
   void PIDAggressiveTunings(double kp, double ki, double kd);
 
   void PIDConservativeTunings(double kp, double ki, double kd);
+
+  void setRotationPidThresholds(int min, int max);
 };
 #endif

@@ -210,3 +210,9 @@ void PIDRb::infoPID()
   // Serial.println(" ");
   // }
 }
+
+void PIDRb::setThresholds(int min, int max)
+{
+  minOutput = min;
+  maxOutput = max;
+}

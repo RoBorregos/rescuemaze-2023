@@ -856,12 +856,14 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         }
 
         dist = sensors->getDistInfo(dist_front);
+        sensors->logActive("DF:" + String(dist), true, 0, 6);
         // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
       }
     }
     else
     {
-      while (dist < target)
+      double df = sensors->getDistInfo(dist_front);
+      while (dist < target && df > 0.08)
       {
         sensors->logActive("En advanceXMetersVLX", true, 0);
         // rosBridge->readOnce();
@@ -895,6 +897,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
 
         dist = sensors->getDistInfo(dist_back);
         // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
+        df = sensors->getDistInfo(dist_front);
       }
     }
   }
@@ -903,10 +906,11 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
     // Use to check if robot is stuck.
     double changeT = millis();
     double prevDist = dist;
+    double backDist = sensors->getDistInfo(dist_back);
     if (useFrontalVlx)
     {
       // Don't check color and stable pitch. Assume negative movement only for black tiles.
-      while (dist < target)
+      while (dist < target && backDist > 0.05)
       {
         // sensors->logActive("En advanceXMeters -1", true, 0);
         //  rosBridge->readOnce();
@@ -927,6 +931,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         }
 
         prevDist = dist;
+        backDist = sensors->getDistInfo(dist_back);
       }
     }
     else
@@ -1350,6 +1355,8 @@ void Movement::advanceUntilCentered()
 // New implementationf
 void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, double timeout)
 {
+  bool lastDir = false;
+
   sensors->logActive("gotoangle", true, 0, 3);
   double currentAngle = bno->getAngleX();
 
@@ -1389,13 +1396,22 @@ void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, dou
       turnRight = false;
     }
 
+    // In case direction has changed, reduce rotation speed.
+    if (lastDir != turnRight)
+    {
+      variableUpperPWM -= 5;
+      updateRPIDThresholds(minPWM, variableUpperPWM);
+    }
+
     updateRotateDecider(targetAngle, turnRight, oneSide);
+    lastDir = turnRight;
 
     diff = getAngleError(targetAngle);
     sensors->logActive("Diff: " + String(diff), true, 0, 4);
   }
 
   stop();
+  updateRPIDThresholds(minPWM, maxPWM, true);
 }
 /*
 void Movement::goToAngle(int targetAngle, bool oneSide)
@@ -1801,7 +1817,9 @@ void Movement::handleRightLimitSwitch()
   }
   else
   {
-    advanceXMetersAbs(-0.03, 1);
+    updateBasePWM(-1);
+    delay(80);
+    // advanceXMetersAbs(-0.03, 1);
   }
 
   // updateAngleReference(newAngle);
@@ -1863,6 +1881,21 @@ double Movement::validAngle(double angle)
     angle += 360;
 
   return angle;
+}
+
+void Movement::updateRPIDThresholds(int min, int max, bool reset)
+{
+  if (reset)
+  {
+    min = minPWM;
+    variableLowerPWM = minPWM;
+    max = maxPWM;
+    variableUpperPWM = maxPWM;
+  }
+  motor[FRONT_LEFT].setRotationPidThresholds(min, max);
+  motor[FRONT_RIGHT].setRotationPidThresholds(min, max);
+  motor[BACK_LEFT].setRotationPidThresholds(min, max);
+  motor[BACK_RIGHT].setRotationPidThresholds(min, max);
 }
 /*
 

@@ -286,7 +286,15 @@ void GeneralChecks::test()
     // robot->updateAngleReference();
     // robot->basePitch = robot->sensors->getAngleY();
     // double pwm = 10;
+
     Serial.println("Running test");
+
+    while (true){
+        robot->goToAngle(90);
+        robot->sensors->toggleBothLeds();
+        delay(1000);
+        robot->sensors->toggleBothLeds();
+    }
     while (true)
     {
         if (robot->sensors->readMotorInit())

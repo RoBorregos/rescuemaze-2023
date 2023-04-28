@@ -97,6 +97,8 @@ public:
 
   // Prints all PID information to serial port
   void infoPID();
+
+  void setThresholds(int min, int max);
 };
 
 #endif

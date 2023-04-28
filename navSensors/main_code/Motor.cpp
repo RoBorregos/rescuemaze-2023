@@ -407,3 +407,8 @@ void Motor::setVelocityAdjustment(const double velocity_adjustment)
 {
   velocity_adjustment_ = velocity_adjustment;
 }
+
+void Motor::setRotationPidThresholds(int min, int max)
+{
+  pidFastRotation.setThresholds(min, max);
+}
