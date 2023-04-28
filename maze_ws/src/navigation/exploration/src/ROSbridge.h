@@ -223,7 +223,6 @@ private:
     ros::ServiceClient wallsDistClient;
 
     ros::ServiceClient vlxDistClient;
-    ros::ServiceClient goalStatusClient;
     ros::ServiceClient robotStartClient;
 
     ros::ServiceClient test_lidar_client;
@@ -254,6 +253,7 @@ public:
 #endif
 
     bool startAlgorithm;
+    ros::ServiceClient goalStatusClient;
 
     ROSbridge(ros::NodeHandle *n);
 
@@ -740,7 +740,7 @@ int ROSbridge::checkUpRamp()
     ROS_INFO("Got vlx walls: front:%f, right: %f, left: %f", distVlxFront, distVlxRight, distVlxLeft);
 
     // Check for up ramps in front, if the front distance of the laser scan and the vlx are less than 30 cm and the difference between the two is between 5 and 10 cm, then it is an up ramp
-    if (distLidar < 0.4 && (distLidar + 7) - distVlxFront < 0.2 && (distLidar + 7) - distVlxFront > 0.1)
+    if (distLidar < 0.5 && (distLidar + 0.07) - distVlxFront < 0.3 && (distLidar + 0.07) - distVlxFront > 0.1)
     {
         ROS_INFO("Up ramp");
         // upRamp = true;
@@ -810,17 +810,17 @@ int ROSbridge::sendGoalJetson(int movement)
     ros::spinOnce();
 
     // Call get_walls_dist service
-    nav_main::GetWallsDist walls;
+    // nav_main::GetWallsDist walls;
 
-    wallsDistClient.waitForExistence();
-    wallsDistClient.call(walls);
+    // wallsDistClient.waitForExistence();
+    // wallsDistClient.call(walls);
 
     if (debugging)
     {
-        ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
+        // ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, walls.response.right, walls.response.back, walls.response.left);
     }
 
-    distLidar = walls.response.front;
+    // distLidar = walls.response.front;
 
     std_msgs::Int8 movementmsg;
     if (movement == 0)
@@ -963,7 +963,7 @@ int ROSbridge::sendGoalJetson(int movement)
     ROS_INFO("Received status: %d", scope.status);
 
     // Check new distance from lidar
-    if (movement == 0 && scope.result != 0 && scope.result != 4 && scope.result != 5)
+    if (false && movement == 0 && scope.result != 0 && scope.result != 4 && scope.result != 5)
     {
         // Call get_walls_dist service
         nav_main::GetWallsDist walls;
@@ -1852,22 +1852,22 @@ vector<bool> ROSbridge::getWalls()
 
     ROS_INFO("Getting walls");
 
-    nav_main::GetWallsDist walls;
-    wallsDistClient.waitForExistence();
-    wallsDistClient.call(walls);
+    // nav_main::GetWallsDist walls;
+    // wallsDistClient.waitForExistence();
+    // wallsDistClient.call(walls);
 
     // call vlx service
     exploration::VLXDist vlx;
     vlxDistClient.waitForExistence();
     vlxDistClient.call(vlx);
 
-    distVlxFront = walls.response.front;
+    distVlxFront = vlx.response.front;
     distVlxRight = vlx.response.right;
     distVlxLeft = vlx.response.left;
 
-    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", walls.response.front, distVlxRight, walls.response.back, distVlxLeft);
+    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", distVlxFront, distVlxRight, 0.0, distVlxLeft);
 
-    vector<bool> wallsVector = {walls.response.front < 0.25, distVlxRight < 0.25, walls.response.back < 0.25, distVlxLeft < 0.25};
+    vector<bool> wallsVector = {distVlxFront < 0.25, distVlxRight < 0.25, true, distVlxLeft < 0.25};
 
     return wallsVector;
 }
