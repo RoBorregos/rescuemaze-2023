@@ -130,7 +130,10 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
-  // mux.findI2C();
+  // mux.findI2C(true);
+  // while (true){
+  //   delay(100);
+  // }
   //  Serial.println("Execute");
 
   // Serial.println("Execute3");
@@ -138,10 +141,16 @@ void setup()
   // Serial.println("Execute4");
   initAll(&bno, true, true);
 
+  // while (true){
+  //   // Serial.print("Vlx 3: ");
+  //   // Serial.println(s->getVLXInfo(3));
+  //   s->printInfo(false, true, false, false);
+  // }
+
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   rosbridge.run();
-  
+
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkSensorData();
@@ -228,7 +237,7 @@ void exploreFollowerWall2()
     {
       if (distancefront > 0.15 && !frontBlack)
       {
-        Serial.println("forward");
+        // Serial.println("forward");
         if (!forward())
         {
           frontBlack = true;
@@ -240,12 +249,12 @@ void exploreFollowerWall2()
       }
       else if (distanceright < 0.15)
       {
-        Serial.println("left");
+        // Serial.println("left");
         turnLeft();
       }
       else
       {
-        Serial.println("right");
+        // Serial.println("right");
         // forward(1);
         turnRight();
       }
@@ -255,7 +264,7 @@ void exploreFollowerWall2()
     {
       if (distanceright > 0.15 && !rightBlack)
       {
-        Serial.println("right");
+        // Serial.println("right");
         turnRight();
         if (!forward())
         {
@@ -288,7 +297,7 @@ void exploreFollowerWall2()
     {
       if (distanceleft > 0.15 && !leftBlack)
       {
-        Serial.println("left");
+        // Serial.println("left");
         turnLeft();
         if (!forward())
         {
