@@ -134,18 +134,9 @@ void setup()
   // while (true){
   //   delay(100);
   // }
-  //  Serial.println("Execute");
 
-  // Serial.println("Execute3");
   bno.init();
-  // Serial.println("Execute4");
   initAll(&bno, true, true);
-
-  // while (true){
-  //   // Serial.print("Vlx 3: ");
-  //   // Serial.println(s->getVLXInfo(3));
-  //   s->printInfo(false, true, false, false);
-  // }
 
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.

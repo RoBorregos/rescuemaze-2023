@@ -391,6 +391,8 @@ float Sensors::getDistInfo(int direction)
   {
   case 0:
     return getVLXInfo(vlx_front);
+    case 1:
+    return getVLXInfo(vlx_back);
   case 2:
     return getVLXInfo(vlx_left);
   case 3:

@@ -785,8 +785,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
   // nh->loginfo("AdvanceXMeters called");
   sensors->logActive("adv xM vlx", true, 0, 2);
   double dist = sensors->getDistInfo(dist_front);
-  double distBack = sensors->getDistInfo(vlx_back);
-
+  double distBack = sensors->getDistInfo(dist_back);
   bool useFrontalVlx = false;
   if (dist < distBack)
   {
@@ -862,7 +861,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
     }
     else
     {
-      while (dist < target && dist > 0.08)
+      while (dist < target)
       {
         sensors->logActive("En advanceXMetersVLX", true, 0);
         // rosBridge->readOnce();
@@ -888,13 +887,13 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
           if (checkColor())
           {
             stop();
-            dist = sensors->getDistInfo(vlx_back);
+            dist = sensors->getDistInfo(dist_back);
             // return 0;
             return advanceXMeters(initial - dist, straightPidType, true);
           }
         }
 
-        dist = sensors->getDistInfo(vlx_back);
+        dist = sensors->getDistInfo(dist_back);
         // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
       }
     }
@@ -933,7 +932,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
     else
     {
       // Don't check color and stable pitch. Assume negative movement only for black tiles.
-      while (dist > target)
+      while (dist > target && dist > 0.05)
       {
         // sensors->logActive("En advanceXMeters -1", true, 0);
         //  rosBridge->readOnce();
@@ -945,7 +944,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         // Get dist reading after correcting angle.
         rearrangeAngle();
 
-        dist = sensors->getDistInfo(vlx_back);
+        dist = sensors->getDistInfo(dist_back);
         // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
 
         // If robot hasn't moved significantly in backStuckTimer, break.
@@ -991,8 +990,9 @@ double Movement::advanceXMeters(double x, int straigthPidType, bool forceBackwar
 {
   sensors->logActive("advanceXMeters", true, 0, 1);
   double dist = sensors->getDistInfo(dist_front);
+  double distBack = sensors->getDistInfo(dist_back);
 
-  if (dist > 1.15)
+  if (dist > 1.15 && distBack > 1.15)
   {
     // sensors->logActive("Use encoders advance", true, 0, 6, true);
     return advanceXMetersEncoders(x, straigthPidType, forceBackwards);
@@ -1000,7 +1000,6 @@ double Movement::advanceXMeters(double x, int straigthPidType, bool forceBackwar
   else
   {
     // sensors->logActive("Use vlx", true, 0, 6, true);
-
     return advanceXMetersVLX(x, straigthPidType, forceBackwards);
   }
 }
@@ -1658,7 +1657,6 @@ double Movement::traverseRamp(int option)
   // Advance first if option is set to 1
   long int start = millis();
 
-  Serial.println("In ramp");
   if (option == 1)
   {
     while (millis() - start < kAdvanceToRampTime)
@@ -1799,11 +1797,11 @@ void Movement::handleRightLimitSwitch()
   {
     updateBasePWM(-1);
     delay(80);
-    translationX(-0.3);
+    translationX(0.3);
   }
   else
   {
-    advanceXMetersAbs(0.03, 1);
+    advanceXMetersAbs(-0.03, 1);
   }
 
   // updateAngleReference(newAngle);
