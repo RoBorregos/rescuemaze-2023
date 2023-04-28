@@ -1948,7 +1948,7 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
 {
     if (!leftWall && !rightWall)
         return 0;
-    
+
     // Normal tile, check victim
     openmv_camera::BothCameras bothCameras;
 
@@ -1959,7 +1959,7 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
 
     if (leftWall)
     {
-        if (bothCameras.response.left_cam == "H")
+        if (false && bothCameras.response.left_cam == "H")
         {
             // Drop three kits to the left
             std_msgs::Int8 msg;
@@ -1970,7 +1970,7 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
 
             // ros::Duration(6).sleep();
         }
-        else if (bothCameras.response.left_cam == "S")
+        else if (false && bothCameras.response.left_cam == "S")
         {
             // Drop two kits to the left
             std_msgs::Int8 msg;
@@ -1992,11 +1992,19 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
 
             // ros::Duration(2).sleep();
         }
+        else if (bothCameras.response.left_cam == "G")
+        {
+            std_msgs::Int8 msg;
+            msg.data = 0;
+            dispenserpub.publish(msg);
+
+            gotVictims = true;
+        }
     }
 
     if (rightWall)
     {
-        if (bothCameras.response.right_cam == "H")
+        if (false && bothCameras.response.right_cam == "H")
         {
             // Drop three kits to the right
             std_msgs::Int8 msg;
@@ -2007,7 +2015,7 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
 
             // ros::Duration(6).sleep();
         }
-        else if (bothCameras.response.right_cam == "S")
+        else if (false && bothCameras.response.right_cam == "S")
         {
             // Drop two kits to the right
             std_msgs::Int8 msg;
@@ -2028,6 +2036,14 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
             gotVictims = true;
 
             // ros::Duration(2).sleep();
+        }
+        else if (bothCameras.response.right_cam == "G")
+        {
+            std_msgs::Int8 msg;
+            msg.data = 0;
+            dispenserpub.publish(msg);
+
+            gotVictims = true;
         }
     }
 

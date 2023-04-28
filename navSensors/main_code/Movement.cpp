@@ -1568,7 +1568,7 @@ void Movement::dropDecider(int ros_sign_callback)
 
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
-    delay(0.1);
+    delay(100);
 
   sensors->turnRightLedOff();
 }

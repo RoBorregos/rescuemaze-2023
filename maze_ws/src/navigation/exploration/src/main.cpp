@@ -679,13 +679,15 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 
 int checkVictims(bool leftWall, bool rightWall, bool frontWall) // use ros
 {
-    return 0;
+    // return 0;
 
     int result = 0;
     if (bridge->getVictims(leftWall, rightWall))
     {
         result = 1;
     }
+
+    return result;
 
     if (!frontWall)
         return result;
