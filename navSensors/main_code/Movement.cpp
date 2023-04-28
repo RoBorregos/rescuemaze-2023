@@ -843,7 +843,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
             return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
         }
 
-        if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
+        if (millis() - lastTCS > checkTCSTimer)
         {
           lastTCS = millis();
           if (checkColor())
@@ -883,7 +883,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
             return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
         }
 
-        if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
+        if (millis() - lastTCS > checkTCSTimer)
         {
           lastTCS = millis();
           if (checkColor())
@@ -1037,7 +1037,7 @@ double Movement::advanceXMetersEncoders(double x, int straightPidType, bool forc
           return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
         }
       }
-      if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
+      if (millis() - lastTCS > checkTCSTimer)
       {
         lastTCS = millis();
         if (checkColor())

@@ -17,12 +17,13 @@ private:
 
   // Single Dispenser
 
-  static constexpr int kLeftMovement = 0;
-  static constexpr int kStopMovement = 90;
-  static constexpr int kRightMovement = 180;
+  static constexpr int kleftDrop = 0;
+  static constexpr int krightDrop = 0;
+  static constexpr int kstartSpot = 90;
+  static constexpr int kgetKit = 180;
 
-  static constexpr int rightDelay = 2000; 
-  static constexpr int leftDelay = 200;
+  static constexpr int dispenserDelay = 500; 
+  // static constexpr int leftDelay = 200;
 
 public:
   // Constructor
@@ -45,6 +46,8 @@ public:
   void leftDrop();
 
   void dropNKits(int kits);
+  
+  void write(int angle);
 };
 
 #endif

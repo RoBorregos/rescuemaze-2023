@@ -23,7 +23,7 @@ Sensors *s = nullptr;
 MUX2C mux;
 BNO bno; // X is yaw, Y is pitch, and Z is roll.
 Dispenser *d;
-int kServoPin = 6;
+int kServoPin = 22;
 
 #if kusingROS
 
@@ -770,7 +770,7 @@ void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
   static Dispenser dispenser(kServoPin);
   dispenser.initServo();
   d = &dispenser;
-  d->stop();
+  
 
   // Serial.print("Servo stopped");
   // Serial.println("Execute2");

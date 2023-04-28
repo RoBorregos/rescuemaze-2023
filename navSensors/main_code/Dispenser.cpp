@@ -17,6 +17,7 @@ Dispenser::Dispenser(uint8_t servoPin)
 void Dispenser::initServo()
 {
   dispenser.attach(servoPin);
+  dispenser.write(kkgetkit);
 }
 
 // Dispenser Functions
@@ -29,11 +30,11 @@ void Dispenser::rightDrop()
   // delay(rightDelay);
   // dispenser.write(kStopMovement);
   // dispenser.write(kLeftMovement);
-  dispenser.write(kRightMovement);
-  delay(rightDelay);
-  dispenser.write(kLeftMovement);
-  delay(rightDelay);
-  dispenser.write(kStopMovement);
+  dispenser.write(kgetKit);
+  delay(dispenserDelay);
+  dispenser.write(krightDrop);
+  delay(dispenserDelay);
+  dispenser.write(kgetKit);
 }
 
 void Dispenser::stop()
@@ -43,11 +44,11 @@ void Dispenser::stop()
 
 void Dispenser::leftDrop()
 {
-  dispenser.write(kLeftMovement);
-  delay(leftDelay);
-  dispenser.write(kRightMovement);
-  delay(leftDelay);
-  dispenser.write(kStopMovement);
+  dispenser.write(kgetKit);
+  delay(dispenserDelay);
+  dispenser.write(kleftDrop);
+  delay(dispenserDelay);
+  dispenser.write(kgetKit);
 }
 
 // Gets sign which refers to where should a kit be dropped
@@ -65,4 +66,9 @@ void Dispenser::dropNKits(int kits)
     leftDrop();
     kits++;
   }
+}
+
+void Dispenser::write(int angle)
+{
+  dispenser.write(angle);
 }

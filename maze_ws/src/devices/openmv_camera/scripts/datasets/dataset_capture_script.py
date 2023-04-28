@@ -6,7 +6,7 @@
 # that you will feed to your model during run-time.
 # Script to load in openmv as rpc slave.
 
-import image, network, omv, rpc, sensor, struct
+import image, network, omv, rpc, sensor, struct, pyb
 
 
 sensor.reset()
@@ -16,6 +16,14 @@ sensor.skip_frames(time = 2000)
 
 sensor.set_auto_gain(False) # must be turned off for color tracking
 sensor.set_auto_whitebal(False) # must be turned off for color tracking
+
+red_led = pyb.LED(1)
+green_led = pyb.LED(2)
+blue_led = pyb.LED(3)
+
+red_led.on()
+blue_led.on()
+green_led.on()
 
 # Flip the image 180 degrees
 # sensor.set_vflip(True)
