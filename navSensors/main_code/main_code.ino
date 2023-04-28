@@ -110,6 +110,11 @@ bool frontBlack = false;
 bool rightBlack = false;
 bool leftBlack = false;
 
+// 0: front
+// 1: right
+// 3: left
+int priority = 0;
+
 char color = 'B';
 // 0: front
 // 1: right
@@ -138,7 +143,7 @@ void setup()
 
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
-  rosbridge.run();
+  // rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
@@ -192,6 +197,89 @@ void exploreDFS()
       backward();
     }
     turnRight();
+  }
+}
+
+void exploreFollowerWall2()
+{
+  while (true)
+  {
+    distancefront = getFrontDistance();
+    distanceright = getRightDistance();
+    distanceleft = getLeftDistance();
+
+    if (checkRestart())
+    {
+      if (priority == 1)
+        priority = 3;
+
+      else if (priority == 3)
+        priority = 0;
+
+      else if (priority == 0)
+        priority = 1;
+    }
+
+    if (priority == 0)
+    {
+      if (distancefront > 0.15)
+      {
+        Serial.println("forward");
+        forward(1);
+      }
+      else if (distanceright < 0.15)
+      {
+        Serial.println("left");
+        turnLeft();
+      }
+      // else if (distancefront < 0.07)
+      // {
+      //   turnLeft();
+      // }
+      else
+      {
+        Serial.println("right");
+        // forward(1);
+        turnRight();
+      }
+    }
+
+    else if (priority == 1)
+    {
+      if (distanceright > 0.15)
+      {
+        Serial.println("right");
+        turnRight();
+        forward();
+      }
+      else if (distancefront > 0.05)
+      {
+        forward();
+      }
+      else
+      {
+        turnLeft();
+        forward();
+      }
+    }
+    else if (priority == 3)
+    {
+      if (distanceleft > 0.15)
+      {
+        Serial.println("left");
+        turnLeft();
+        forward();
+      }
+      else if (distancefront > 0.05)
+      {
+        forward();
+      }
+      else
+      {
+        turnRight();
+        forward();
+      }
+    }
   }
 }
 
@@ -412,6 +500,11 @@ int getTurnDirection(int turn)
   }
 
   return -1;
+}
+
+bool checkRestart()
+{
+  return !s->readMotorInit();
 }
 
 double getFrontDistance()
