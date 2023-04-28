@@ -16,6 +16,7 @@
 #define vlx_right 1
 #define vlx_left 2
 #define vlx_front 0
+#define vlx_back 3
 
 #define dist_front 0
 #define dist_back 1
@@ -60,7 +61,8 @@ class Sensors
   // Sensors.
   BNO *bno;
   RosBridge2 *rosBridge = nullptr;
-  VLX vlx[3];
+  VLX vlx[4];
+  // VLXP vlxBack;
   TCS tcs;
   Screen screen;
   bool rightLedOn = false;
@@ -68,7 +70,7 @@ class Sensors
 
   int lidarAttemptCount = 0;
 
-  int kMuxVLX = 3;
+  int kMuxVLX = 4;
   // Sensor Pins.
 
   // Front is in pin 7.
@@ -79,8 +81,8 @@ class Sensors
   #define vlx_left 2
   #define vlx_front 0
 */
-  int kMuxPins[3] = {7, 0, 1}; // VLX multiplexor pins
-  int kMuxTCS = {2};           // TCS multiplexor pin
+  int kMuxPins[4] = {7, 0, 1, 6}; // VLX multiplexor pins
+  int kMuxTCS = {2};     // TCS multiplexor pin
 
   // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches

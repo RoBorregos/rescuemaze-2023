@@ -116,12 +116,9 @@ bool leftBlack = false;
 int priority = 0;
 
 char color = 'B';
-// 0: front
-// 1: right
-// 3: left
-int priority = 0;
 
 // Setup de todos los sensores. Set pins en Sensors.h
+
 void setup()
 {
   Serial.begin(57600);
@@ -133,7 +130,10 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
-  // mux.findI2C();
+  // mux.findI2C(true);
+  // while (true){
+  //   delay(100);
+  // }
   //  Serial.println("Execute");
 
   // Serial.println("Execute3");
@@ -141,9 +141,15 @@ void setup()
   // Serial.println("Execute4");
   initAll(&bno, true, true);
 
+  // while (true){
+  //   // Serial.print("Vlx 3: ");
+  //   // Serial.println(s->getVLXInfo(3));
+  //   s->printInfo(false, true, false, false);
+  // }
+
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
-  // rosbridge.run();
+  rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
@@ -200,8 +206,10 @@ void exploreDFS()
   }
 }
 
+
 void exploreFollowerWall2()
 {
+  s->logActive("Explore w f 2");
   while (true)
   {
     distancefront = getFrontDistance();
@@ -229,7 +237,7 @@ void exploreFollowerWall2()
     {
       if (distancefront > 0.15 && !frontBlack)
       {
-        Serial.println("forward");
+        // Serial.println("forward");
         if (!forward())
         {
           frontBlack = true;
@@ -241,12 +249,12 @@ void exploreFollowerWall2()
       }
       else if (distanceright < 0.15)
       {
-        Serial.println("left");
+        // Serial.println("left");
         turnLeft();
       }
       else
       {
-        Serial.println("right");
+        // Serial.println("right");
         // forward(1);
         turnRight();
       }
@@ -256,7 +264,7 @@ void exploreFollowerWall2()
     {
       if (distanceright > 0.15 && !rightBlack)
       {
-        Serial.println("right");
+        // Serial.println("right");
         turnRight();
         if (!forward())
         {
@@ -289,7 +297,7 @@ void exploreFollowerWall2()
     {
       if (distanceleft > 0.15 && !leftBlack)
       {
-        Serial.println("left");
+        // Serial.println("left");
         turnLeft();
         if (!forward())
         {
@@ -325,6 +333,7 @@ void exploreFollowerWall2()
     }
   }
 }
+
 
 void exploreFollowerWall()
 {
@@ -337,12 +346,12 @@ void exploreFollowerWall()
 
     if (distancefront > 0.15)
     {
-      Serial.println("forward");
+      // Serial.println("forward");
       forward();
     }
     else if (distanceright < 0.15)
     {
-      Serial.println("left");
+      // Serial.println("left");
       turnLeft();
     }
     // else if (distancefront < 0.07)
@@ -351,144 +360,13 @@ void exploreFollowerWall()
     // }
     else
     {
-      Serial.println("right");
+      // Serial.println("right");
       // forward();
       turnRight();
     }
   }
 }
 
-void exploreFollowerWall2()
-{
-  while (true)
-  {
-    distancefront = getFrontDistance();
-    distanceright = getRightDistance();
-    distanceleft = getLeftDistance();
-
-    if (checkRestart())
-    {
-      if (priority == 1)
-        priority = 3;
-
-      else if (priority == 3)
-        priority = 0;
-
-      else if (priority == 0)
-        priority = 1;
-
-      while (checkRestart())
-      {
-        delay(50);
-      }
-      robot->firstMove = true;
-    }
-
-    if (priority == 0)
-    {
-      if (distancefront > 0.15 && !frontBlack)
-      {
-        Serial.println("forward");
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
-      }
-      else if (distanceright < 0.15)
-      {
-        Serial.println("left");
-        turnLeft();
-      }
-      else
-      {
-        Serial.println("right");
-        // forward(1);
-        turnRight();
-      }
-    }
-
-    else if (priority == 1)
-    {
-      if (distanceright > 0.15 && !rightBlack)
-      {
-        Serial.println("right");
-        turnRight();
-        if (!forward())
-        {
-          rightBlack = true;
-          turnLeft();
-        }
-        else
-        {
-          rightBlack = false;
-        }
-      }
-      else if (distancefront > 0.15 && !frontBlack)
-      {
-        if (!forward())
-          frontBlack = true;
-        else
-          frontBlack = false;
-      }
-      else
-      {
-        turnLeft();
-        if (!forward())
-        {
-          turnLeft();
-          forward();
-        }
-      }
-    }
-    else if (priority == 3)
-    {
-      if (distanceleft > 0.15 && !leftBlack)
-      {
-        Serial.println("left");
-        turnLeft();
-        if (!forward())
-        {
-          leftBlack = true;
-          turnRight();
-        }
-        else
-        {
-          leftBlack = false;
-        }
-      }
-      else if (distancefront > 0.05 && !frontBlack)
-      {
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
-      }
-      else
-      {
-        turnRight();
-        if (!forward())
-        {
-          turnRight();
-
-          forward();
-        }
-      }
-    }
-  }
-}
-
-bool checkRestart()
-{
-  return !s->readMotorInit();
-}
 
 // Maps rdirecion to angle
 int dirToAngle(int rdirection)
@@ -901,9 +779,9 @@ void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
   static Dispenser dispenser(kServoPin);
   dispenser.initServo();
   d = &dispenser;
-
   d->stop();
-  Serial.print("Servo stopped");
+
+  // Serial.print("Servo stopped");
   // Serial.println("Execute2");
   static Sensors sensors(bno, useVLX);
   s = &sensors;

@@ -33,12 +33,14 @@ void Sensors::initSensors()
     {
       vlx[i].setMux(kMuxPins[i]);
     }
+    // vlxBack.setMux(6);
 
     // VLX init
     for (int i = 0; i < kMuxVLX; i++)
     {
       vlx[i].init();
     }
+    // vlxBack.init();
   }
 
   // TCS init
@@ -145,7 +147,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 
   if (vlx && usingVLX && !CK::kusingROS)
   {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
       Serial.print(" VLX sensor ");
       Serial.print(i + 1);

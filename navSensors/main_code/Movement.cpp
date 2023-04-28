@@ -767,7 +767,6 @@ void Movement::updateMaxPWM(int dir)
   motor[BACK_RIGHT].setPWM(255, dir);
 }
 
-
 void Movement::updateVelocityDecider(int RPMs, bool useBNO)
 {
   // nh->loginfo("updateVelocityDecider called");
@@ -786,53 +785,118 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
   // nh->loginfo("AdvanceXMeters called");
   sensors->logActive("adv xM vlx", true, 0, 2);
   double dist = sensors->getDistInfo(dist_front);
-  bool useEncoders = false;
+  double distBack = sensors->getDistInfo(vlx_back);
+
+  bool useFrontalVlx = false;
+  if (dist < distBack)
+  {
+    useFrontalVlx = true;
+  }
+  else
+  {
+    dist = distBack;
+  }
 
   // Use encoders to move if distance is greater than 1.28m, as its the vlx max range.
   /*if (dist > 1.28){
     useEncoders = true;
     dist = meanDistanceTraveled();
   }*/
-  double initial = dist;
-  double target = dist - x + 0.02;
+
+  double initial = 0;
+  double target = 0;
+  if (useFrontalVlx)
+  {
+    sensors->logActive("using front vlx", true, 0, 2);
+    initial = dist;
+    target = dist - x + 0.02;
+  }
+  else
+  {
+    sensors->logActive("using back vlx", true, 0, 2);
+    initial = distBack;
+    target = dist + x + 0.02;
+  }
+
   double lastTCS = millis();
 
   if (x > 0)
   {
-    while (dist > target && dist > 0.08)
+    if (useFrontalVlx)
     {
-      sensors->logActive("En advanceXMetersVLX", true, 0);
-      // rosBridge->readOnce();
-      if (!sensors->readMotorInit())
-        return -2;
-
-      updateVelocityDecider(kMovementRPMs, straightPidType);
-
-      handleSwitches();
-      // Get dist reading after correcting angle.
-      rearrangeAngle(8);
-
-      if (outOfPitch())
+      while (dist > target && dist > 0.08)
       {
-        double dt = stabilizePitch(straightPidType, false);
-        if (abs(dt) > CK::kRampDt)
-          return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
-      }
+        sensors->logActive("En advanceXMetersVLX", true, 0);
+        // rosBridge->readOnce();
+        if (!sensors->readMotorInit())
+          return -2;
 
-      if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
-      {
-        lastTCS = millis();
-        if (checkColor())
+        updateVelocityDecider(kMovementRPMs, straightPidType);
+
+        handleSwitches();
+        // Get dist reading after correcting angle.
+        rearrangeAngle(8);
+
+        if (outOfPitch())
         {
-          stop();
-          dist = sensors->getDistInfo(dist_front);
-          // return 0;
-          return advanceXMeters(dist - initial, straightPidType, true);
+          double dt = stabilizePitch(straightPidType, false);
+          if (abs(dt) > CK::kRampDt)
+            return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
         }
-      }
 
-      dist = sensors->getDistInfo(dist_front);
-      // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
+        if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
+        {
+          lastTCS = millis();
+          if (checkColor())
+          {
+            stop();
+            dist = sensors->getDistInfo(dist_front);
+            // return 0;
+            return advanceXMeters(dist - initial, straightPidType, true);
+          }
+        }
+
+        dist = sensors->getDistInfo(dist_front);
+        // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
+      }
+    }
+    else
+    {
+      while (dist < target && dist > 0.08)
+      {
+        sensors->logActive("En advanceXMetersVLX", true, 0);
+        // rosBridge->readOnce();
+        if (!sensors->readMotorInit())
+          return -2;
+
+        updateVelocityDecider(kMovementRPMs, straightPidType);
+
+        handleSwitches();
+        // Get dist reading after correcting angle.
+        rearrangeAngle(8);
+
+        if (outOfPitch())
+        {
+          double dt = stabilizePitch(straightPidType, false);
+          if (abs(dt) > CK::kRampDt)
+            return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
+        }
+
+        if (millis() - lastTCS > checkTCSTimer && (initial - dist) > abs(distToCheck))
+        {
+          lastTCS = millis();
+          if (checkColor())
+          {
+            stop();
+            dist = sensors->getDistInfo(vlx_back);
+            // return 0;
+            return advanceXMeters(initial - dist, straightPidType, true);
+          }
+        }
+
+        dist = sensors->getDistInfo(vlx_back);
+        // sensors->logActive("Distancia recorrida advanceXMeters", initial - dist)
+      }
     }
   }
   else
@@ -840,29 +904,58 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
     // Use to check if robot is stuck.
     double changeT = millis();
     double prevDist = dist;
-
-    // Don't check color and stable pitch. Assume negative movement only for black tiles.
-    while (dist < target)
+    if (useFrontalVlx)
     {
-      // sensors->logActive("En advanceXMeters -1", true, 0);
-      //  rosBridge->readOnce();
-      if (!sensors->readMotorInit())
-        return -2;
-      updateVelocityDecider(-kMovementRPMs, straightPidType);
-
-      // Get dist reading after correcting angle.
-      rearrangeAngle();
-
-      dist = sensors->getDistInfo(dist_front);
-      // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
-
-      // If robot hasn't moved significantly in backStuckTimer, break.
-      if (millis() - changeT > backStuckTimer)
+      // Don't check color and stable pitch. Assume negative movement only for black tiles.
+      while (dist < target)
       {
-        break;
-      }
+        // sensors->logActive("En advanceXMeters -1", true, 0);
+        //  rosBridge->readOnce();
+        if (!sensors->readMotorInit())
+          return -2;
+        updateVelocityDecider(-kMovementRPMs, straightPidType);
 
-      prevDist = dist;
+        // Get dist reading after correcting angle.
+        rearrangeAngle();
+
+        dist = sensors->getDistInfo(dist_front);
+        // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
+
+        // If robot hasn't moved significantly in backStuckTimer, break.
+        if (millis() - changeT > backStuckTimer)
+        {
+          break;
+        }
+
+        prevDist = dist;
+      }
+    }
+    else
+    {
+      // Don't check color and stable pitch. Assume negative movement only for black tiles.
+      while (dist > target)
+      {
+        // sensors->logActive("En advanceXMeters -1", true, 0);
+        //  rosBridge->readOnce();
+        if (!sensors->readMotorInit())
+          return -2;
+
+        updateVelocityDecider(-kMovementRPMs, straightPidType);
+
+        // Get dist reading after correcting angle.
+        rearrangeAngle();
+
+        dist = sensors->getDistInfo(vlx_back);
+        // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
+
+        // If robot hasn't moved significantly in backStuckTimer, break.
+        if (millis() - changeT > backStuckTimer)
+        {
+          break;
+        }
+
+        prevDist = dist;
+      }
     }
   }
 
@@ -1177,10 +1270,13 @@ double Movement::stabilizePitch(int straightPidType, int RPMs, bool isRamp)
     }
 
     // if ramp is upwards, then advance at max speed for a specified t time.
-    if (sign && !isRamp){
+    if (sign && !isRamp)
+    {
       updateMaxPWM(1);
       delay(200);
-    } else {
+    }
+    else
+    {
       updateStraightPID(80, CK::useBNO, true);
     }
     if (!CK::kusingROS && CK::debugRamp)
@@ -1252,7 +1348,7 @@ void Movement::advanceUntilCentered()
   stop();
 }
 
-// New implementation
+// New implementationf
 void Movement::goToAngle(int targetAngle, bool oneSide, bool handleSwitches, double timeout)
 {
   sensors->logActive("gotoangle", true, 0, 3);
@@ -1352,7 +1448,6 @@ void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
   double current_angle = bno->getAngleX();
   if (right)
   {
-
     girarDerecha();
 
     // motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);

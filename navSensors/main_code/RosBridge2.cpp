@@ -3,7 +3,6 @@
 //////////////////////////////////Constructor//////////////////////////////////////
 RosBridge2::RosBridge2(Movement *robot, Sensors *sensors, BNO *bno) : robot_(robot), sensors_(sensors), bno_(bno)
 {
-
   // Timers
   odom_timer_ = millis();
   watchdog_timer_ = millis();
@@ -16,10 +15,12 @@ void RosBridge2::cmdMovementCallback(int move)
 
   double response = robot_->cmdMovement(move, 1);
   robot_->stop(); // Stop motors just in case.
-  robot_->rearrangeAngle(2.0);
+  robot_->rearrangeAngle(4.0);
 
-  if (response == -2)
+  if (response == -2){
     state_= response;
+    return;
+  }
 
   if (response == 0)
   {
@@ -87,7 +88,9 @@ void RosBridge2::advanceXMeters(float meters)
 
 void RosBridge2::callDispenser(int victims)
 {
+  state_ = -1;
   robot_->cmdMovement(7, victims);
+  state_ = 6;
 }
 
 void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *buffer)
@@ -103,6 +106,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   // sensors_->logActive("Sv: " + String(cmdCounter[4]), true, 0, 5, true);
   // sensors_->logActive("Ss: " + String(cmdCounter[5]), true, 0, 6, true);
   //sensors_->logActive("Gl: " + String(cmdCounter[6]), true, 0, 7, true);
+  sensors_->logActive("Executing cmd: " + String(cmdCounterT), true, 0, 5);
   switch (command)
   {
   case 0x00: // Baud
@@ -117,7 +121,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     {
       cmdCounter[0]++;
       // Check packet size
-      float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_left)};
+      float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_back), sensors_->getVLXInfo(vlx_left)};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
@@ -223,6 +227,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     break;
   }
   fistCmdExec = true;
+  sensors_->logActive("Waiting cmd " + String(cmdCounterT), true, 0, 5);
   sensors_->logActive("Cmds exec: " + String(cmdCounterT), true, 0, 1, true);
 }
 
@@ -363,10 +368,10 @@ void RosBridge2::run()
   lastInstruction = millis();
   while (1)
   {
-    if (millis() - lastInstruction > kOnlyArduinoTimer && fistCmdExec){
-      // Return to void loop in main_code, which should run exploreFollowerWall2() or similar.
-      return;
-    }
+    // if (millis() - lastInstruction > kOnlyArduinoTimer && fistCmdExec){
+    //   // Return to void loop in main_code, which should run exploreFollowerWall2() or similar.
+    //   return;
+    // }
     readSerial();
   }
 }
