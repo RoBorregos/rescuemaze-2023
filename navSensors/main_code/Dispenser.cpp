@@ -17,7 +17,7 @@ Dispenser::Dispenser(uint8_t servoPin)
 void Dispenser::initServo()
 {
   dispenser.attach(servoPin);
-  dispenser.write(kkgetkit);
+  dispenser.write(kgetKit);
 }
 
 // Dispenser Functions
@@ -39,7 +39,7 @@ void Dispenser::rightDrop()
 
 void Dispenser::stop()
 {
-  dispenser.write(kStopMovement);
+  dispenser.write(kgetKit);
 }
 
 void Dispenser::leftDrop()
