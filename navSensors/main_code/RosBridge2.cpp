@@ -121,7 +121,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     {
       cmdCounter[0]++;
       // Check packet size
-      float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_left)};
+      float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_back), sensors_->getVLXInfo(vlx_left)};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
@@ -227,7 +227,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     break;
   }
   fistCmdExec = true;
-  sensors_->logActive("Waiting cmd" + String(cmdCounterT), true, 0, 5);
+  sensors_->logActive("Waiting cmd " + String(cmdCounterT), true, 0, 5);
   sensors_->logActive("Cmds exec: " + String(cmdCounterT), true, 0, 1, true);
 }
 
