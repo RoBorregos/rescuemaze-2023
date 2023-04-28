@@ -679,6 +679,8 @@ Tile *followPath(stack<string> &path, Tile *tile, Map &mapa)
 
 int checkVictims(bool leftWall, bool rightWall, bool frontWall) // use ros
 {
+    return 0;
+
     int result = 0;
     if (bridge->getVictims(leftWall, rightWall))
     {
@@ -956,7 +958,7 @@ void explore(bool checkpoint, int argc, char **argv)
         startTile->visited = true;
         mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
 
-        mapa.tile->walls["south"] = true;
+        // mapa.tile->walls["south"] = true;
     }
     else
     {
@@ -982,7 +984,7 @@ void explore(bool checkpoint, int argc, char **argv)
             startTile->visited = true;
             mapa.tiles.insert({posvectorToString(mapa.tile->pos), mapa.tile});
 
-            mapa.tile->walls["south"] = true;
+            // mapa.tile->walls["south"] = true;
         }
     }
 
@@ -1038,7 +1040,7 @@ void explore(bool checkpoint, int argc, char **argv)
         {
             if (checkRestartAlgorithm())
             {
-                bridge->restartSerial();
+                // bridge->restartSerial();
 
                 // wait for motors to turn on again
                 while (checkRestartAlgorithm())

@@ -229,11 +229,11 @@ class Microcontroller:
         '''
         cmd_str=struct.pack("4B", self.HEADER0, self.HEADER1, 0x01, 0x01) + struct.pack("B", 0x02)
         if (self.execute(cmd_str))==1 and self.payload_ack == b'\x00':
-           valFront, valRight, valLeft = struct.unpack('3f', self.payload_args)
-           return  self.SUCCESS, valFront, valRight, valLeft 
+           valFront, valRight, valBack, valLeft = struct.unpack('4f', self.payload_args)
+           return  self.SUCCESS, valFront, valRight, valBack, valLeft 
         else:
            # print("ACK", self.payload_ack, self.payload_ack == b'\x00', self.execute(cmd_str)==1)
-           return self.FAIL, 0, 0, 0
+           return self.FAIL, 0, 0, 0, 0
         
     def get_goal_state(self):
         ''' Get the current goal state on the serial port.
@@ -375,7 +375,9 @@ def get_vlx(req):
     print("Requesting VLX")
 
     dist = controller.get_VLX()
-    return VLXDistResponse(dist[1], dist[2], dist[3])
+
+    print(f"front: {dist[1]}, right: {dist[2]}, back: {dist[3]}, left: {dist[4]}")
+    return VLXDistResponse(dist[1], dist[2], dist[3], dist[4])
 
 def start_status(req):
     global controller
