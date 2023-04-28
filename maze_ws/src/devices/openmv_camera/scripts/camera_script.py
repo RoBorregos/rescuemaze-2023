@@ -95,6 +95,9 @@ def detect_dominant_color(data):
         if blob.code() == 4:
             max = 'y'
 
+    if max_area < 2000:
+        max = 'X'
+        
     return str(max).encode()
 
 # Register call backs.

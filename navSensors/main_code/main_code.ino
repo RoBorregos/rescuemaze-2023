@@ -138,6 +138,10 @@ void setup()
   bno.init();
   initAll(&bno, true, true);
 
+  // while (true){
+  //   s->printInfo(false, true, false, false);
+  // }
+
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   rosbridge.run();

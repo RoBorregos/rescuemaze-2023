@@ -73,16 +73,10 @@ void GeneralChecks::checkSensorData(int iterations)
 
         Serial.println("VLX information: \n");
 
-        for (int i = 0; i < robot->sensors->kMuxVLX; i++)
+        for (int j = 0; j < iterations; j++)
         {
-
-            for (int j = 0; j < iterations; j++)
-            {
-                Serial.print(robot->sensors->vlxNames[i]);
-                Serial.print(" vlx: ");
-                Serial.println(robot->sensors->getVLXInfo(i));
-                delay(100);
-            }
+            robot->sensors->printInfo(false, true, false, false);
+            delay(100);
         }
 
         Serial.println("\n\nTCS information: \n");
@@ -102,7 +96,7 @@ void GeneralChecks::checkSensorData(int iterations)
             Serial.print(right);
             Serial.print(", Left Limit switch: ");
             Serial.println(left);
-            delay(100);
+            delay(200);
         }
 
         Serial.println("Finished checking sensors.");
@@ -120,6 +114,7 @@ void GeneralChecks::checkSensorData(int iterations)
             delay(100);
         }
     }
+    end();
 }
 
 void GeneralChecks::checkDT()
@@ -265,12 +260,22 @@ void GeneralChecks::test()
     //     Serial.print("Back right: ");
     //     Serial.println(test.motor4);
     //     angular += 0.1;
-    // }
+    // }    
+    Serial.println("Running test");
 
-    // while (true)
-    // {
-    //     robot->sensors->printInfo(true, false, false, false);
-    // }
+    while (true)
+    {
+        robot->sensors->printInfo(false, false, false, true);
+        //robot->sensors->printInfo(false, true, false, false);
+        // if (robot->sensors->readMotorInit())
+        // {
+        //     Serial.println("Motors are on");
+        // }
+        // else
+        // {
+        //     Serial.println("Motors are off");
+        // }
+    }
 
     // while (true)
     // Serial.println(robot->sensors->getDistInfo(dist_front));
@@ -289,11 +294,16 @@ void GeneralChecks::test()
 
     Serial.println("Running test");
 
-    while (true){
-        robot->goToAngle(90);
-        robot->sensors->toggleBothLeds();
-        delay(1000);
-        robot->sensors->toggleBothLeds();
+    while (true)
+    {
+        if (robot->sensors->readMotorInit())
+        {
+            Serial.println("Motors are on");
+        }
+        else
+        {
+            Serial.println("Motors are off v2");
+        }
     }
     while (true)
     {
@@ -465,7 +475,8 @@ void GeneralChecks::checkPID()
     }
 }
 
-void GeneralChecks::checkWheelSpeed(){
+void GeneralChecks::checkWheelSpeed()
+{
     Serial.println("Checking wheel speed");
     robot->motor[FRONT_RIGHT].motorForward();
     robot->motor[BACK_RIGHT].motorForward();
@@ -481,7 +492,8 @@ void GeneralChecks::checkWheelSpeed(){
     robot->motor[FRONT_LEFT].setPWM(255);
     robot->motor[BACK_RIGHT].setPWM(255);
     robot->motor[BACK_LEFT].setPWM(255);
-    while (true){
+    while (true)
+    {
         delay(500);
     }
 }

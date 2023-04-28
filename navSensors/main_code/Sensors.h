@@ -13,8 +13,8 @@
 
 // SENSOR DATA
 
-#define vlx_right 1
-#define vlx_left 2
+#define vlx_right 2
+#define vlx_left 1
 #define vlx_front 0
 #define vlx_back 3
 
