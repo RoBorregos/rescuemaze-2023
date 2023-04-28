@@ -1,0 +1,10 @@
+<launch>
+    <!-- Serial communication -->
+    <include file="$(find exploration)/launch/serial_test.launch"/>
+
+    <!-- Cameras -->
+    <include file="$(find openmv_camera)/launch/camera.launch"/>
+
+    <!-- Algorithm -->
+    <node name="main" pkg="exploration" type="main" respawn="true" output="screen"/>
+</launch>

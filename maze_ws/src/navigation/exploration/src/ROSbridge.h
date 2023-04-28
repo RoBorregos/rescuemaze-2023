@@ -198,6 +198,7 @@ private:
     // VLX data
     double distVlxFront;
     double distVlxRight;
+    double distVlxBack;
     double distVlxLeft;
 
     bool receivedVlxFront;
@@ -351,6 +352,7 @@ ROSbridge::ROSbridge(ros::NodeHandle *n)
 
     distVlxFront = 0;
     distVlxRight = 0;
+    distVlxBack = 0;
     distVlxLeft = 0;
     distLidar = 0;
 
@@ -726,6 +728,7 @@ void ROSbridge::jetsonResultCallback(const std_msgs::Int8::ConstPtr &msg)
 
 int ROSbridge::checkUpRamp()
 {
+    return 0;
     ros::spinOnce();
 
     // Call vlx service
@@ -1863,11 +1866,12 @@ vector<bool> ROSbridge::getWalls()
 
     distVlxFront = vlx.response.front;
     distVlxRight = vlx.response.right;
+    distVlxBack = vlx.response.back;
     distVlxLeft = vlx.response.left;
 
-    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", distVlxFront, distVlxRight, 0.0, distVlxLeft);
+    ROS_INFO("Got walls: front:%f, right: %f, back: %f, left: %f", distVlxFront, distVlxRight, distVlxBack, distVlxLeft);
 
-    vector<bool> wallsVector = {distVlxFront < 0.25, distVlxRight < 0.25, true, distVlxLeft < 0.25};
+    vector<bool> wallsVector = {distVlxFront < 0.25, distVlxRight < 0.25, distVlxBack < 0.25, distVlxLeft < 0.25};
 
     return wallsVector;
 }
@@ -2030,9 +2034,9 @@ int ROSbridge::getVictims(bool leftWall, bool rightWall)
     if (gotVictims)
     {
         // Wait for the dispenser to finish
-        scope.result = 0;
+        scope.status = 0;
 
-        while (scope.result != 6)
+        while (scope.status != 6)
         {
             // ros::spinOnce();
 
