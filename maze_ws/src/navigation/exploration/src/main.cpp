@@ -220,11 +220,11 @@ void rotateTo(int &rDirection, int newDirection, Map &mapa)
 }
 
 // Mueve el robot hacia el norte
-int moveNorth(int &yMaze, int &rDirection, Map &mapa, bool visited)
+int moveNorth(int &yMaze, int &rDirection, Map &mapa, bool visited, bool ramp)
 {
     // cout << "moveNorth" << endl;
 
-    if (canMoveBackward && visited && rDirection == 2)
+    if (canMoveBackward && visited && !ramp && rDirection == 2)
     {
         moveBackward(rDirection, mapa);
         return 1;
@@ -241,11 +241,11 @@ int moveNorth(int &yMaze, int &rDirection, Map &mapa, bool visited)
 }
 
 // Mueve el robot hacia el sur
-int moveSouth(int &yMaze, int &rDirection, Map &mapa, bool visited)
+int moveSouth(int &yMaze, int &rDirection, Map &mapa, bool visited, bool ramp)
 {
     // cout << "moveSouth" << endl;
 
-    if (canMoveBackward && visited && rDirection == 0)
+    if (canMoveBackward && visited && !ramp && rDirection == 0)
     {
         moveBackward(rDirection, mapa);
         return 1;
@@ -262,11 +262,11 @@ int moveSouth(int &yMaze, int &rDirection, Map &mapa, bool visited)
 }
 
 // Mueve el robot hacia el este
-int moveEast(int &xMaze, int &rDirection, Map &mapa, bool visited)
+int moveEast(int &xMaze, int &rDirection, Map &mapa, bool visited, bool ramp)
 {
     // cout << "moveEast" << endl;
 
-    if (canMoveBackward && visited && rDirection == 3)
+    if (canMoveBackward && visited && !ramp && rDirection == 3)
     {
         moveBackward(rDirection, mapa);
         return 1;
@@ -283,11 +283,11 @@ int moveEast(int &xMaze, int &rDirection, Map &mapa, bool visited)
 }
 
 // Mueve el robot hacia el oeste
-int moveWest(int &xMaze, int &rDirection, Map &mapa, bool visited)
+int moveWest(int &xMaze, int &rDirection, Map &mapa, bool visited, bool ramp)
 {
     cout << "moveWest" << endl;
 
-    if (canMoveBackward && visited && rDirection == 1)
+    if (canMoveBackward && visited && !ramp && rDirection == 1)
     {
         moveBackward(rDirection, mapa);
         return 1;
@@ -379,19 +379,19 @@ Tile *move(Tile *tile, string key, int &xMaze, int &yMaze, int &rDirection, Map 
 
         if (key == "north")
         {
-            goalResult = moveNorth(yMaze, rDirection, mapa, tile->adjacentTiles[key]->visited);
+            goalResult = moveNorth(yMaze, rDirection, mapa, tile->adjacentTiles[key]->visited, tile->adjacentTiles[key]->rampa != -1);
         }
         else if (key == "east")
         {
-            goalResult = moveEast(xMaze, rDirection, mapa, tile->adjacentTiles[key]->visited);
+            goalResult = moveEast(xMaze, rDirection, mapa, tile->adjacentTiles[key]->visited, tile->adjacentTiles[key]->rampa != -1);
         }
         else if (key == "south")
         {
-            goalResult = moveSouth(yMaze, rDirection, mapa, tile->adjacentTiles[key]->visited);
+            goalResult = moveSouth(yMaze, rDirection, mapa, tile->adjacentTiles[key]->visited, tile->adjacentTiles[key]->rampa != -1);
         }
         else if (key == "west")
         {
-            goalResult = moveWest(xMaze, rDirection, mapa, tile->adjacentTiles[key]->visited);
+            goalResult = moveWest(xMaze, rDirection, mapa, tile->adjacentTiles[key]->visited, tile->adjacentTiles[key]->rampa != -1);
         }
 
         // if (mapa.pos[2] != tile->adjacentTiles[key]->pos[2])
@@ -695,6 +695,8 @@ int checkVictims(bool leftWall, bool rightWall, bool frontWall) // use ros
     {
         result = 1;
     }
+
+    left(rDirection);
 
     return result;
 }
@@ -1038,6 +1040,12 @@ void explore(bool checkpoint, int argc, char **argv)
             {
                 bridge->restartSerial();
 
+                // wait for motors to turn on again
+                while (checkRestartAlgorithm())
+                {
+                    ros::spinOnce();
+                    ros::Duration(0.1).sleep();
+                }
                 if (useCheckpoints)
                 {
                     mapa.pos = mapa.recovpos;
@@ -1061,12 +1069,6 @@ void explore(bool checkpoint, int argc, char **argv)
                 if (rosDebug)
                     bridge->pubDebug("Restarting algorithm");
 
-                // wait for motors to turn on again
-                while (checkRestartAlgorithm())
-                {
-                    ros::spinOnce();
-                    ros::Duration(0.1).sleep();
-                }
 
                 break;
             }

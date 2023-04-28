@@ -197,37 +197,6 @@ void exploreDFS()
   }
 }
 
-void exploreFollowerWall()
-{
-  while (true)
-  {
-
-    distancefront = getFrontDistance();
-    distanceright = getRightDistance();
-    distanceleft = getLeftDistance();
-
-    if (distancefront > 0.15)
-    {
-      // Serial.println("forward");
-      forward();
-    }
-    else if (distanceright < 0.15)
-    {
-      // Serial.println("left");
-      turnLeft();
-    }
-    // else if (distancefront < 0.07)
-    // {
-    //   turnLeft();
-    // }
-    else
-    {
-      // Serial.println("right");
-      // forward();
-      turnRight();
-    }
-  }
-}
 
 void exploreFollowerWall2()
 {
@@ -252,14 +221,13 @@ void exploreFollowerWall2()
       {
         delay(50);
       }
-      robot->firstMove = true;
     }
 
     if (priority == 0)
     {
       if (distancefront > 0.15 && !frontBlack)
       {
-        // Serial.println("forward");
+        Serial.println("forward");
         if (!forward())
         {
           frontBlack = true;
@@ -271,12 +239,12 @@ void exploreFollowerWall2()
       }
       else if (distanceright < 0.15)
       {
-        // Serial.println("left");
+        Serial.println("left");
         turnLeft();
       }
       else
       {
-        // Serial.println("right");
+        Serial.println("right");
         // forward(1);
         turnRight();
       }
@@ -286,7 +254,7 @@ void exploreFollowerWall2()
     {
       if (distanceright > 0.15 && !rightBlack)
       {
-        // Serial.println("right");
+        Serial.println("right");
         turnRight();
         if (!forward())
         {
@@ -319,7 +287,7 @@ void exploreFollowerWall2()
     {
       if (distanceleft > 0.15 && !leftBlack)
       {
-        // Serial.println("left");
+        Serial.println("left");
         turnLeft();
         if (!forward())
         {
@@ -352,6 +320,39 @@ void exploreFollowerWall2()
           forward();
         }
       }
+    }
+  }
+}
+
+
+void exploreFollowerWall()
+{
+  while (true)
+  {
+
+    distancefront = getFrontDistance();
+    distanceright = getRightDistance();
+    distanceleft = getLeftDistance();
+
+    if (distancefront > 0.15)
+    {
+      // Serial.println("forward");
+      forward();
+    }
+    else if (distanceright < 0.15)
+    {
+      // Serial.println("left");
+      turnLeft();
+    }
+    // else if (distancefront < 0.07)
+    // {
+    //   turnLeft();
+    // }
+    else
+    {
+      // Serial.println("right");
+      // forward();
+      turnRight();
     }
   }
 }
