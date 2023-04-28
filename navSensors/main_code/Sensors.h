@@ -16,6 +16,7 @@
 #define vlx_right 1
 #define vlx_left 2
 #define vlx_front 0
+#define vlx_back 3
 
 #define dist_front 0
 #define dist_back 1

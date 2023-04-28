@@ -6,8 +6,8 @@ BNO::BNO()
 
 void BNO::init()
 {
-
-  if (!bno.begin())
+  adafruit_bno055_opmode_t mode = OPERATION_MODE_IMUPLUS;
+  if (!bno.begin(mode))
   {
     // if (!CK::kusingROS)
     // Serial.println("ERROR BNO");
@@ -193,7 +193,7 @@ bool BNO::isCalibrated()
 {
   uint8_t system, gyro, accel, mag = 0;
   bno.getCalibration(&system, &gyro, &accel, &mag); // Mag is calibrated at the moment, the others are preloaded
-  return mag == 3 && system > 0;
+  return (gyro > 0 && accel > 0);
 }
 
 void BNO::displayCalStatus(void)

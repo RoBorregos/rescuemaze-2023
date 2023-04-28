@@ -141,7 +141,7 @@ void setup()
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   rosbridge.run();
-
+  
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkSensorData();
@@ -200,6 +200,7 @@ void exploreDFS()
 
 void exploreFollowerWall2()
 {
+  s->logActive("Explore w f 2");
   while (true)
   {
     distancefront = getFrontDistance();

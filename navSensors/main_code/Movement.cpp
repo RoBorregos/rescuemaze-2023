@@ -1352,9 +1352,8 @@ void Movement::updateRotatePID(int targetAngle, bool right, bool oneSide)
   double current_angle = bno->getAngleX();
   if (right)
   {
-
     girarDerecha();
-
+    
     // motor[FRONT_LEFT].motorRotateDerPID(targetAngle, current_angle);
     // motor[BACK_LEFT].motorRotateDerPID(targetAngle, current_angle);
 
