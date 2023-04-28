@@ -22,6 +22,8 @@ Movement *robot = nullptr;
 Sensors *s = nullptr;
 MUX2C mux;
 BNO bno; // X is yaw, Y is pitch, and Z is roll.
+Dispenser *d;
+int kServoPin = 6;
 
 #if kusingROS
 
@@ -145,7 +147,7 @@ void setup()
   // checks.calibrateSensors();
   // checks.checkOled();
   // checks.printRevolutions();
-  checks.checkWheelSpeed();
+  // checks.checkWheelSpeed();
   // checks.test();
 }
 
@@ -760,10 +762,16 @@ void shiftAngles(int error)
 // Inicializar todos los sensores.
 void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
 {
+  static Dispenser dispenser(kServoPin);
+  dispenser.initServo();
+  d = &dispenser;
+
+  d->stop();
+  Serial.print("Servo stopped");
   // Serial.println("Execute2");
   static Sensors sensors(bno, useVLX);
   s = &sensors;
 
-  static Movement movement(bno, s, setIndividualConstants);
+  static Movement movement(bno, s, setIndividualConstants, d);
   robot = &movement;
 }

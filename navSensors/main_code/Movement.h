@@ -42,7 +42,7 @@ private:
   // ROS node.
   ros::NodeHandle *nh;
   // Servo dispenser
-  Dispenser dispenser;
+  Dispenser* dispenser;
   // BNO sensors
   BNO *bno;
   // Sensors
@@ -107,7 +107,7 @@ private:
   static constexpr double backStuckTimer = 5000;
   static constexpr double timeoutPivot = 3000;
   static constexpr double maxAngular = 0.787;
-  
+
   int leftM = 0;
   int rightM = 0;
 
@@ -139,7 +139,7 @@ public:
   Movement(ros::NodeHandle *nh, Sensors *sensors, bool individualConstants = false);
 
   // Using only Arduino.
-  Movement(BNO *bno, Sensors *sensors, bool individualConstants = false);
+  Movement(BNO *bno, Sensors *sensors, bool individualConstants = false, Dispenser *d = nullptr);
 
   // Using only Arduino without bno
   Movement(Sensors *sensors, bool individualConstants = false);
@@ -261,7 +261,9 @@ public:
   // Updates pwm given to each motor, choose between corrections using bno or vlx.
   void updateVelPwm(int RPMs, bool useBNO);
 
-  void updateBasePWM(int dir, double leftCorrection=0, double rightCorrection=0);
+  void updateBasePWM(int dir, double leftCorrection = 0, double rightCorrection = 0);
+
+  void updateMaxPWM(int dir);
 
   // Update pwm given to each motor, choose between corrections to pwm or
   // get closer to RPMs via PID. Use flag from CommonK.h
@@ -302,7 +304,7 @@ public:
 
   // Advance straight until the pitch is stable.
   // @param straightPidType 1 for using BNO to move straight. 0 to use vlx.
-  double stabilizePitch(int straightPidType, int stabilizePitch=kMovementRPMs);
+  double stabilizePitch(int straightPidType, int stabilizePitch = kMovementRPMs, bool isRamp = false);
 
   // Return true if robot is not straight in pitch axis.
   bool outOfPitch();
@@ -335,7 +337,7 @@ public:
   void logDebug(String data, double data2);
 
   void resetMovement();
-  
+
   double validAngle(double angle);
 };
 

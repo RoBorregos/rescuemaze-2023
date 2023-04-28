@@ -15,6 +15,7 @@ void RosBridge2::cmdMovementCallback(int move)
   state_ = -1; // Stauts code to indicate that the robot is moving
 
   double response = robot_->cmdMovement(move, 1);
+  robot_->stop(); // Stop motors just in case.
   robot_->rearrangeAngle(2.0);
 
   if (response == -2)
