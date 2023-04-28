@@ -22,8 +22,6 @@ Movement *robot = nullptr;
 Sensors *s = nullptr;
 MUX2C mux;
 BNO bno; // X is yaw, Y is pitch, and Z is roll.
-Dispenser *d;
-int kServoPin = 6;
 
 #if kusingROS
 
@@ -35,13 +33,14 @@ void setup()
 {
   Serial.begin(57600);
 
+
   // General options
   bool useVLX = true;
   bool setIndividualConstants = true;
-
+  
   ros::NodeHandle nh;
   nh.initNode();
-
+  
   while (!nh.connected())
   {
     nh.spinOnce();
@@ -53,12 +52,13 @@ void setup()
 
   nh.loginfo("Arduino node initialized");
 
-  // RosBridge rosbridge(robot, s, &nh);
+  //RosBridge rosbridge(robot, s, &nh);
 
-  // s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
+  //s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
 
-  // rosbridge.rosBridgeTest();
-  // rosbridge.run();
+  
+  //rosbridge.rosBridgeTest();
+  //rosbridge.run();
 
   // Serial.begin(57600);
 
@@ -116,10 +116,6 @@ bool leftBlack = false;
 int priority = 0;
 
 char color = 'B';
-// 0: front
-// 1: right
-// 3: left
-int priority = 0;
 
 // Setup de todos los sensores. Set pins en Sensors.h
 void setup()
@@ -133,14 +129,10 @@ void setup()
   bool setBNO = true;
   bool testMotors = false;
 
-  // mux.findI2C();
-  //  Serial.println("Execute");
-
-  // Serial.println("Execute3");
+  //mux.findI2C();
+  
   bno.init();
-  // Serial.println("Execute4");
   initAll(&bno, true, true);
-
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
   // rosbridge.run();
@@ -148,11 +140,10 @@ void setup()
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
   // checks.checkSensorData();
-  // checks.checkAll();
-  // checks.calibrateSensors();
-  // checks.checkOled();
+  //checks.checkAll();
+  //checks.calibrateSensors();
+  //checks.checkOled();
   // checks.printRevolutions();
-  // checks.checkWheelSpeed();
   // checks.test();
 }
 
@@ -160,7 +151,10 @@ int newAngle = 0;
 
 void loop()
 {
-  exploreFollowerWall2();
+
+  // return;
+  // s->printInfo(false, true, true, true);
+  // // forward();
 }
 
 void exploreDFS()
@@ -200,6 +194,8 @@ void exploreDFS()
   }
 }
 
+
+
 void exploreFollowerWall2()
 {
   while (true)
@@ -218,32 +214,24 @@ void exploreFollowerWall2()
 
       else if (priority == 0)
         priority = 1;
-
-      while (checkRestart())
-      {
-        delay(50);
-      }
     }
 
     if (priority == 0)
     {
-      if (distancefront > 0.15 && !frontBlack)
+      if (distancefront > 0.15)
       {
         Serial.println("forward");
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
+        forward(1);
       }
       else if (distanceright < 0.15)
       {
         Serial.println("left");
         turnLeft();
       }
+      // else if (distancefront < 0.07)
+      // {
+      //   turnLeft();
+      // }
       else
       {
         Serial.println("right");
@@ -254,73 +242,38 @@ void exploreFollowerWall2()
 
     else if (priority == 1)
     {
-      if (distanceright > 0.15 && !rightBlack)
+      if (distanceright > 0.15)
       {
         Serial.println("right");
         turnRight();
-        if (!forward())
-        {
-          rightBlack = true;
-          turnLeft();
-        }
-        else
-        {
-          rightBlack = false;
-        }
+        forward();
       }
-      else if (distancefront > 0.15 && !frontBlack)
+      else if (distancefront > 0.05)
       {
-        if (!forward())
-          frontBlack = true;
-        else
-          frontBlack = false;
+        forward();
       }
       else
       {
         turnLeft();
-        if (!forward())
-        {
-          turnLeft();
-          forward();
-        }
+        forward();
       }
     }
     else if (priority == 3)
     {
-      if (distanceleft > 0.15 && !leftBlack)
+      if (distanceleft > 0.15)
       {
         Serial.println("left");
         turnLeft();
-        if (!forward())
-        {
-          leftBlack = true;
-          turnRight();
-        }
-        else
-        {
-          leftBlack = false;
-        }
+        forward();
       }
-      else if (distancefront > 0.05 && !frontBlack)
+      else if (distancefront > 0.05)
       {
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
+        forward();
       }
       else
       {
         turnRight();
-        if (!forward())
-        {
-          turnRight();
-
-          forward();
-        }
+        forward();
       }
     }
   }
@@ -352,142 +305,10 @@ void exploreFollowerWall()
     else
     {
       Serial.println("right");
-      // forward();
+      // forward(1);
       turnRight();
     }
   }
-}
-
-void exploreFollowerWall2()
-{
-  while (true)
-  {
-    distancefront = getFrontDistance();
-    distanceright = getRightDistance();
-    distanceleft = getLeftDistance();
-
-    if (checkRestart())
-    {
-      if (priority == 1)
-        priority = 3;
-
-      else if (priority == 3)
-        priority = 0;
-
-      else if (priority == 0)
-        priority = 1;
-
-      while (checkRestart())
-      {
-        delay(50);
-      }
-      robot->firstMove = true;
-    }
-
-    if (priority == 0)
-    {
-      if (distancefront > 0.15 && !frontBlack)
-      {
-        Serial.println("forward");
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
-      }
-      else if (distanceright < 0.15)
-      {
-        Serial.println("left");
-        turnLeft();
-      }
-      else
-      {
-        Serial.println("right");
-        // forward(1);
-        turnRight();
-      }
-    }
-
-    else if (priority == 1)
-    {
-      if (distanceright > 0.15 && !rightBlack)
-      {
-        Serial.println("right");
-        turnRight();
-        if (!forward())
-        {
-          rightBlack = true;
-          turnLeft();
-        }
-        else
-        {
-          rightBlack = false;
-        }
-      }
-      else if (distancefront > 0.15 && !frontBlack)
-      {
-        if (!forward())
-          frontBlack = true;
-        else
-          frontBlack = false;
-      }
-      else
-      {
-        turnLeft();
-        if (!forward())
-        {
-          turnLeft();
-          forward();
-        }
-      }
-    }
-    else if (priority == 3)
-    {
-      if (distanceleft > 0.15 && !leftBlack)
-      {
-        Serial.println("left");
-        turnLeft();
-        if (!forward())
-        {
-          leftBlack = true;
-          turnRight();
-        }
-        else
-        {
-          leftBlack = false;
-        }
-      }
-      else if (distancefront > 0.05 && !frontBlack)
-      {
-        if (!forward())
-        {
-          frontBlack = true;
-        }
-        else
-        {
-          frontBlack = false;
-        }
-      }
-      else
-      {
-        turnRight();
-        if (!forward())
-        {
-          turnRight();
-
-          forward();
-        }
-      }
-    }
-  }
-}
-
-bool checkRestart()
-{
-  return !s->readMotorInit();
 }
 
 // Maps rdirecion to angle
@@ -590,19 +411,12 @@ double getRightDistance()
 int forward()
 {
   // robot->advanceXMeters(0.3, 0);
-  double result = robot->cmdMovement(0, 1);
-
-  if (s->getTCSInfo() == 'A')
-  {
-    delay(5000);
-  }
-
-  return result;
+  return robot->cmdMovement(1);
 }
 
 int backward()
 {
-  return robot->cmdMovement(2, 1);
+  return robot->cmdMovement(4);
   // robot->advanceXMeters(-0.3, dirToAngle(rDirection));
 }
 
@@ -625,7 +439,7 @@ void backward(int times)
 void turnLeft()
 {
 
-  robot->cmdMovement(3, 1);
+  robot->cmdMovement(2, 1);
   return;
 
   // Check if there's a wall to the right
@@ -650,7 +464,7 @@ void turnLeft()
 void turnRight()
 {
 
-  robot->cmdMovement(1, 1);
+  robot->cmdMovement(3, 1);
   return;
 
   // Check if there's a wall
@@ -898,16 +712,9 @@ void shiftAngles(int error)
 // Inicializar todos los sensores.
 void initAll(BNO *bno, bool useVLX, bool setIndividualConstants)
 {
-  static Dispenser dispenser(kServoPin);
-  dispenser.initServo();
-  d = &dispenser;
-
-  d->stop();
-  Serial.print("Servo stopped");
-  // Serial.println("Execute2");
   static Sensors sensors(bno, useVLX);
   s = &sensors;
 
-  static Movement movement(bno, s, setIndividualConstants, d);
+  static Movement movement(bno, s, setIndividualConstants);
   robot = &movement;
 }

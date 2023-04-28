@@ -7,7 +7,7 @@ Movement::Movement(ros::NodeHandle *nh, BNO *bno, Sensors *sensors, bool individ
   initMovement(individualConstants);
 }
 
-Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants) : bno(bno), sensors(sensors)
+Movement::Movement(BNO *bno, Sensors *sensors, bool individualConstants, Dispenser *d) : bno(bno), sensors(sensors), dispenser(d)
 {
   nh = nullptr;
   initMovement(individualConstants);
@@ -38,8 +38,8 @@ void Movement::initMovement(bool individualConstants)
 {
   kinematics = Kinematics(kRPM, kWheelDiameter, kFrWheelsDist, kLrWheelsDist, kPwmBits);
   setMotors();
-  this->dispenser = Dispenser(kServoPin);
-  dispenser.stop();
+  // this->dispenser = Dispenser(kServoPin);
+  // dispenser.stop();
   if (individualConstants)
     setIndividualPID();
   initRobot();
@@ -162,7 +162,7 @@ void Movement::initRobot()
     motor[i].setPWM(0);
   }
 
-  dispenser.initServo();
+  // dispenser.initServo();
 }
 
 // Encoder Functions
@@ -338,8 +338,12 @@ void Movement::cmdVelocity(const double linear_x, const double linear_y, const d
 
 double Movement::cmdMovement(const int action, const int option)
 {
-  // if (!sensors->readMotorInit())
-  //   return -2;
+  if (!sensors->readMotorInit())
+  {
+    firstMove = false;
+    return -2;
+  }
+
   // nh->loginfo("cmdMovement called");
   // nh->spinOnce();
 
@@ -625,6 +629,7 @@ void Movement::updateStraightPID(int RPMs, bool useBNO, bool ramp)
   }
   else if (!CK::pidBoth && useBNO)
   {
+    ramp = false;
     if (ramp)
     {
       bool upwards;
@@ -753,6 +758,16 @@ void Movement::updateBasePWM(int dir, double leftCorrection, double rightCorrect
   motor[BACK_RIGHT].setPWM(rightCorrection + CK::basePwmBackRight, dir);
 }
 
+void Movement::updateMaxPWM(int dir)
+{
+  sensors->logActive("upd max pwm", true, 0, 2);
+  motor[FRONT_LEFT].setPWM(255, dir);
+  motor[BACK_LEFT].setPWM(255, dir);
+  motor[FRONT_RIGHT].setPWM(255, dir);
+  motor[BACK_RIGHT].setPWM(255, dir);
+}
+
+
 void Movement::updateVelocityDecider(int RPMs, bool useBNO)
 {
   // nh->loginfo("updateVelocityDecider called");
@@ -799,7 +814,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
 
       if (outOfPitch())
       {
-        double dt = stabilizePitch(straightPidType);
+        double dt = stabilizePitch(straightPidType, false);
         if (abs(dt) > CK::kRampDt)
           return dt; // Return number to indicate robot traversed ramp. Positive dt means robot went up.
       }
@@ -918,7 +933,7 @@ double Movement::advanceXMetersEncoders(double x, int straightPidType, bool forc
       rearrangeAngle();
       if (outOfPitch())
       {
-        double dt = stabilizePitch(straightPidType);
+        double dt = stabilizePitch(straightPidType, false);
         if (abs(dt) > CK::kRampDt)
         {
           stop();
@@ -1136,7 +1151,7 @@ double Movement::getAngleError(double expectedAngle)
   return expectedAngle - angle;
 }
 
-double Movement::stabilizePitch(int straightPidType, int RPMs)
+double Movement::stabilizePitch(int straightPidType, int RPMs, bool isRamp)
 {
   sensors->logActive("stabilize p", true, 0, 7);
   double start = millis();
@@ -1161,13 +1176,21 @@ double Movement::stabilizePitch(int straightPidType, int RPMs)
       return -2;
     }
 
+    // if ramp is upwards, then advance at max speed for a specified t time.
+    if (sign && !isRamp){
+      updateMaxPWM(1);
+      delay(200);
+    } else {
+      updateStraightPID(80, CK::useBNO, true);
+    }
     if (!CK::kusingROS && CK::debugRamp)
     {
       Serial.print("Robot out of stable pitch: ");
       Serial.println(sensors->getAngleY());
     }
+
     // updateVelocityDecider(RPMs, straightPidType);
-    updateStraightPID(80, CK::useBNO, true);
+    // updateStraightPID(80, CK::useBNO, true);
   }
 
   double dt = (millis() - start) / 1000.0;
@@ -1431,7 +1454,7 @@ void Movement::dropDecider(int ros_sign_callback)
 
   double time = millis();
 
-  dispenser.dropNKits(ros_sign_callback);
+  dispenser->dropNKits(ros_sign_callback);
 
   // Wait for 5 seconds to turn off led.
   while (((millis() - time) / 1000.0) < 5)
@@ -1580,7 +1603,7 @@ double Movement::traverseRamp(int option)
     RPMs = 10;
   }
 
-  double dt = stabilizePitch(1, RPMs);
+  double dt = stabilizePitch(1, RPMs, true);
 
   advanceXMetersAbs(0.05, 1);
   rearrangeAngle(5);

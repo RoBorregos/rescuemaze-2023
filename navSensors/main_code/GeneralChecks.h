@@ -45,6 +45,8 @@ public:
     // Tests in oled.
     void checkOled();
 
+    void checkWheelSpeed();
+
     // Print the time it takes to execute commands.
     void checkDT();
 

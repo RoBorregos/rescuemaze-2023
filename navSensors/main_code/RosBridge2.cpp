@@ -15,10 +15,11 @@ void RosBridge2::cmdMovementCallback(int move)
   state_ = -1; // Stauts code to indicate that the robot is moving
 
   double response = robot_->cmdMovement(move, 1);
+  robot_->stop(); // Stop motors just in case.
   robot_->rearrangeAngle(2.0);
 
   if (response == -2)
-    return response;
+    state_= response;
 
   if (response == 0)
   {
@@ -91,6 +92,7 @@ void RosBridge2::callDispenser(int victims)
 
 void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *buffer)
 {
+  lastInstruction = millis();
   cmdCounterT += 1;
   sensors_->logActive("Cmds R: " + String(cmdCounterT), true, 0, 0, true);
   // sensors_->logActive("ReadSerial Count: " + String(countReadSerial), true, 0, 5, true);
@@ -220,6 +222,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
   default:
     break;
   }
+  fistCmdExec = true;
   sensors_->logActive("Cmds exec: " + String(cmdCounterT), true, 0, 1, true);
 }
 
@@ -357,13 +360,14 @@ bool RosBridge2::readLidar()
 //////////////////////////////////Run//////////////////////////////////////
 void RosBridge2::run()
 {
+  lastInstruction = millis();
   while (1)
   {
-    readSerial();
-    if ((millis() - watchdog_timer_) > kWatchdogPeriod)
-    {
-      // Decide to do something after ktime has passed without receiving a command
+    if (millis() - lastInstruction > kOnlyArduinoTimer && fistCmdExec){
+      // Return to void loop in main_code, which should run exploreFollowerWall2() or similar.
+      return;
     }
+    readSerial();
   }
 }
 
