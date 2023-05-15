@@ -248,12 +248,14 @@ void exploreFollowerWall2()
       {
         // Serial.println("left");
         turnLeft();
+        frontBlack = false;
       }
       else
       {
         // Serial.println("right");
         // forward(1);
         turnRight();
+        frontBlack = false;
       }
     }
 

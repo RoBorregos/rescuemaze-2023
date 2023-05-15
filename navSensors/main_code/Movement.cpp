@@ -919,7 +919,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         updateVelocityDecider(-kMovementRPMs, straightPidType);
 
         // Get dist reading after correcting angle.
-        rearrangeAngle();
+        rearrangeAngle(8);
 
         dist = sensors->getDistInfo(dist_front);
         // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
@@ -947,7 +947,7 @@ double Movement::advanceXMetersVLX(double x, int straightPidType, bool forceBack
         updateVelocityDecider(-kMovementRPMs, straightPidType);
 
         // Get dist reading after correcting angle.
-        rearrangeAngle();
+        rearrangeAngle(8);
 
         dist = sensors->getDistInfo(dist_back);
         // sensors->logActive("Dist rec advanceXMeters:" + String(initial - dist), true, 0, 1);
@@ -1253,6 +1253,8 @@ double Movement::stabilizePitch(int straightPidType, int RPMs, bool isRamp)
   sensors->logActive("stabilize p", true, 0, 7);
   double start = millis();
   double pitch = sensors->getAngleY();
+  double dt = (millis() - start) / 1000.0;
+  isRamp = true;
 
   bool sign = true;
   if (pitch < maxPitch + basePitch)
@@ -1272,7 +1274,10 @@ double Movement::stabilizePitch(int straightPidType, int RPMs, bool isRamp)
       stop();
       return -2;
     }
-
+    dt = (millis() - start) / 1000.0;
+    if (dt > 9){
+      isRamp = false;
+    }
     // if ramp is upwards, then advance at max speed for a specified t time.
     if (sign && !isRamp)
     {
@@ -1293,7 +1298,7 @@ double Movement::stabilizePitch(int straightPidType, int RPMs, bool isRamp)
     // updateStraightPID(80, CK::useBNO, true);
   }
 
-  double dt = (millis() - start) / 1000.0;
+  dt = (millis() - start) / 1000.0;
   dt = dt * (sign ? 1 : -1); // apply sign
   stop();
   sensors->logActive("End stabilize pitch");
