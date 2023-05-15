@@ -147,7 +147,7 @@ void Sensors::printInfo(bool bno, bool vlx, bool tcs, bool limitSwitches)
 
   if (vlx && usingVLX && !CK::kusingROS)
   {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < kMuxVLX; i++)
     {
       Serial.print(" VLX sensor ");
       Serial.print(i + 1);
@@ -181,10 +181,10 @@ float Sensors::getVLXInfo(int posVLX)
   return vlx[posVLX].getDistance();
 }
 
-void Sensors::updateDistLidar(float front, float back, float left, float right)
+void Sensors::updateDistLidar(float front, float right, float back, float left)
 {
   // Values weren't updated
-  if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == left && wallDistances[3] == right)
+  if (wallDistances[0] == front && wallDistances[1] == back && wallDistances[2] == right && wallDistances[3] == left)
   {
     lidarAttemptCount++;
     if (lidarAttemptCount > 15)
@@ -203,9 +203,9 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
     usingLidar = true;
   }
   wallDistances[0] = front;
-  wallDistances[1] = back;
-  wallDistances[2] = left;
-  wallDistances[3] = right;
+  wallDistances[1] = right;
+  wallDistances[2] = back;
+  wallDistances[3] = left;
 
   // 19*18
   // Update values adding constant error
@@ -215,57 +215,24 @@ void Sensors::updateDistLidar(float front, float back, float left, float right)
   // wallDistances[3] = right - 18 / 200.0;
   lidarAttemptCount = 0;
 
-  logActive("Fr: " + String(wallDistances[0]) + " Back: " + String(wallDistances[1]), true, 0, 6);
-  logActive("L: " + String(wallDistances[2]) + " R: " + String(wallDistances[3]), true, 0, 7);
+  logActive("Fr: " + String(wallDistances[0]) + " R: " + String(wallDistances[1]), true, 0, 6);
+  logActive("B: " + String(wallDistances[2]) + " L: " + String(wallDistances[3]), true, 0, 7);
 }
 
-void Sensors::updateDistLidar(float front)
-{
-  // Values weren't updated
-  if (wallDistances[0] == front)
-  {
-    lidarAttemptCount++;
-    if (lidarAttemptCount > 15)
-    {
-      // Lidar is not working, use vlx
-      usingLidar = false;
-      return;
-    }
-    rosBridge->readOnce();
-
-    // rosBridge->updateDistLidar();
-    return;
-  }
-  else
-  {
-    usingLidar = true;
-  }
-  wallDistances[0] = front;
-
-  // 19*18
-  // Update values adding constant error
-  // wallDistances[0] = front - 19 / 200.0;
-  // wallDistances[1] = back - 19 / 200.0;
-  // wallDistances[2] = left - 18 / 200.0;
-  // wallDistances[3] = right - 18 / 200.0;
-  lidarAttemptCount = 0;
-
-  logActive("Fr: " + String(wallDistances[0]), true, 0, 6);
-}
-
-void Sensors::getLidarDistances(double &front, double &back, double &left, double &right)
+void Sensors::getLidarDistances(double &front, double &right, double &back, double &left)
 {
   if (rosBridge == nullptr)
     return;
 
   front = wallDistances[0];
-  back = wallDistances[1];
-  left = wallDistances[2];
-  right = wallDistances[3];
+  right = wallDistances[1];
+  back = wallDistances[2];
+  left = wallDistances[3];
 }
 
 bool Sensors::readMotorInit()
 {
+  return true;
   int val = digitalRead(kMotorPin);
   return val == HIGH;
 }
@@ -347,9 +314,18 @@ char Sensors::getTCSInfo()
   // return tcs.getColorWithPrecision();
 }
 
-// 0 front, 1 back, 2 left, 3 right
+// 0 front, 1 right, 2 back, 3 left
 float Sensors::getDistInfo(int direction)
 {
+  if (direction < 0 && direction > 3)
+  {
+    // Serial.println("WARNING: invalid method call, invalid direction.");
+    logActive("Invalid direction", true, 0, 5, true);
+    return -1;
+  }
+  
+  usingLidar = false;
+
   // Debug using leds
   if (usingLidar)
   {
@@ -366,7 +342,6 @@ float Sensors::getDistInfo(int direction)
     usingLidar = false;
   }
 
-  usingLidar = false;
 
   if (usingLidar && rosBridge != nullptr && direction != 2 && direction != 3)
   {
@@ -387,19 +362,7 @@ float Sensors::getDistInfo(int direction)
     }
   }
 
-  switch (direction)
-  {
-  case 0:
-    return getVLXInfo(vlx_front);
-    case 1:
-    return getVLXInfo(vlx_back);
-  case 2:
-    return getVLXInfo(vlx_left);
-  case 3:
-    return getVLXInfo(vlx_right);
-  default:
-    return -1;
-  }
+  return getVLXInfo(direction);
 }
 
 void Sensors::bnoAngles(float &x, float &y, float &z)

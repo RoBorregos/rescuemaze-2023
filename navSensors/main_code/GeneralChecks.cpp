@@ -75,15 +75,21 @@ void GeneralChecks::checkSensorData(int iterations)
 
         for (int j = 0; j < iterations; j++)
         {
-            robot->sensors->printInfo(false, true, false, false);
-            delay(100);
+            float front = robot->sensors->getDistInfo(dist_front);
+            float right = robot->sensors->getDistInfo(dist_right);
+            float back = robot->sensors->getDistInfo(dist_back);
+            float left = robot->sensors->getDistInfo(dist_left);
+
+            Serial.print("Front: " + String(front));
+            Serial.print(", Right: " + String(right));
+            Serial.print(", Back: " + String(back));
+            Serial.println(", Left: " + String(left));
         }
 
         Serial.println("\n\nTCS information: \n");
         for (int i = 0; i < iterations; i++)
         {
             robot->sensors->printInfo(false, false, true, false);
-            delay(100);
         }
 
         Serial.println("Limit switches:\n");
@@ -99,8 +105,6 @@ void GeneralChecks::checkSensorData(int iterations)
             delay(200);
         }
 
-        Serial.println("Finished checking sensors.");
-
         for (int i = 0; i < iterations; i++)
         {
             if (robot->sensors->readMotorInit())
@@ -113,7 +117,9 @@ void GeneralChecks::checkSensorData(int iterations)
             }
             delay(100);
         }
+        Serial.println("Finished checking sensors.");
     }
+
     end();
 }
 
@@ -243,161 +249,13 @@ void GeneralChecks::test()
   7       Drop n Kits.                    # of kits. Use sign for direction 1 -> successful, 0 -> move aborted
   8       Update angle reference          TODO, would help to reduce error given by physical field.
   */
-    // robot->nh->loginfo("Running Test");
-
-    // double angular = 0.7;
-
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     Kinematics::output test = robot->kinematics.getRPM(0, 0, angular);
-    //     Serial.println("RPM with angular" + String(angular) + ": ");
-    //     Serial.print("Front left: ");
-    //     Serial.println(test.motor1);
-    //     Serial.print("Front right: ");
-    //     Serial.println(test.motor2);
-    //     Serial.print("Back left: ");
-    //     Serial.println(test.motor3);
-    //     Serial.print("Back right: ");
-    //     Serial.println(test.motor4);
-    //     angular += 0.1;
-    // }    
-    Serial.println("Running test");
-
-    while (true)
-    {
-        robot->sensors->printInfo(false, false, false, true);
-        //robot->sensors->printInfo(false, true, false, false);
-        // if (robot->sensors->readMotorInit())
-        // {
-        //     Serial.println("Motors are on");
-        // }
-        // else
-        // {
-        //     Serial.println("Motors are off");
-        // }
-    }
-
-    // while (true)
-    // Serial.println(robot->sensors->getDistInfo(dist_front));
-
-    /*while (true)
-    {
-        robot->handleSwitches();
-        Serial.println("Handle for limit switch finished");
-        delay(2000);
-    }*/
-
-    // robot->motor[FRONT_LEFT].motorRotateDerPID(10, 50);
-    // robot->updateAngleReference();
-    // robot->basePitch = robot->sensors->getAngleY();
-    // double pwm = 10;
 
     Serial.println("Running test");
 
     while (true)
     {
-        if (robot->sensors->readMotorInit())
-        {
-            Serial.println("Motors are on");
-        }
-        else
-        {
-            Serial.println("Motors are off v2");
-        }
+        robot->sensors->printInfo(false, false, true, false);
     }
-    while (true)
-    {
-        if (robot->sensors->readMotorInit())
-        {
-            Serial.println("Motors are on");
-        }
-        else
-        {
-            Serial.println("Motors are off");
-        }
-    }
-
-    Serial.println("Specific test");
-    robot->cmdMovement(7, 1);
-    end();
-    robot->cmdMovement(0, 1);
-    end();
-    while (true)
-    {
-        /*
-        if (robot->outOfPitch()){
-            Serial.println("Out of pitch");
-        } else {
-            Serial.println("In pitch");
-        }*/
-        robot->sensors->printInfo(false, false, false, false);
-    }
-    while (true)
-    {
-        robot->advanceXMetersVLX(0.7, 0, false);
-        end();
-        robot->cmdMovement(0, 1);
-        delay(1000);
-        robot->cmdMovement(0, 1);
-        delay(1000);
-        robot->cmdMovement(1, 1);
-        delay(1000);
-        robot->cmdMovement(0, 1);
-        delay(1000);
-        robot->cmdMovement(1, 1);
-        delay(1000);
-        robot->cmdMovement(1, 1);
-        end();
-        delay(2000);
-    }
-
-    delay(1000);
-    end();
-    robot->translationX(-0.3);
-    end();
-
-    robot->cmdMovement(3, 1);
-    // robot->updateAngleReference();
-    delay(1000);
-    robot->advanceXMeters(0.3, 1);
-    end();
-    robot->updateAngleReference();
-    delay(1000);
-    robot->advanceXMeters(0.3, 1);
-    end();
-    robot->updateAngleReference();
-
-    while (true)
-    {
-        robot->handleSwitches();
-    }
-    Serial.println("Moveng advanceX abs");
-    robot->updateAngleReference();
-    while (true)
-    {
-        robot->advanceXMeters(0.3, 1);
-        end();
-    }
-
-    end();
-
-    while (true)
-    {
-        // robot->handleSwitches();
-        robot->sensors->printInfo(false, true, false, false);
-    }
-
-    while (true)
-    {
-        robot->cmdMovement(0, 1);
-        delay(1000);
-        end();
-    }
-
-    robot->cmdMovement(0, 1);
-    delay(1000);
-    robot->cmdMovement(1, 1);
-    end();
 }
 
 void GeneralChecks::end()
@@ -405,55 +263,6 @@ void GeneralChecks::end()
     while (true)
         delay(1000);
 }
-
-/* Test ema filter
- SingleEMAFilter<float> singleEMAFilter(0.6);
-
- while (true){
-     double rawMeasure = robot->sensors->getVLXInfo(0);
-
-     // Calcular filtro
-     singleEMAFilter.AddValue(rawMeasure);
-
-     // Mostrar resultados
-     // Emplear Serial Plotter para visualización gráfica
-     Serial.print(rawMeasure);
-     Serial.print(",\t");
-     Serial.print(singleEMAFilter.GetLowPass());
-     Serial.print(",\t");
-     Serial.println(singleEMAFilter.GetHighPass());
- }
-/*
-
-Test number of revolutions given by the encoders.
-void GeneralChecks::test()
-
-{
- Plot graph(robot);
- graph.startSequence();
-
- robot->motor[1].motorBackward();
- while (true)
- {
-     robot->motor[1].setPWM(0);
-     // robot->updateStraightPID(40);
-     // robot
-     delay(50);
-     Serial.print("Front left: ");
-     Serial.print(robot->motor[0].getRevolutions());
-     Serial.print(", Back left: ");
-     Serial.print(robot->motor[1].getRevolutions());
-     Serial.print(", Front right: ");
-     Serial.print(robot->motor[2].getRevolutions());
-
-     Serial.print(", Back right: ");
-     Serial.println(robot->motor[3].getRevolutions());
-
-     // graph.plotTargetandCurrent();
-     // graph.plotPWM();
- }
-}
-*/
 
 void GeneralChecks::checkPID()
 {
@@ -520,7 +329,6 @@ void GeneralChecks::checkOled()
     // robot->sensors->screen.resetLine(2);
     end();
 
-    end();
     robot->sensors->screen.resetScreen();
     robot->sensors->logActive("Hola abajo", true, 0, 1);
     robot->sensors->logActive("Hola", true, 0, 0);

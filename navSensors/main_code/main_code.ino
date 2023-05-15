@@ -12,7 +12,8 @@
 // Macros for vlx
 #define front_vlx 0
 #define right_vlx 1
-#define left_vlx 2
+#define back_vlx 2
+#define left_vlx 3
 #define kusingROS false
 
 #define useleftvlx true
@@ -144,7 +145,7 @@ void setup()
 
   RosBridge2 rosbridge(robot, s, &bno);
   s->setRosBridge(&rosbridge); // Pass reference to update distance using lidar.
-  rosbridge.run();
+  // rosbridge.run();
 
   GeneralChecks checks(robot);
   // checks.checkWheelDirections();
@@ -155,6 +156,7 @@ void setup()
   // checks.printRevolutions();
   // checks.checkWheelSpeed();
   // checks.test();
+ 
 }
 
 int newAngle = 0;

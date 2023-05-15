@@ -166,13 +166,13 @@ void RosBridge::updateDistLidar()
 void RosBridge::publishVLX()
 {
   // VLX sensor data
-  vlx_sensor_msgs_front.range = sensors->getVLXInfo(vlx_front);
+  vlx_sensor_msgs_front.range = sensors->getVLXInfo(dist_front);
   vlx_sensor_publisher_front.publish(&vlx_sensor_msgs_front);
 
-  vlx_sensor_msgs_right.range = sensors->getVLXInfo(vlx_right);
+  vlx_sensor_msgs_right.range = sensors->getVLXInfo(dist_right);
   vlx_sensor_publisher_right.publish(&vlx_sensor_msgs_right);
 
-  // vlx_sensor_msgs_left.range = sensors->getVLXInfo(vlx_left);
+  // vlx_sensor_msgs_left.range = sensors->getVLXInfo(dist_left);
   // vlx_sensor_publisher_left.publish(&vlx_sensor_msgs_left);
 }
 

@@ -13,15 +13,10 @@
 
 // SENSOR DATA
 
-#define vlx_right 2
-#define vlx_left 1
-#define vlx_front 0
-#define vlx_back 3
-
 #define dist_front 0
-#define dist_back 1
-#define dist_left 2
-#define dist_right 3
+#define dist_back 2
+#define dist_left 3
+#define dist_right 1
 
 class RosBridge2; // Forward declaration of RosBridge
 
@@ -48,8 +43,8 @@ class Sensors
   // Each row represents the upper and lower limits for detecting a color.
   // colorThresholds[0] = {redMin, redmax, greenMin, greenMax, blueMin, blueMax}
   static constexpr int colorThresholds[colorAmount][6] = {
-      {0, 30, 0, 20, 0, 15},
-      {20, 30, 20, 25, 26, 30},
+      {0, 40, 0, 40, 0, 40},
+      {60, 100, 120, 150, 125, 175},
       {180, 240, 190, 210, 180, 210}};
 
   bool usingVLX; // Used to decide if VLX will be initialized.
@@ -70,19 +65,12 @@ class Sensors
 
   int lidarAttemptCount = 0;
 
-  int kMuxVLX = 4;
-  // Sensor Pins.
-
-  // Front is in pin 7.
-  // Right is in pin 0.
-  // Left is in pin 1.
-  /*
-  #define vlx_right 1
-  #define vlx_left 2
-  #define vlx_front 0
-*/
-  int kMuxPins[4] = {7, 0, 1, 6}; // VLX multiplexor pins
-  int kMuxTCS = {2};     // TCS multiplexor pin
+  static constexpr int kMuxVLX = 4;
+ 
+  // MUX pins
+  // front, right, back, left
+  int kMuxPins[4] = {7, 1, 6, 0}; // VLX multiplexor pins
+  int kMuxTCS = {2};  // TCS multiplexor pin
 
   // Limit Switches
   static constexpr uint8_t kDigitalPinsLimitSwitch[2] = {24, 25}; // Left, Right limit switches
@@ -92,8 +80,8 @@ class Sensors
 
 public:
   // Lidar distances
-  float wallDistances[4] = {0, 0, 0, 0}; // front, back, left, right
-  String vlxNames[3] = {"Front", "Right", "Left"};
+  float wallDistances[4] = {0, 0, 0, 0}; // front, right, back, left
+  String vlxNames[kMuxVLX] = {"Front", "Right", "Back", "Left"};
   bool usingLidar = true;
 
   // Constructor
@@ -195,9 +183,7 @@ public:
   // Print the rgbc values detected by the tcs.
   void rgbTCSClear();
 
-  void updateDistLidar(float front, float back, float left, float right);
-
-  void updateDistLidar(float front);
+  void updateDistLidar(float front, float right, float back, float left);
 
   // Prints sensor information in the serial monitor.
   // @param bno True to display bno angles.
@@ -210,7 +196,7 @@ public:
 
   void bnoPrint();
 
-  void getLidarDistances(double &front, double &back, double &left, double &right);
+  void getLidarDistances(double &front, double &right, double &back, double &left);
 
   // Reads if motors are turned on.
   bool readMotorInit();

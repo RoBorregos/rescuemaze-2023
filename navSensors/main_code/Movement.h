@@ -122,7 +122,7 @@ private:
 
   // Cmd movement constants
   // TODO: Check maximum rpms of motors in field, and in function of battery available.
-  static constexpr int kMovementRPMs = 40; // Value reduced from 100.
+  static constexpr int kMovementRPMs = 80; // Value reduced from 100.
   static constexpr int kMaxAngle = 360;
   static constexpr uint16_t kInterAngle = 180;
   static constexpr int kMinAngle = 0.0;

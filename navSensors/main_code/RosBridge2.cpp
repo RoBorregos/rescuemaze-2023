@@ -68,14 +68,9 @@ void RosBridge2::cmdMovementCallback(int move)
   state_ = response;
 }
 
-void RosBridge2::updateDistLidar(float front, float back, float left, float right)
+void RosBridge2::updateDistLidar(float front, float right, float back, float left)
 {
-  sensors_->updateDistLidar(front, back, left, right);
-}
-
-void RosBridge2::updateDistLidar(float front)
-{
-  sensors_->updateDistLidar(front);
+  sensors_->updateDistLidar(front, right, back, left);
 }
 
 void RosBridge2::advanceXMeters(float meters)
@@ -121,7 +116,7 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     {
       cmdCounter[0]++;
       // Check packet size
-      float data[] = {sensors_->getVLXInfo(vlx_front), sensors_->getVLXInfo(vlx_right), sensors_->getVLXInfo(vlx_back), sensors_->getVLXInfo(vlx_left)};
+      float data[] = {sensors_->getVLXInfo(dist_front), sensors_->getVLXInfo(dist_right), sensors_->getVLXInfo(dist_back), sensors_->getVLXInfo(dist_left)};
       writeSerial(true, (uint8_t *)data, sizeof(data));
     }
     break;
@@ -149,14 +144,14 @@ void RosBridge2::executeCommand(uint8_t packet_size, uint8_t command, uint8_t *b
     if (packet_size == 5)
     { // Check packet size
       cmdCounter[3]++;
-      float front;
+      float front, right, back, left;
       // Copy data from buffer to variables
       memcpy(&front, buffer, sizeof(front));
-      // memcpy(&right, buffer + sizeof(front), sizeof(back));
-      // memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
-      // memcpy(&back, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
-      updateDistLidar(front);
-      // updateDistLidar(front, back, left, right);
+      memcpy(&right, buffer + sizeof(front), sizeof(back));
+      memcpy(&left, buffer + sizeof(front) + sizeof(back), sizeof(left));
+      memcpy(&back, buffer + sizeof(front) + sizeof(back) + sizeof(left), sizeof(right));
+      
+      updateDistLidar(front, right, back, left);
       writeSerial(true, nullptr, 0);
     }
     break;

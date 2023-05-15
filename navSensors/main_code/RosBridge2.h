@@ -33,9 +33,7 @@ private:
     void cmdMovementCallback(int move);
 
     // Updates new distances to walls.
-    void updateDistLidar(float front, float back, float left, float right);
-
-    void updateDistLidar(float front);
+    void updateDistLidar(float front, float right, float back, float left);
 
     // Callback to disense kits.
     void callDispenser(int victims);
